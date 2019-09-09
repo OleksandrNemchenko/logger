@@ -1,0 +1,117 @@
+
+#include <functional>
+#include <iostream>
+#include <string>
+
+#include <tests.h>
+#include <avn/logger/logger_base.h>
+
+namespace {
+    class CLoggerTest : public CLoggerBase<char> {
+    public:
+        bool OutStrings(std::size_t level, std::chrono::system_clock::time_point time, TLogData &&data) override {
+            ++_calls._out_strings;
+            return true;
+        }
+
+        using CLoggerBase::AddTask;
+        using CLoggerBase::FinishTask;
+        using CLoggerBase::AddLevel;
+        using CLoggerBase::RemoveLevel;
+        using CLoggerBase::AddToLog;
+        using CLoggerBase::SetLevels;
+
+        void ClearFlags() { _calls._all_flags = 0; }
+
+        union {
+            size_t _all_flags = 0;
+            struct {
+                unsigned _out_strings : 2;
+            };
+        } _calls;
+
+    };
+
+    CLoggerTest test_log;
+    size_t errors = 0;
+
+    template<typename... T>
+    void make_step(std::function<bool()> test, T &&... descr) {
+        test_log.ClearFlags();
+        if (!test()) {
+            std::cout << "[ERROR] ";
+            (std::cout << ... << std::forward<T>(descr));
+            std::cout << std::endl;
+            ++errors;
+        }
+    };
+
+    CLoggerTest::TLogData make_item()
+    {
+        return CLoggerTest::TLogData{{'f', 'v'}};
+    };
+
+    void test_without_task(void) {
+
+        make_step([&]()
+            {
+                return !test_log.AddToLog(1, make_item()) && !test_log._calls._out_strings;
+            },
+        "Incorrect TryToLog call");
+
+        make_step([&]() {
+            test_log.AddLevel(1);
+            test_log.AddLevel(2);
+            test_log.RemoveLevel(2);
+            test_log.RemoveLevel(3);
+            return test_log.AddToLog(1, make_item()) &&
+                    !test_log.AddToLog(2, make_item()) &&
+                    test_log._calls._out_strings == 1;
+            },
+            "Incorrect InitOutputLevel and TryToLog calls");
+
+        make_step([&]() {
+                      test_log.SetLevels({1, 3});
+                      test_log.AddTask();
+                      test_log.AddToLog(1, make_item());
+                      test_log.AddToLog(2, make_item());
+                      test_log.AddToLog(3, make_item());
+                      test_log.FinishTask(true);
+                      return test_log._calls._out_strings == 2;
+                  },
+                  "Incorrect InitOutputLevel and TryToLog calls");
+    }
+
+    void test_task(void) {
+
+        make_step([&]() {
+                      test_log.SetLevels({1, 3});
+                      test_log.AddTask();
+                      test_log.AddToLog(1, make_item());
+                      test_log.AddToLog(2, make_item());
+                      test_log.AddToLog(3, make_item());
+                      test_log.FinishTask(true);
+                      return test_log._calls._out_strings == 2;
+                  },
+                  "Incorrect InitOutputLevel and TryToLog calls");
+    }
+}   // namespace
+
+size_t test_logger_base(void){
+
+////  Errors :
+//  CLoggerTest test2 = test_log;
+//  auto ma = [test_log](){};
+
+    std::cout << "START test_base" << std::endl;
+
+    test_without_task();
+    test_task();
+
+    if(errors)
+        std::cout << "UNSUCCESSFULLY finish test_base with " << errors << " errors" << std::endl;
+    else
+        std::cout << "SUCCESSFULLY finish test_base" << std::endl;
+
+    return errors;
+}
