@@ -18,7 +18,6 @@ public:
 
 public:
     class CTask{
-        friend class CLoggerBase;
     public:
         CTask(CLoggerBase &logger): _logger(logger), _out_levels(logger.GetLevels()) { }
         CTask(const CTask&) = delete;
@@ -27,7 +26,6 @@ public:
         void Flush(bool success);
         void AddToLog(std::size_t level, TLogData &&data, std::chrono::system_clock::time_point time);
 
-    protected:
         void InitLevel(std::size_t level, bool to_output);
         void AddLevel(std::size_t level)    { InitLevel(level, true); }
         void SetLevels(TLevels levels)      { _out_levels = levels; }
@@ -66,6 +64,7 @@ protected:
     void SetLevels(TLevels levels)      { _out_levels = levels; }
     bool ForceAddToLog(std::size_t level, TLogData &&data, std::chrono::system_clock::time_point time = std::chrono::system_clock::now());
     bool AddToLog(std::size_t level, TLogData &&data, std::chrono::system_clock::time_point time = std::chrono::system_clock::now());
+    
     virtual bool OutStrings(std::size_t level, std::chrono::system_clock::time_point time, TLogData &&data ) = 0;
 
 private:
