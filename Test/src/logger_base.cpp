@@ -2,6 +2,7 @@
 #include <functional>
 #include <iostream>
 #include <string>
+#include <thread>
 
 #include <tests.h>
 #include <avn/logger/logger_base.h>
@@ -26,7 +27,7 @@ namespace {
         union {
             size_t _all_flags = 0;
             struct {
-                unsigned _out_strings : 2;
+                unsigned _out_strings : 3;
             };
         } _calls;
 
@@ -53,7 +54,7 @@ namespace {
 
     void test_without_task(void) {
 
-        make_step([&]()
+        make_step([]()
             {
                 return !test_log.AddToLog(1, make_item()) && !test_log._calls._out_strings;
             },
@@ -70,7 +71,7 @@ namespace {
             },
             "Incorrect InitOutputLevel and TryToLog calls");
 
-        make_step([&]() {
+        make_step([]() {
                       test_log.SetLevels({1, 3});
                       test_log.AddTask();
                       test_log.AddToLog(1, make_item());
@@ -84,7 +85,7 @@ namespace {
 
     void test_task(void) {
 
-        make_step([&]() {
+        make_step([]() {
                       test_log.SetLevels({1, 3});
                       test_log.AddTask();
                       test_log.AddToLog(1, make_item());
@@ -94,6 +95,21 @@ namespace {
                       return test_log._calls._out_strings == 2;
                   },
                   "Incorrect InitOutputLevel and TryToLog calls");
+
+        make_step([]() {
+            auto task_step = [](){
+                test_log.AddTask({2});
+                test_log.AddToLog(1, make_item());
+                test_log.AddToLog(2, make_item());
+                test_log.AddToLog(3, make_item());
+                test_log.FinishTask(false);
+            };
+            test_log.SetLevels({1, 2, 3});
+            std::thread another(task_step);
+            another.join();
+            return test_log._calls._out_strings == 3;
+        },
+                "Unable to process different logging level for different threads with unsuccessful finish");
     }
 }   // namespace
 
