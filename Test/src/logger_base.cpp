@@ -8,7 +8,7 @@
 #include <avn/logger/logger_base.h>
 
 namespace {
-    class CLoggerTest : public CLoggerBase<char> {
+class CLoggerTest : public Logger::CLoggerBase<char> {
     public:
         bool OutStrings(std::size_t level, std::chrono::system_clock::time_point time, TLogData &&data) override {
             ++_calls._out_strings;
