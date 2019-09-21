@@ -17,8 +17,8 @@ class CLoggerTest : public Logger::CLoggerBase<char> {
 
         using CLoggerBase::AddTask;
         using CLoggerBase::FinishTask;
-        using CLoggerBase::AddLevel;
-        using CLoggerBase::RemoveLevel;
+        using CLoggerBase::OnLevel;
+        using CLoggerBase::OffLevel;
         using CLoggerBase::AddToLog;
         using CLoggerBase::SetLevels;
 
@@ -61,10 +61,10 @@ class CLoggerTest : public Logger::CLoggerBase<char> {
         "Incorrect TryToLog call");
 
         make_step([&]() {
-            test_log.AddLevel(1);
-            test_log.AddLevel(2);
-            test_log.RemoveLevel(2);
-            test_log.RemoveLevel(3);
+            test_log.OnLevel(1);
+            test_log.OnLevel(2);
+            test_log.OffLevel(2);
+            test_log.OffLevel(3);
             return test_log.AddToLog(1, make_item()) &&
                     !test_log.AddToLog(2, make_item()) &&
                     test_log._calls._out_strings == 1;
@@ -117,7 +117,6 @@ size_t test_logger_base(void){
 
 ////  Errors :
 //  CLoggerTest test2 = test_log;
-//  auto ma = [test_log](){};
 
     std::cout << "START test_base" << std::endl;
 

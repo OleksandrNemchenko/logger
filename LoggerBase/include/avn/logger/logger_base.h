@@ -31,12 +31,9 @@ namespace Logger {
             void AddToLog(std::size_t level, TLogData &&data, std::chrono::system_clock::time_point time);
 
             void InitLevel(std::size_t level, bool to_output);
-
-            void AddLevel(std::size_t level) { InitLevel(level, true); }
-
             void SetLevels(TLevels levels) { _out_levels = levels; }
-
-            void RemoveLevel(std::size_t level) { InitLevel(level, false); }
+            void OnLevel(std::size_t level) { InitLevel(level, true); }
+            void OffLevel(std::size_t level) { InitLevel(level, false); }
 
         private:
             struct SLogEntry {
@@ -72,12 +69,9 @@ namespace Logger {
         void FinishTask(bool success);
 
         void InitLevel(std::size_t level, bool to_output);
-
-        void AddLevel(std::size_t level) { InitLevel(level, true); }
-
-        void RemoveLevel(std::size_t level) { InitLevel(level, false); }
-
-        void SetLevels(TLevels levels) { _out_levels = levels; }
+        void OnLevel(std::size_t level)  { InitLevel(level, true); }
+        void OffLevel(std::size_t level) { InitLevel(level, false); }
+        void SetLevels(TLevels levels)   { _out_levels = levels; }
 
         bool ForceAddToLog(std::size_t level, TLogData &&data,
                            std::chrono::system_clock::time_point time = std::chrono::system_clock::now());

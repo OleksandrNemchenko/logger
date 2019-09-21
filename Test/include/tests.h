@@ -4,6 +4,5 @@
 
 #pragma once
 
-#include <cstddef>
-
 size_t test_logger_base(void);
+size_t test_logger_txt(void);
