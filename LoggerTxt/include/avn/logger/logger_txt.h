@@ -19,15 +19,16 @@ public:
     using TLogData = typename TBase::TLogData;
     using TLevels = typename TBase::TLevels;
 
-    CLoggerTxtBase( bool local_time = true, TString &&output_format = TString{"%F %T"}, TString &&level_prefix = TString{"["}, TString &&level_postfix = TString{"]"} );
-    CLoggerTxtBase( const std::filesystem::path &filename, bool local_time = true, std::ios_base::openmode mode = std::ios_base::out, TString &&output_format = TString{"%F %T"}, TString &&level_prefix = TString{"["}, TString &&level_postfix = TString{"]"} ) :
-        CLoggerTxtBase( local_time, std::forward<TString>(output_format), std::forward<TString>(level_prefix), std::forward<TString>(level_postfix) )
+    CLoggerTxtBase( bool local_time = true );
+    CLoggerTxtBase( const std::filesystem::path &filename, bool local_time = true, std::ios_base::openmode mode = std::ios_base::out ) :
+        CLoggerTxtBase( local_time )
     { OpenFile( filename, mode ); }
 
     CLoggerTxtBase& OpenFile( const std::filesystem::path &filename, std::ios_base::openmode mode = std::ios_base::out )    { _fstream.open( filename, mode ); return *this; }
-    bool IsOpenedFile( void ) const     { return _fstream.is_open(); }
+    bool IsOpenedFile( void ) const                                 { return _fstream.is_open(); }
     CLoggerTxtBase& CloseFile( const std::filesystem::path &filename, std::ios_base::openmode mode = std::ios_base::out )    { _fstream.close(); return *this; }
-    CLoggerTxtBase& FlushFile( void )   { _fstream.flush(); return *this; }
+    CLoggerTxtBase& FlushFile( void )                               { _fstream.flush(); return *this; }
+    CLoggerTxtBase& Imbue( const std::locale& loc )                 { _fstream.imbue( loc ); return *this; }
 
     CLoggerTxtBase& AddLevelDescr( size_t level, TString &&name )   { _levels[level] = std::forward<TString>( name ); return *this; }
     CLoggerTxtBase& InitLevel( std::size_t level, bool to_output )  { TBase::InitLevel( level, to_output ); return *this; }
@@ -36,6 +37,11 @@ public:
     CLoggerTxtBase& OffLevel( std::size_t level )                   { TBase::OffLevel( level );             return *this; }
 
     CLoggerTxtBase& AddToLog( std::size_t level, TLogData &&data, std::chrono::system_clock::time_point time = std::chrono::system_clock::now() );
+
+    CLoggerTxtBase& SetDateOutputFormat( TString &&output_format )  { _output_format = std::forward<TString>( output_format ); return *this; }
+    CLoggerTxtBase& SetLevelPrefix( TString &&level_prefix )        { _level_prefix  = std::forward<TString>( level_prefix );  return *this; }
+    CLoggerTxtBase& SetLevelPostfix( TString &&level_postfix )      { _level_postfix = std::forward<TString>( level_postfix ); return *this; }
+    CLoggerTxtBase& SetSpace( TString &&space )                     { _space         = std::forward<TString>( space );         return *this; }
 
 private:
 
@@ -47,31 +53,38 @@ private:
     TString _output_format;
     TString _level_prefix;
     TString _level_postfix;
+    TString _space;
+
+public:
+    static TString _default_output_format;
+    static TString _default_level_prefix;
+    static TString _default_level_postfix;
+    static TString _default_space;
 
 };
 
 template<typename TChar>
-CLoggerTxtBase<TChar>::CLoggerTxtBase( bool local_time, TString &&output_format, TString &&level_prefix, TString &&level_postfix ):
+CLoggerTxtBase<TChar>::CLoggerTxtBase( bool local_time ):
     _time_converter( local_time ? std::localtime : std::gmtime ),
-    _output_format( std::forward<TString>( output_format )),
-    _level_prefix( std::forward<TString>( level_prefix )),
-    _level_postfix( std::forward<TString>( level_postfix ))
+    _output_format( _default_output_format ),
+    _level_prefix(  _default_level_prefix  ),
+    _level_postfix( _default_level_postfix ),
+    _space(         _default_space )
     { }
 
 template<typename TChar>
 bool CLoggerTxtBase<TChar>::OutStrings( std::size_t level, std::chrono::system_clock::time_point time, TLogData &&data ){
     const auto level_it = _levels.find(level);
-    static const auto space = TString( " " );
 
     assert( _fstream.is_open() && level_it != _levels.cend() );
 
     if( _fstream.is_open() ){
         std::time_t time_moment = std::chrono::system_clock::to_time_t( time );
-        _fstream << std::put_time(_time_converter( &time_moment ), _output_format.c_str() ) <<
-                 space << _level_prefix << level_it->second << _level_postfix;
+        _fstream << std::put_time(_time_converter( &time_moment ), _output_format.c_str() );
+        _fstream << _space << _level_prefix << level_it->second << _level_postfix;
 
         for( const auto &item : std::forward<TLogData>( data ))
-            _fstream << space << item;
+            _fstream << _space << item;
 
         _fstream << std::endl;
 
@@ -88,6 +101,15 @@ CLoggerTxtBase<TChar>& CLoggerTxtBase<TChar>::AddToLog( std::size_t level, TLogD
 }
 
 using CLoggerTxt = CLoggerTxtBase<char>;
+template<> std::basic_string<char> CLoggerTxt::_default_output_format{ "%F %T" };
+template<> std::basic_string<char> CLoggerTxt::_default_level_prefix { "[" };
+template<> std::basic_string<char> CLoggerTxt::_default_level_postfix{ "]" };
+template<> std::basic_string<char> CLoggerTxt::_default_space        { " " };
+
 using CLoggerWTxt = CLoggerTxtBase<wchar_t>;
+template<> std::basic_string<wchar_t> CLoggerWTxt::_default_output_format{ L"%F %T" };
+template<> std::basic_string<wchar_t> CLoggerWTxt::_default_level_prefix { L"[" };
+template<> std::basic_string<wchar_t> CLoggerWTxt::_default_level_postfix{ L"]" };
+template<> std::basic_string<wchar_t> CLoggerWTxt::_default_space        { L" " };
 
 } // namespace Logger
