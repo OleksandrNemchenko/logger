@@ -18,7 +18,7 @@ size_t test_logger_txt( void ){
     log.Imbue( utf8_locale );
     log.AddLevelDescr( 0, L"TEST-0" );
     log.OnLevel( 0 );
-    log.AddToLog( 0, { L"test"s, L"string"s, L"ором мы в понедельник говорили"s } );
+    log.AddToLog( 0, L"test string"s );
 
     return 0;
 }

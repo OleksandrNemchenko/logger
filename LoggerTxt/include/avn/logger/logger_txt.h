@@ -16,7 +16,6 @@ class CLoggerTxtBase : public CLoggerBase<std::basic_string<TChar>> {
 public:
     using TBase = CLoggerBase<std::basic_string<TChar>>;
     using TString = std::basic_string<TChar>;
-    using TLogData = typename TBase::TLogData;
     using TLevels = typename TBase::TLevels;
 
     CLoggerTxtBase( bool local_time = true );
@@ -36,7 +35,7 @@ public:
     CLoggerTxtBase& SetLevels( TLevels levels )                     { TBase::SetLevels( levels );           return *this; }
     CLoggerTxtBase& OffLevel( std::size_t level )                   { TBase::OffLevel( level );             return *this; }
 
-    CLoggerTxtBase& AddToLog( std::size_t level, TLogData &&data, std::chrono::system_clock::time_point time = std::chrono::system_clock::now() );
+    CLoggerTxtBase& AddToLog( std::size_t level, TString &&data, std::chrono::system_clock::time_point time = std::chrono::system_clock::now() );
 
     CLoggerTxtBase& SetDateOutputFormat( TString &&output_format )  { _output_format = std::forward<TString>( output_format ); return *this; }
     CLoggerTxtBase& SetLevelPrefix( TString &&level_prefix )        { _level_prefix  = std::forward<TString>( level_prefix );  return *this; }
@@ -45,7 +44,7 @@ public:
 
 private:
 
-    bool OutStrings( std::size_t level, std::chrono::system_clock::time_point time, TLogData &&data ) override final;
+    bool OutStrings( std::size_t level, std::chrono::system_clock::time_point time, TString &&data ) override final;
 
     std::basic_ofstream<TChar> _fstream;
     std::unordered_map<size_t, TString> _levels;
@@ -73,7 +72,7 @@ CLoggerTxtBase<TChar>::CLoggerTxtBase( bool local_time ):
     { }
 
 template<typename TChar>
-bool CLoggerTxtBase<TChar>::OutStrings( std::size_t level, std::chrono::system_clock::time_point time, TLogData &&data ){
+bool CLoggerTxtBase<TChar>::OutStrings( std::size_t level, std::chrono::system_clock::time_point time, TString &&data ){
     const auto level_it = _levels.find(level);
 
     assert( _fstream.is_open() && level_it != _levels.cend() );
@@ -83,7 +82,7 @@ bool CLoggerTxtBase<TChar>::OutStrings( std::size_t level, std::chrono::system_c
         _fstream << std::put_time(_time_converter( &time_moment ), _output_format.c_str() );
         _fstream << _space << _level_prefix << level_it->second << _level_postfix;
 
-        for( const auto &item : std::forward<TLogData>( data ))
+        for( const auto &item : std::forward<TString>( data ))
             _fstream << _space << item;
 
         _fstream << std::endl;
@@ -95,8 +94,8 @@ bool CLoggerTxtBase<TChar>::OutStrings( std::size_t level, std::chrono::system_c
 }
 
 template<typename TChar>
-CLoggerTxtBase<TChar>& CLoggerTxtBase<TChar>::AddToLog( std::size_t level, TLogData &&data, std::chrono::system_clock::time_point time ) {
-    TBase::AddToLog( level, std::forward<TLogData>( data ), time );
+CLoggerTxtBase<TChar>& CLoggerTxtBase<TChar>::AddToLog( std::size_t level, TString &&data, std::chrono::system_clock::time_point time ) {
+    TBase::AddToLog( level, std::forward<TString>( data ), time );
     return *this;
 }
 

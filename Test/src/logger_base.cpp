@@ -10,7 +10,7 @@
 namespace {
 class CLoggerTest : public Logger::CLoggerBase<char> {
     public:
-        bool OutStrings(std::size_t level, std::chrono::system_clock::time_point time, TLogData &&data) override {
+        bool OutStrings(std::size_t level, std::chrono::system_clock::time_point time, char &&data) override {
             ++_calls._out_strings;
             return true;
         }
@@ -47,10 +47,7 @@ class CLoggerTest : public Logger::CLoggerBase<char> {
         }
     };
 
-    CLoggerTest::TLogData make_item()
-    {
-        return CLoggerTest::TLogData{{'f', 'v'}};
-    };
+    char make_item(){ return 'v'; };
 
     void test_without_task(void) {
 
