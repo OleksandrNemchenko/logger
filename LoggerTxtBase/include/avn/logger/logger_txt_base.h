@@ -1,11 +1,8 @@
 
-#pragma once
+#ifndef _AVN_LOGGER_TXT_BASE_H_
+#define _AVN_LOGGER_TXT_BASE_H_
 
-#include <ctime>
-#include <functional>
-#include <fstream>
-#include <iomanip>
-#include <string>
+#include <sstream>
 
 #include <avn/logger/logger_base.h>
 
@@ -17,37 +14,34 @@ public:
     using TBase = CLoggerBase<std::basic_string<TChar>>;
     using TString = std::basic_string<TChar>;
     using TLevels = typename TBase::TLevels;
+    using TLevelsMap = std::unordered_map<size_t, TString>;
 
     CLoggerTxtBase( bool local_time = true );
-    CLoggerTxtBase( const std::filesystem::path &filename, bool local_time = true, std::ios_base::openmode mode = std::ios_base::out ) :
-        CLoggerTxtBase( local_time )
-    { OpenFile( filename, mode ); }
-
-    CLoggerTxtBase& OpenFile( const std::filesystem::path &filename, std::ios_base::openmode mode = std::ios_base::out )    { _fstream.open( filename, mode ); return *this; }
-    bool IsOpenedFile( void ) const                                 { return _fstream.is_open(); }
-    CLoggerTxtBase& CloseFile( const std::filesystem::path &filename, std::ios_base::openmode mode = std::ios_base::out )    { _fstream.close(); return *this; }
-    CLoggerTxtBase& FlushFile( void )                               { _fstream.flush(); return *this; }
-    CLoggerTxtBase& Imbue( const std::locale& loc )                 { _fstream.imbue( loc ); return *this; }
 
     CLoggerTxtBase& AddLevelDescr( size_t level, TString &&name )   { _levels[level] = std::forward<TString>( name ); return *this; }
     CLoggerTxtBase& InitLevel( std::size_t level, bool to_output )  { TBase::InitLevel( level, to_output ); return *this; }
     CLoggerTxtBase& OnLevel( std::size_t level )                    { TBase::OnLevel( level );              return *this; }
     CLoggerTxtBase& SetLevels( TLevels levels )                     { TBase::SetLevels( levels );           return *this; }
     CLoggerTxtBase& OffLevel( std::size_t level )                   { TBase::OffLevel( level );             return *this; }
+    const TLevelsMap& Levels() const                                { return _levels; }
 
-    CLoggerTxtBase& AddToLog( std::size_t level, TString &&data, std::chrono::system_clock::time_point time = std::chrono::system_clock::now() );
+    template<typename... T>
+    CLoggerTxtBase& AddString( std::size_t level, T&&... args);
+
+    template<typename... T>
+    CLoggerTxtBase& AddString( std::chrono::system_clock::time_point time, std::size_t level, T&&... args );
 
     CLoggerTxtBase& SetDateOutputFormat( TString &&output_format )  { _output_format = std::forward<TString>( output_format ); return *this; }
     CLoggerTxtBase& SetLevelPrefix( TString &&level_prefix )        { _level_prefix  = std::forward<TString>( level_prefix );  return *this; }
     CLoggerTxtBase& SetLevelPostfix( TString &&level_postfix )      { _level_postfix = std::forward<TString>( level_postfix ); return *this; }
     CLoggerTxtBase& SetSpace( TString &&space )                     { _space         = std::forward<TString>( space );         return *this; }
 
+protected:
+    TString PrepareString( std::size_t level, std::chrono::system_clock::time_point time, TString &&data ) const;
+
 private:
 
-    bool OutStrings( std::size_t level, std::chrono::system_clock::time_point time, TString &&data ) override final;
-
-    std::basic_ofstream<TChar> _fstream;
-    std::unordered_map<size_t, TString> _levels;
+    TLevelsMap _levels;
     std::function<std::tm* ( const std::time_t* )> _time_converter;
     TString _output_format;
     TString _level_prefix;
@@ -72,31 +66,33 @@ CLoggerTxtBase<TChar>::CLoggerTxtBase( bool local_time ):
     { }
 
 template<typename TChar>
-bool CLoggerTxtBase<TChar>::OutStrings( std::size_t level, std::chrono::system_clock::time_point time, TString &&data ){
-    const auto level_it = _levels.find(level);
-
-    assert( _fstream.is_open() && level_it != _levels.cend() );
-
-    if( _fstream.is_open() ){
-        std::time_t time_moment = std::chrono::system_clock::to_time_t( time );
-        _fstream << std::put_time(_time_converter( &time_moment ), _output_format.c_str() );
-        _fstream << _space << _level_prefix << level_it->second << _level_postfix;
-
-        for( const auto &item : std::forward<TString>( data ))
-            _fstream << _space << item;
-
-        _fstream << std::endl;
-
-        return true;
-    }
-
-    return false;
+template<typename... T>
+CLoggerTxtBase<TChar>& CLoggerTxtBase<TChar>::AddString( std::chrono::system_clock::time_point time, std::size_t level, T&&... args ) {
+    std::basic_stringstream<TChar> stream;
+    ( stream << ... << std::forward<T>(args) );
+    TBase::AddToLog( level, stream.str(), time );
+    return *this;
 }
 
 template<typename TChar>
-CLoggerTxtBase<TChar>& CLoggerTxtBase<TChar>::AddToLog( std::size_t level, TString &&data, std::chrono::system_clock::time_point time ) {
-    TBase::AddToLog( level, std::forward<TString>( data ), time );
-    return *this;
+template<typename... T>
+CLoggerTxtBase<TChar>& CLoggerTxtBase<TChar>::AddString( std::size_t level, T&&... args ) {
+    return AddString( std::chrono::system_clock::now(), level, args... );
+}
+
+template<typename TChar>
+typename CLoggerTxtBase<TChar>::TString CLoggerTxtBase<TChar>::PrepareString( std::size_t level, std::chrono::system_clock::time_point time, TString &&data ) const {
+    const auto level_it = _levels.find(level);
+    TString str;
+
+    assert( level_it != _levels.cend() );
+
+    std::time_t time_moment = std::chrono::system_clock::to_time_t( time );
+    std::basic_stringstream<TChar> sstr;
+    sstr << std::put_time(_time_converter( &time_moment ), _output_format.c_str() );
+    str = sstr.str() + _space + _level_prefix + level_it->second + _level_postfix + _space + std::forward<TString>( data );
+
+    return str;
 }
 
 using CLoggerTxt = CLoggerTxtBase<char>;
@@ -112,3 +108,5 @@ template<> std::basic_string<wchar_t> CLoggerWTxt::_default_level_postfix{ L"]" 
 template<> std::basic_string<wchar_t> CLoggerWTxt::_default_space        { L" " };
 
 } // namespace Logger
+
+#endif  // _AVN_LOGGER_TXT_BASE_H_

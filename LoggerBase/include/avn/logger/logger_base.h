@@ -1,11 +1,11 @@
 
-#pragma once
+#ifndef _AVN_LOGGER_BASE_H_
+#define _AVN_LOGGER_BASE_H_
 
 #include <chrono>
 #include <set>
 #include <thread>
 #include <unordered_map>
-#include <utility>
 #include <vector>
 
 namespace Logger {
@@ -160,3 +160,5 @@ namespace Logger {
     }
 
 } // namespace Logger
+
+#endif  // _AVN_LOGGER_BASE_H_

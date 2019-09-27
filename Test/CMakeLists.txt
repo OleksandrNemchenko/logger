@@ -15,7 +15,7 @@ target_sources(test_logger
         PRIVATE
         main.cpp
         src/logger_base.cpp
-        src/logger_txt.cpp
+        src/logger_txt_file.cpp
         )
 
 target_include_directories(test_logger
@@ -26,5 +26,6 @@ target_include_directories(test_logger
 target_link_libraries(test_logger
         PUBLIC
         logger_base
-        logger_txt
+        logger_txt_base
+        logger_txt_file
         )
