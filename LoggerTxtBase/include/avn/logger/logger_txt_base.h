@@ -50,20 +50,20 @@ private:
     TString _space;
 
 public:
-    static TString& DefaultOutputFormat();
-    static TString& DefaultLevelPrefix();
-    static TString& DefaultLevelPostfix();
-    static TString& DefaultSpace();
+    static TString _default_output_format;
+    static TString _default_level_prefix;
+    static TString _default_level_postfix;
+    static TString _default_space;
 
 };
 
 template<typename TChar>
 CLoggerTxtBase<TChar>::CLoggerTxtBase( bool local_time ):
     _time_converter( local_time ? std::localtime : std::gmtime ),
-    _output_format( DefaultOutputFormat() ),
-    _level_prefix(  DefaultLevelPrefix()  ),
-    _level_postfix( DefaultLevelPostfix() ),
-    _space(         DefaultSpace() )
+    _output_format( _default_output_format ),
+    _level_prefix(  _default_level_prefix  ),
+    _level_postfix( _default_level_postfix ),
+    _space(         _default_space )
     { }
 
 template<typename TChar>
@@ -99,16 +99,16 @@ typename CLoggerTxtBase<TChar>::TString CLoggerTxtBase<TChar>::PrepareString( st
 }
 
 using CLoggerTxt = CLoggerTxtBase<char>;
-template<> inline std::string& CLoggerTxt::DefaultOutputFormat()  { static std::string default_output_format{ "%F %T" };   return default_output_format; };
-template<> inline std::string& CLoggerTxt::DefaultLevelPrefix()   { static std::string default_level_prefix{  "[" };       return default_level_prefix; };
-template<> inline std::string& CLoggerTxt::DefaultLevelPostfix()  { static std::string default_level_postfix{ "]" };       return default_level_postfix; };
-template<> inline std::string& CLoggerTxt::DefaultSpace()         { static std::string default_space{         " " };       return default_space; };
+template<> inline std::string CLoggerTxt::_default_output_format{ "%F %T" };
+template<> inline std::string CLoggerTxt::_default_level_prefix { "[" };
+template<> inline std::string CLoggerTxt::_default_level_postfix{ "]" };
+template<> inline std::string CLoggerTxt::_default_space        { " " };
 
 using CLoggerWTxt = CLoggerTxtBase<wchar_t>;
-template<> inline std::wstring& CLoggerWTxt::DefaultOutputFormat(){ static std::wstring default_output_format{ L"%F %T" }; return default_output_format; };
-template<> inline std::wstring& CLoggerWTxt::DefaultLevelPrefix() { static std::wstring default_level_prefix{  L"[" };     return default_level_prefix; };
-template<> inline std::wstring& CLoggerWTxt::DefaultLevelPostfix(){ static std::wstring default_level_postfix{ L"]" };     return default_level_postfix; };
-template<> inline std::wstring& CLoggerWTxt::DefaultSpace()       { static std::wstring default_space{         L" " };     return default_space; };
+template<> inline std::wstring CLoggerWTxt::_default_output_format{ L"%F %T" };
+template<> inline std::wstring CLoggerWTxt::_default_level_prefix { L"[" };
+template<> inline std::wstring CLoggerWTxt::_default_level_postfix{ L"]" };
+template<> inline std::wstring CLoggerWTxt::_default_space        { L" " };
 
 } // namespace Logger
 

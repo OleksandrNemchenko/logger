@@ -12,6 +12,8 @@ size_t test_logger_txt_file( void ){
 
     using namespace std;
 
+    std::cout << "START test_txt_file" << std::endl;
+
     Logger::CLoggerTxtFile<wchar_t> log( L"/tmp/test.txt"s );
     const std::locale utf8_locale = locale(locale(), new codecvt_utf8<wchar_t>());
 
