@@ -2,6 +2,7 @@
 #ifndef _AVN_LOGGER_TXT_BASE_H_
 #define _AVN_LOGGER_TXT_BASE_H_
 
+#include <iomanip>
 #include <sstream>
 
 #include <avn/logger/logger_base.h>

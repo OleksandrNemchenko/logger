@@ -6,16 +6,14 @@
 #include <codecvt>
 
 #include <tests.h>
-#include <avn/logger/logger_txt_file.h>
+#include <avn/logger/logger_txt_cout.h>
 
-size_t test_logger_txt_file( void ){
+size_t test_logger_txt_cout( void ){
 
     using namespace std;
 
-    Logger::CLoggerTxtFile<wchar_t> log( L"/tmp/test.txt"s );
-    const std::locale utf8_locale = locale(locale(), new codecvt_utf8<wchar_t>());
+    Logger::CLoggerTxtCout<wchar_t> log;
 
-    log.Imbue( utf8_locale );
     log.AddLevelDescr( 0, L"TEST-0" );
     log.OnLevel( 0 );
     log.AddString( 0, L"This is test string : integer = ", 10 );

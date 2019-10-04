@@ -155,7 +155,11 @@ namespace Logger {
     template<typename TLogData>
     bool CLoggerBase<TLogData>::AddToLog(std::size_t level, TLogData &&data,
                                          std::chrono::system_clock::time_point time /* = std::chrono::system_clock::now() */ ) {
-        if( ToBeAdded(level) )
+        if (auto task = _tasks.find(std::this_thread::get_id()); task != _tasks.end()) {
+            task->second.AddToLog(level, std::forward<TLogData>(data), time);
+            return true;
+        }
+        else if( ToBeAdded(level) )
             return OutStrings(level, time, std::forward<TLogData>(data));
         else
             return false;
