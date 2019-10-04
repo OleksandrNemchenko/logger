@@ -68,6 +68,8 @@ CLoggerTxtBase<TChar>::CLoggerTxtBase( bool local_time ):
 template<typename TChar>
 template<typename... T>
 CLoggerTxtBase<TChar>& CLoggerTxtBase<TChar>::AddString( std::chrono::system_clock::time_point time, std::size_t level, T&&... args ) {
+    if( !TBase::ToBeAdded(level) )
+        return *this;
     std::basic_stringstream<TChar> stream;
     ( stream << ... << std::forward<T>(args) );
     TBase::AddToLog( level, stream.str(), time );

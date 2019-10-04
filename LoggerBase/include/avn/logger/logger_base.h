@@ -71,6 +71,7 @@ namespace Logger {
         void OnLevel(std::size_t level)  { InitLevel(level, true); }
         void OffLevel(std::size_t level) { InitLevel(level, false); }
         void SetLevels(TLevels levels)   { _out_levels = levels; }
+        bool ToBeAdded(std::size_t level) const;
 
         bool ForceAddToLog(std::size_t level, TLogData &&data,
                            std::chrono::system_clock::time_point time = std::chrono::system_clock::now());
@@ -140,17 +141,24 @@ namespace Logger {
     }
 
     template<typename TLogData>
-    bool CLoggerBase<TLogData>::AddToLog(std::size_t level, TLogData &&data,
-                                     std::chrono::system_clock::time_point time /* = std::chrono::system_clock::now() */ ) {
+    bool CLoggerBase<TLogData>::ToBeAdded(std::size_t level) const {
         if (auto task = _tasks.find(std::this_thread::get_id()); task != _tasks.end()) {
-            task->second.AddToLog(level, std::forward<TLogData>(data), time);
             return true;
         } else {
             if (_out_levels.count(level) > 0)
-                return OutStrings(level, time, std::forward<TLogData>(data));
+                return true;
             else
                 return false;
         }
+    }
+
+    template<typename TLogData>
+    bool CLoggerBase<TLogData>::AddToLog(std::size_t level, TLogData &&data,
+                                         std::chrono::system_clock::time_point time /* = std::chrono::system_clock::now() */ ) {
+        if( ToBeAdded(level) )
+            return OutStrings(level, time, std::forward<TLogData>(data));
+        else
+            return false;
     }
 
     template<typename TLogData>
