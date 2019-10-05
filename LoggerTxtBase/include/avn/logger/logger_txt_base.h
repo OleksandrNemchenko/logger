@@ -19,7 +19,7 @@ public:
 
     CLoggerTxtBase( bool local_time = true );
 
-    CLoggerTxtBase& AddLevelDescr( size_t level, TString &&name )   { _levels[level] = std::forward<TString>( name ); return *this; }
+    CLoggerTxtBase& AddLevelDescr( size_t level, TString name )     { _levels[level] = std::forward<TString>( name ); return *this; }
     CLoggerTxtBase& InitLevel( std::size_t level, bool to_output )  { TBase::InitLevel( level, to_output ); return *this; }
     CLoggerTxtBase& OnLevel( std::size_t level )                    { TBase::OnLevel( level );              return *this; }
     CLoggerTxtBase& SetLevels( TLevels levels )                     { TBase::SetLevels( levels );           return *this; }
@@ -36,6 +36,13 @@ public:
     CLoggerTxtBase& SetLevelPrefix( TString &&level_prefix )        { _level_prefix  = std::forward<TString>( level_prefix );  return *this; }
     CLoggerTxtBase& SetLevelPostfix( TString &&level_postfix )      { _level_postfix = std::forward<TString>( level_postfix ); return *this; }
     CLoggerTxtBase& SetSpace( TString &&space )                     { _space         = std::forward<TString>( space );         return *this; }
+
+
+    template<typename... T>
+    CLoggerTxtBase& operator() ( std::size_t level, T&&... args )    { return AddString( level, args... ); }
+
+    template<typename... T>
+    CLoggerTxtBase& operator() ( std::chrono::system_clock::time_point time, std::size_t level, T&&... args )    { return AddString( time, level, args... ); }
 
 protected:
     TString PrepareString( std::size_t level, std::chrono::system_clock::time_point time, TString &&data ) const;

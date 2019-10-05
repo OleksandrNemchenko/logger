@@ -31,8 +31,8 @@ bool CLoggerTxtCout<TChar>::OutStrings( std::size_t level, std::chrono::system_c
     return true;
 }
 
-template<> std::basic_ostream<char>    &CLoggerTxtCout<char>::OutStream(void)    { return std::cout; }
-template<> std::basic_ostream<wchar_t> &CLoggerTxtCout<wchar_t>::OutStream(void) { return std::wcout; }
+template<> inline std::basic_ostream<char>    &CLoggerTxtCout<char>::OutStream(void)    { return std::cout; }
+template<> inline std::basic_ostream<wchar_t> &CLoggerTxtCout<wchar_t>::OutStream(void) { return std::wcout; }
 
 } // namespace Logger
 
