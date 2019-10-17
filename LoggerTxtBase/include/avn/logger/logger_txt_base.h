@@ -37,12 +37,12 @@ public:
     CLoggerTxtBase& SetLevels( TLevels levels )                     { TBase::SetLevels( levels );           return *this; }
     CLoggerTxtBase& OffLevel( std::size_t level )                   { TBase::OffLevel( level );             return *this; }
     const TLevelsMap& Levels() const                                { return _levels; }
-    typename TBase::CTask &AddTask(void)                            { return TBase::AddTask(); }
-    typename TBase::CTask &AddTask(TLevels levels)                  { return TBase::AddTask( levels ); }
-    void FinishTask(bool success)                                   { TBase::FinishTask( success ); }
+    typename TBase::CTask &AddTask( void )                          { return TBase::AddTask(); }
+    typename TBase::CTask &AddTask( TLevels levels )                { return TBase::AddTask( levels ); }
+    void FinishTask( bool success )                                 { TBase::FinishTask( success ); }
 
     template<typename... T>
-    CLoggerTxtBase& AddString( std::size_t level, T&&... args);
+    CLoggerTxtBase& AddString( std::size_t level, T&&... args );
 
     template<typename... T>
     CLoggerTxtBase& AddString( std::chrono::system_clock::time_point time, std::size_t level, T&&... args );

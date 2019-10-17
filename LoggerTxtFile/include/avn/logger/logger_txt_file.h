@@ -14,6 +14,7 @@ class CLoggerTxtFile : public CLoggerTxtBase<LockThr, TChar> {
 public:
     using TBase = CLoggerTxtBase<LockThr, TChar>;
     using TString = std::basic_string<TChar>;
+    using TStream = std::basic_ofstream<TChar>;
 
     CLoggerTxtFile( bool local_time = true ): CLoggerTxtBase<LockThr, TChar>(local_time)    {}
     CLoggerTxtFile( const std::filesystem::path &filename, std::ios_base::openmode mode = std::ios_base::out, bool local_time = true ) :
@@ -21,16 +22,19 @@ public:
     { OpenFile( filename, mode ); }
 
     CLoggerTxtFile& OpenFile( const std::filesystem::path &filename, std::ios_base::openmode mode = std::ios_base::out )    { _fstream.open( filename, mode ); return *this; }
-    bool IsOpenedFile( void ) const                                 { return _fstream.is_open(); }
-    CLoggerTxtFile& CloseFile( const std::filesystem::path &filename, std::ios_base::openmode mode = std::ios_base::out )    { _fstream.close(); return *this; }
+    CLoggerTxtFile& CloseFile( const std::filesystem::path &filename, std::ios_base::openmode mode = std::ios_base::out )   { _fstream.close(); return *this; }
     CLoggerTxtFile& FlushFile( void )                               { _fstream.flush(); return *this; }
     CLoggerTxtFile& Imbue( const std::locale& loc )                 { _fstream.imbue( loc ); return *this; }
+    TStream & Stream( void )                                        { return _fstream; }
+
+    bool IsOpenedFile( void ) const                                 { return _fstream.is_open(); }
+    const TStream & Stream( void ) const                            { return _fstream; }
 
 private:
 
     bool OutStrings( std::size_t level, std::chrono::system_clock::time_point time, TString &&data ) override final;
 
-    std::basic_ofstream<TChar> _fstream;
+    TStream _fstream;
 
 };
 

@@ -20,7 +20,7 @@ private:
 
     bool OutStrings( std::size_t level, std::chrono::system_clock::time_point time, TString &&data ) override final;
 
-    std::basic_ostream<TChar> &OutStream(void);
+    std::basic_ostream<TChar> &OutStream( void );
 };
 
 template<bool LockThr, typename TChar>
@@ -31,8 +31,8 @@ bool CLoggerTxtCout<LockThr, TChar>::OutStrings( std::size_t level, std::chrono:
     return true;
 }
 
-template<> inline std::ostream  &CLoggerTxtCout<true, char>::OutStream(void)    { return std::cout; }
-template<> inline std::wostream &CLoggerTxtCout<true, wchar_t>::OutStream(void) { return std::wcout; }
+template<> inline std::ostream  &CLoggerTxtCout<true, char>::OutStream( void )      { return std::cout; }
+template<> inline std::wostream &CLoggerTxtCout<true, wchar_t>::OutStream( void )   { return std::wcout; }
 
 } // namespace Logger
 
