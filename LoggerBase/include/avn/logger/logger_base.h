@@ -10,7 +10,7 @@
 
 namespace Logger {
 
-    template<typename TLogData>
+    template<bool ThrSafe, typename TLogData>
     class CLoggerBase {
 
     public:
@@ -84,25 +84,27 @@ namespace Logger {
     private:
         TLevels _out_levels;
         std::unordered_map<std::thread::id, CTask> _tasks;
+        std::mutex _out_mutex;
 
+        bool OutStringsThrSafeed(std::size_t level, std::chrono::system_clock::time_point time, TLogData &&data);
     };
 
-    template<typename TLogData>
-    void CLoggerBase<TLogData>::CTask::InitLevel(std::size_t level, bool to_output) {
+    template<bool ThrSafe, typename TLogData>
+    void CLoggerBase<ThrSafe, TLogData>::CTask::InitLevel(std::size_t level, bool to_output) {
         if (to_output)
             _out_levels.emplace(level);
         else
             _out_levels.erase(level);
     }
 
-    template<typename TLogData>
+    template<bool ThrSafe, typename TLogData>
     void
-    CLoggerBase<TLogData>::CTask::AddToLog(std::size_t level, TLogData &&data, std::chrono::system_clock::time_point time) {
+    CLoggerBase<ThrSafe, TLogData>::CTask::AddToLog(std::size_t level, TLogData &&data, std::chrono::system_clock::time_point time) {
         _log_entries.emplace_back(level, std::forward<TLogData>(data), time);
     }
 
-    template<typename TLogData>
-    void CLoggerBase<TLogData>::CTask::Flush(bool success) {
+    template<bool ThrSafe, typename TLogData>
+    void CLoggerBase<ThrSafe, TLogData>::CTask::Flush(bool success) {
         for (auto &entry : _log_entries) {
             if (!success || _out_levels.count(entry._level))
                 _logger.ForceAddToLog(entry._level, std::move(entry._data), entry._time);
@@ -111,37 +113,37 @@ namespace Logger {
         _log_entries.clear();
     }
 
-    template<typename TLogData>
-    typename CLoggerBase<TLogData>::CTask &CLoggerBase<TLogData>::AddTask(void) {
+    template<bool ThrSafe, typename TLogData>
+    typename CLoggerBase<ThrSafe, TLogData>::CTask &CLoggerBase<ThrSafe, TLogData>::AddTask(void) {
         auto[it, inserted] = _tasks.emplace(std::this_thread::get_id(), *this);
         (void) inserted;
         CTask &task = it->second;
         return task;
     }
 
-    template<typename TLogData>
-    typename CLoggerBase<TLogData>::CTask &CLoggerBase<TLogData>::AddTask(TLevels levels) {
+    template<bool ThrSafe, typename TLogData>
+    typename CLoggerBase<ThrSafe, TLogData>::CTask &CLoggerBase<ThrSafe, TLogData>::AddTask(TLevels levels) {
         auto &task = AddTask();
         task.SetLevels(std::forward<TLevels>(levels));
         return task;
     }
 
-    template<typename TLogData>
-    void CLoggerBase<TLogData>::FinishTask(bool success) {
+    template<bool ThrSafe, typename TLogData>
+    void CLoggerBase<ThrSafe, TLogData>::FinishTask(bool success) {
         if (auto task = _tasks.find(std::this_thread::get_id()); task != _tasks.end()) {
             task->second.Flush(success);
             _tasks.erase(task);
         }
     }
 
-    template<typename TLogData>
-    void CLoggerBase<TLogData>::InitLevel(std::size_t level, bool to_output) {
+    template<bool ThrSafe, typename TLogData>
+    void CLoggerBase<ThrSafe, TLogData>::InitLevel(std::size_t level, bool to_output) {
         if (to_output)  _out_levels.emplace(level);
         else            _out_levels.erase(level);
     }
 
-    template<typename TLogData>
-    bool CLoggerBase<TLogData>::ToBeAdded(std::size_t level) const {
+    template<bool ThrSafe, typename TLogData>
+    bool CLoggerBase<ThrSafe, TLogData>::ToBeAdded(std::size_t level) const {
         if (auto task = _tasks.find(std::this_thread::get_id()); task != _tasks.end()) {
             return true;
         } else {
@@ -152,25 +154,39 @@ namespace Logger {
         }
     }
 
-    template<typename TLogData>
-    bool CLoggerBase<TLogData>::AddToLog(std::size_t level, TLogData &&data,
+    template<bool ThrSafe, typename TLogData>
+    bool CLoggerBase<ThrSafe, TLogData>::AddToLog(std::size_t level, TLogData &&data,
                                          std::chrono::system_clock::time_point time /* = std::chrono::system_clock::now() */ ) {
         if (auto task = _tasks.find(std::this_thread::get_id()); task != _tasks.end()) {
             task->second.AddToLog(level, std::forward<TLogData>(data), time);
             return true;
         }
         else if( ToBeAdded(level) )
-            return OutStrings(level, time, std::forward<TLogData>(data));
+            return OutStringsThrSafeed(level, time, std::forward<TLogData>(data));
         else
             return false;
     }
 
-    template<typename TLogData>
-    bool CLoggerBase<TLogData>::ForceAddToLog(std::size_t level, TLogData &&data,
+    template<bool ThrSafe, typename TLogData>
+    bool CLoggerBase<ThrSafe, TLogData>::ForceAddToLog(std::size_t level, TLogData &&data,
                                           std::chrono::system_clock::time_point time /* = std::chrono::system_clock::now() */ ) {
-        return OutStrings(level, time, std::forward<TLogData>(data));
+        return OutStringsThrSafeed(level, time, std::forward<TLogData>(data));
     }
 
+    template<bool ThrSafe, typename TLogData>
+    bool CLoggerBase<ThrSafe, TLogData>::OutStringsThrSafeed(std::size_t level, std::chrono::system_clock::time_point time, TLogData &&data) {
+        class Safe{
+        public:
+            Safe(std::mutex &mutex) : _mutex (mutex){ if constexpr( ThrSafe ) _mutex.lock(); }
+            ~Safe() {                                 if constexpr( ThrSafe ) _mutex.unlock(); }
+        private:
+            std::mutex &_mutex;
+        };
+
+        Safe safe_lock( _out_mutex );
+
+        return OutStrings( level, time, std::move( data ));
+    }
 } // namespace Logger
 
 #endif  // _AVN_LOGGER_BASE_H_

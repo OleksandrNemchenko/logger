@@ -9,13 +9,13 @@
 
 namespace Logger {
 
-template<typename TChar>
-class CLoggerTxtFile : public CLoggerTxtBase<TChar> {
+template<bool LockThr, typename TChar>
+class CLoggerTxtFile : public CLoggerTxtBase<LockThr, TChar> {
 public:
-    using TBase = CLoggerTxtBase<TChar>;
+    using TBase = CLoggerTxtBase<LockThr, TChar>;
     using TString = std::basic_string<TChar>;
 
-    CLoggerTxtFile( bool local_time = true ): CLoggerTxtBase<TChar>(local_time)    {}
+    CLoggerTxtFile( bool local_time = true ): CLoggerTxtBase<LockThr, TChar>(local_time)    {}
     CLoggerTxtFile( const std::filesystem::path &filename, std::ios_base::openmode mode = std::ios_base::out, bool local_time = true ) :
             CLoggerTxtFile( local_time )
     { OpenFile( filename, mode ); }
@@ -34,8 +34,8 @@ private:
 
 };
 
-template<typename TChar>
-bool CLoggerTxtFile<TChar>::OutStrings( std::size_t level, std::chrono::system_clock::time_point time, TString &&data ){
+template<bool LockThr, typename TChar>
+bool CLoggerTxtFile<LockThr, TChar>::OutStrings( std::size_t level, std::chrono::system_clock::time_point time, TString &&data ){
 
     assert( _fstream.is_open() );
 
