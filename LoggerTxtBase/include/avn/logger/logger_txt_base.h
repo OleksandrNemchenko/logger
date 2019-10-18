@@ -1,3 +1,5 @@
+// This is an independent project of an individual developer. Dear PVS-Studio, please check it.
+// PVS-Studio Static Code Analyzer for C, C++, C#, and Java: http://www.viva64.com
 
 #ifndef _AVN_LOGGER_TXT_BASE_H_
 #define _AVN_LOGGER_TXT_BASE_H_
@@ -37,8 +39,8 @@ public:
     CLoggerTxtBase& SetLevels( TLevels levels )                     { TBase::SetLevels( levels );           return *this; }
     CLoggerTxtBase& OffLevel( std::size_t level )                   { TBase::OffLevel( level );             return *this; }
     const TLevelsMap& Levels() const                                { return _levels; }
-    typename TBase::CTask &AddTask( void )                          { return TBase::AddTask(); }
-    typename TBase::CTask &AddTask( TLevels levels )                { return TBase::AddTask( levels ); }
+    typename TBase::CTask AddTask( bool init_succeeded = false )                    { return TBase::AddTask( init_succeeded ); }
+    typename TBase::CTask AddTask( TLevels levels, bool init_succeeded = false )    { return TBase::AddTask( levels, init_succeeded ); }
     void FinishTask( bool success )                                 { TBase::FinishTask( success ); }
 
     template<typename... T>

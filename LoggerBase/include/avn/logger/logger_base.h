@@ -1,3 +1,5 @@
+// This is an independent project of an individual developer. Dear PVS-Studio, please check it.
+// PVS-Studio Static Code Analyzer for C, C++, C#, and Java: http://www.viva64.com
 
 #ifndef _AVN_LOGGER_BASE_H_
 #define _AVN_LOGGER_BASE_H_
@@ -10,6 +12,8 @@
 
 namespace Logger {
 
+    // TODO : off task, i. e. transparently output messages
+
     template<bool ThrSafe, typename TLogData>
     class CLoggerBase {
 
@@ -18,14 +22,16 @@ namespace Logger {
 
     public:
         class CTask {
+            friend class CLoggerBase;
+        private:
+            CTask( CLoggerBase &logger, bool init_succeeded = false ) : _succeeded( init_succeeded ), _logger( logger ), _out_levels( logger.GetLevels() ) {}
         public:
-            CTask( CLoggerBase &logger ) : _logger( logger ), _out_levels( logger.GetLevels() ) {}
-
             CTask( const CTask & ) = delete;
+            CTask( CTask && ) = default;
+            ~CTask();
 
-            ~CTask() { Flush(true); }
-
-            void Flush( bool success );
+            CTask& SetTaskResult( bool succeeded )  { _succeeded = succeeded; return *this; }
+            bool TaskResult() const                 { return _succeeded; }
 
             void AddToLog( std::size_t level, TLogData &&data, std::chrono::system_clock::time_point time );
 
@@ -44,28 +50,27 @@ namespace Logger {
                 TLogData _data;
             };
 
-            CLoggerBase &_logger;
+            CLoggerBase& _logger;
             TLevels _out_levels;
             std::vector<SLogEntry> _log_entries;
+            bool _succeeded;
         };
 
     public:
-        using TTasks = std::unordered_map<std::thread::id, CTask>;
+        friend class CTask;
 
-        CLoggerBase( void ) = default;
+        using TTasks = std::unordered_map<std::thread::id, CTask *>;
 
+        CLoggerBase() = default;
         CLoggerBase( const CLoggerBase & ) = delete;
 
     protected:
-        const TLevels &GetLevels() const { return _out_levels; }
+        const TLevels& GetLevels() const { return _out_levels; }
 
-        const TTasks &GetTasks() const { return _tasks; }
+        const TTasks& GetTasks() const { return _tasks; }
 
-        CTask &AddTask(void);
-
-        CTask &AddTask(TLevels levels);
-
-        void FinishTask(bool success);
+        CTask AddTask( bool init_succeeded = false );
+        CTask AddTask( TLevels levels, bool init_succeeded = false );
 
         void InitLevel( std::size_t level, bool to_output );
         void OnLevel( std::size_t level )  { InitLevel(level, true); }
@@ -81,10 +86,11 @@ namespace Logger {
 
     private:
         TLevels _out_levels;
-        std::unordered_map<std::thread::id, std::unique_ptr<CTask>> _tasks;
+        TTasks _tasks;
         std::mutex _out_mutex;
 
         bool OutStringsThrSafe( std::size_t level, std::chrono::system_clock::time_point time, TLogData &&data );
+        void FinishTask();
     };
 
     template<bool ThrSafe, typename TLogData>
@@ -102,35 +108,37 @@ namespace Logger {
     }
 
     template<bool ThrSafe, typename TLogData>
-    void CLoggerBase<ThrSafe, TLogData>::CTask::Flush( bool success ) {
+    CLoggerBase<ThrSafe, TLogData>::CTask::~CTask() {
         for( auto &entry : _log_entries ) {
-            if( !success || _out_levels.count(entry._level) )
-                _logger.ForceAddToLog( entry._level, std::move(entry._data), entry._time );
+            if( !_succeeded || _out_levels.count( entry._level ))
+                _logger.ForceAddToLog( entry._level, std::move( entry._data ), entry._time );
         }
 
         _log_entries.clear();
+        _logger.FinishTask();
     }
 
     template<bool ThrSafe, typename TLogData>
-    typename CLoggerBase<ThrSafe, TLogData>::CTask &CLoggerBase<ThrSafe, TLogData>::AddTask( void ) {
-        auto[it, inserted] = _tasks.emplace( std::this_thread::get_id(), std::make_unique<CTask>(*this) );
+    typename CLoggerBase<ThrSafe, TLogData>::CTask CLoggerBase<ThrSafe, TLogData>::AddTask( bool init_succeeded ) {
+        CTask task( *this, init_succeeded );
+        auto[ it, inserted ] = _tasks.emplace( std::this_thread::get_id(), &task );
         (void) inserted;
-        CTask &task = *it->second.get();
         return task;
     }
 
     template<bool ThrSafe, typename TLogData>
-    typename CLoggerBase<ThrSafe, TLogData>::CTask &CLoggerBase<ThrSafe, TLogData>::AddTask(TLevels levels) {
-        auto &task = AddTask();
-        task.SetLevels(std::forward<TLevels>(levels));
+    typename CLoggerBase<ThrSafe, TLogData>::CTask CLoggerBase<ThrSafe, TLogData>::AddTask(TLevels levels, bool init_succeeded ) {
+        auto task = AddTask( init_succeeded );
+        task.SetLevels( std::forward<TLevels>(levels) );
         return task;
     }
 
     template<bool ThrSafe, typename TLogData>
-    void CLoggerBase<ThrSafe, TLogData>::FinishTask( bool success ) {
-        if( auto task = _tasks.find(std::this_thread::get_id()); task != _tasks.end() ) {
-            task->second->Flush( success );
+    void CLoggerBase<ThrSafe, TLogData>::FinishTask() {
+        if( auto task = _tasks.find( std::this_thread::get_id() ); task != _tasks.end() ) {
             _tasks.erase( task );
+        } else {
+            assert( false );
         }
     }
 
@@ -157,8 +165,7 @@ namespace Logger {
         if( auto task = _tasks.find( std::this_thread::get_id() ); task != _tasks.end() ) {
             task->second->AddToLog( level, std::forward<TLogData>(data), time );
             return true;
-        }
-        else if( ToBeAdded(level) )
+        } else if( ToBeAdded(level) )
             return OutStringsThrSafe( level, time, std::forward<TLogData>(data) );
         else
             return false;

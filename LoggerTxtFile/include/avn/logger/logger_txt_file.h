@@ -1,3 +1,5 @@
+// This is an independent project of an individual developer. Dear PVS-Studio, please check it.
+// PVS-Studio Static Code Analyzer for C, C++, C#, and Java: http://www.viva64.com
 
 #ifndef _AVN_LOGGER_TXT_FILE_H_
 #define _AVN_LOGGER_TXT_FILE_H_
@@ -23,16 +25,16 @@ public:
 
     CLoggerTxtFile& OpenFile( const std::filesystem::path &filename, std::ios_base::openmode mode = std::ios_base::out )    { _fstream.open( filename, mode ); return *this; }
     CLoggerTxtFile& CloseFile( const std::filesystem::path &filename, std::ios_base::openmode mode = std::ios_base::out )   { _fstream.close(); return *this; }
-    CLoggerTxtFile& FlushFile( void )                               { _fstream.flush(); return *this; }
+    CLoggerTxtFile& FlushFile()                               { _fstream.flush(); return *this; }
     CLoggerTxtFile& Imbue( const std::locale& loc )                 { _fstream.imbue( loc ); return *this; }
-    TStream & Stream( void )                                        { return _fstream; }
+    TStream& Stream()                                         { return _fstream; }
 
-    bool IsOpenedFile( void ) const                                 { return _fstream.is_open(); }
-    const TStream & Stream( void ) const                            { return _fstream; }
+    bool IsOpenedFile() const                                 { return _fstream.is_open(); }
+    const TStream& Stream() const                             { return _fstream; }
 
 private:
 
-    bool OutStrings( std::size_t level, std::chrono::system_clock::time_point time, TString &&data ) override final;
+    bool OutStrings( std::size_t level, std::chrono::system_clock::time_point time, TString&& data ) override final;
 
     TStream _fstream;
 

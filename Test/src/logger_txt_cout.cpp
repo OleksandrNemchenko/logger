@@ -1,14 +1,13 @@
+// This is an independent project of an individual developer. Dear PVS-Studio, please check it.
+// PVS-Studio Static Code Analyzer for C, C++, C#, and Java: http://www.viva64.com
 
 #include <functional>
 #include <iostream>
-#include <string>
-#include <locale>
-#include <codecvt>
 
 #include <tests.h>
 #include <avn/logger/logger_txt_cout.h>
 
-size_t test_logger_txt_cout( void ){
+size_t test_logger_txt_cout(){
 
     using namespace std;
 
