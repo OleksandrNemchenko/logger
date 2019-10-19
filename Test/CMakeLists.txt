@@ -16,6 +16,7 @@ target_sources(test_logger
         main.cpp
         src/logger_base.cpp
         src/logger_txt_file.cpp
+        src/logger_txt_cout.cpp
         )
 
 target_include_directories(test_logger
@@ -28,4 +29,5 @@ target_link_libraries(test_logger
         logger_base
         logger_txt_base
         logger_txt_file
+        logger_txt_cout
         )

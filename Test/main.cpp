@@ -1,3 +1,5 @@
+// This is an independent project of an individual developer. Dear PVS-Studio, please check it.
+// PVS-Studio Static Code Analyzer for C, C++, C#, and Java: http://www.viva64.com
 
 #include <iostream>
 
@@ -9,7 +11,8 @@ int main(int argc, char *argv[]){
     std::cout << "Start Logger library tests" << std::endl;
 
     ret_code += test_logger_base();
-    ret_code += test_logger_txt();
+    ret_code += test_logger_txt_file();
+    ret_code += test_logger_txt_cout();
 
     return ret_code;
 }
