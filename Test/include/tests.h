@@ -1,6 +1,5 @@
-//
-// Created by Oleksandr Nemchenko on 2019-09-07.
-//
+// This is an independent project of an individual developer. Dear PVS-Studio, please check it.
+// PVS-Studio Static Code Analyzer for C, C++, C#, and Java: http://www.viva64.com
 
 #pragma once
 
