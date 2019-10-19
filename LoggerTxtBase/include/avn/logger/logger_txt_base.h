@@ -41,7 +41,7 @@ public:
     const TLevelsMap& Levels() const                                { return _levels; }
     typename TBase::CTask AddTask( bool init_succeeded = false )                    { return TBase::AddTask( init_succeeded ); }
     typename TBase::CTask AddTask( TLevels levels, bool init_succeeded = false )    { return TBase::AddTask( levels, init_succeeded ); }
-    void FinishTask( bool success )                                 { TBase::FinishTask( success ); }
+    CLoggerTxtBase& FinishTask( bool success )                      { TBase::FinishTask( success ); return *this; }
 
     template<typename... T>
     CLoggerTxtBase& AddString( std::size_t level, T&&... args );

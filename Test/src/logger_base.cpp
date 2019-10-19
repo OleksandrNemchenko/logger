@@ -48,7 +48,6 @@ class CLoggerTest : public Logger::CLoggerBase<false, char> {
         }
     };
 
-    char make_item(){ return 'v'; };
 }   // namespace
 
 size_t test_logger_base(void){
@@ -57,47 +56,93 @@ size_t test_logger_base(void){
 
     make_step([]()
               {
-                  return !test_log.AddToLog(1, make_item()) && !test_log._calls._out_strings;
+                  return !test_log.AddToLog(1, '+') && !test_log._calls._out_strings;
               },
-              "Incorrect TryToLog call");
+              "Test 1 : Incorrect AddToLog call");
 
     make_step([&]() {
                   test_log.OnLevel(1);
                   test_log.OnLevel(2);
                   test_log.OffLevel(2);
                   test_log.OffLevel(3);
-                  return test_log.AddToLog(1, make_item()) &&
-                         !test_log.AddToLog(2, make_item()) &&
+                  return test_log.AddToLog(1, '+') &&
+                         !test_log.AddToLog(2, '-') &&
                          test_log._calls._out_strings == 1;
               },
-              "Incorrect InitOutputLevel and TryToLog calls");
+              "Test 2 : Incorrect OnLevel / OffLevel and AddToLog calls");
 
     make_step([]() {
                   test_log.SetLevels({1, 3});
                   {
                       auto task = test_log.AddTask();
-                      test_log.AddToLog(1, make_item());
-                      test_log.AddToLog(2, make_item());
-                      test_log.AddToLog(3, make_item());
+                      test_log.AddToLog(1, '+');
+                      test_log.AddToLog(2, '-');
+                      test_log.AddToLog(3, '+');
                       task.SetTaskResult( true );
                   }
                   return test_log._calls._out_strings == 2;
               },
-              "Incorrect InitOutputLevel and TryToLog calls");
+              "Test 3 : Incorrect SetLevels and AddToLog calls inside task");
 
     make_step([]() {
                   auto task_step = [](){
-                      auto task = test_log.AddTask({2});
-                      test_log.AddToLog(1, make_item());
-                      test_log.AddToLog(2, make_item());
-                      test_log.AddToLog(3, make_item());
+                      auto task = test_log.AddTask({2}, true);
+                      test_log.AddToLog(1, '-');
+                      test_log.AddToLog(2, '+');
+                      test_log.AddToLog(3, '-');
                   };
                   test_log.SetLevels({1, 2, 3});
                   std::thread another(task_step);
+                  test_log.AddToLog(4, '-');
                   another.join();
-                  return test_log._calls._out_strings == 3;
+                  return test_log._calls._out_strings == 1;
               },
-              "Unable to process different logging level for different threads with unsuccessful finish");
+              "Test 4 : Unable to process different logging level for different threads with successful finish");
+
+    make_step([]() {
+                  test_log.SetLevels({1});
+                  {
+                      auto task1 = test_log.AddTask(true);
+                      test_log.AddToLog(1, '+');
+                      {
+                          auto task2 = test_log.AddTask(true);
+                          test_log.AddToLog(2, '+');
+                          test_log.AddToLog(1, '+');
+                          task2.SetFail();
+                      }
+                      test_log.AddToLog(4, '-');
+                  }
+                  test_log.AddToLog(1, '+');
+                  test_log.AddToLog(4, '-');
+                  return test_log._calls._out_strings == 4;
+              },
+              "Test 5 : Unable to process nested tasks");
+
+    make_step([]() {
+                  test_log.SetLevels({1});
+                  auto task_step = [](){
+                      auto task1 = test_log.AddTask(true);
+                      test_log.AddToLog(1, '+');
+                      test_log.AddToLog(2, '-');
+                  };
+                  std::thread another(task_step);
+                  {
+                      auto task1 = test_log.AddTask(true);
+                      test_log.AddToLog(1, '+');
+                      {
+                          auto task2 = test_log.AddTask(true);
+                          test_log.AddToLog(2, '+');
+                          test_log.AddToLog(1, '+');
+                          task2.SetFail();
+                      }
+                      test_log.AddToLog(4, '-');
+                  }
+                  test_log.AddToLog(1, '+');
+                  test_log.AddToLog(4, '-');
+                  another.join();
+                  return test_log._calls._out_strings == 5;
+              },
+              "Test 6 : Unable to process nested tasks in different threads");
 
     if(errors)
         std::cout << "UNSUCCESSFULLY finish test_base with " << errors << " errors" << std::endl;
