@@ -49,7 +49,7 @@ namespace Logger {
         private:
             struct SLogEntry {
                 SLogEntry( std::size_t level, TLogData &&data, std::chrono::system_clock::time_point time ) :
-                    _time(), _level(level), _data(std::forward<TLogData>(data)) {}
+                    _time(time), _level(level), _data(std::forward<TLogData>(data)) {}
 
                 std::chrono::system_clock::time_point _time;
                 std::size_t _level;
