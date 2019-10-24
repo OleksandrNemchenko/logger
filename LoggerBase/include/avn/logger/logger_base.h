@@ -15,8 +15,10 @@ namespace Logger {
 
     // TODO : off task, i. e. transparently output messages
 
+    template<bool ThrSafe, typename TLogData> class CLoggerBaseThrSafety;
+
     template<bool ThrSafe, typename TLogData>
-    class CLoggerBase {
+    class CLoggerBase : public CLoggerBaseThrSafety<ThrSafe, TLogData>{
 
     public:
         using TLevels = std::set<std::size_t>;
@@ -89,16 +91,40 @@ namespace Logger {
 
         bool AddToLog( std::size_t level, TLogData &&data, std::chrono::system_clock::time_point time = std::chrono::system_clock::now() );
 
-        virtual bool OutStrings( std::size_t level, std::chrono::system_clock::time_point time, TLogData &&data ) = 0;
-
     private:
         TLevels _out_levels;
         TThreads _threads;
-        std::mutex _out_mutex;
 
-        bool OutStringsThrSafe( std::size_t level, std::chrono::system_clock::time_point time, TLogData &&data );
         void RemoveTask();
     };
+
+    template<typename TLogData>
+    class CLoggerBaseThrSafety<true, TLogData>{
+    protected:
+        bool OutStringsThrSafe( std::size_t level, std::chrono::system_clock::time_point time, TLogData &&data );
+        virtual bool OutStrings( std::size_t level, std::chrono::system_clock::time_point time, TLogData &&data ) = 0;
+
+    private:
+        std::mutex _out_mutex;
+    };
+
+    template<typename TLogData>
+    class CLoggerBaseThrSafety<false, TLogData>{
+    protected:
+        bool OutStringsThrSafe( std::size_t level, std::chrono::system_clock::time_point time, TLogData &&data );
+        virtual bool OutStrings( std::size_t level, std::chrono::system_clock::time_point time, TLogData &&data ) = 0;
+    };
+
+    template<typename TLogData>
+    bool CLoggerBaseThrSafety<true, TLogData>::OutStringsThrSafe( std::size_t level, std::chrono::system_clock::time_point time, TLogData &&data ){
+        std::lock_guard<decltype(_out_mutex)> lock_guard( _out_mutex );
+        return OutStrings( level, time, std::move( data ));
+    }
+
+    template<typename TLogData>
+    bool CLoggerBaseThrSafety<false, TLogData>::OutStringsThrSafe( std::size_t level, std::chrono::system_clock::time_point time, TLogData &&data ){
+        return OutStrings( level, time, std::move( data ));
+    }
 
     template<bool ThrSafe, typename TLogData>
     typename CLoggerBase<ThrSafe, TLogData>::CTask& CLoggerBase<ThrSafe, TLogData>::CTask::InitLevel( std::size_t level, bool to_output ) {
@@ -172,29 +198,14 @@ namespace Logger {
             top->AddToLog( level, std::forward<TLogData>(data), time );
             return true;
         } else if( ToBeAdded(level) )
-            return OutStringsThrSafe( level, time, std::forward<TLogData>(data) );
+            return CLoggerBaseThrSafety<ThrSafe,TLogData>::OutStringsThrSafe( level, time, std::forward<TLogData>(data) );
         else
             return false;
     }
 
     template<bool ThrSafe, typename TLogData>
     bool CLoggerBase<ThrSafe, TLogData>::ForceAddToLog( std::size_t level, TLogData &&data, std::chrono::system_clock::time_point time ) {
-        return OutStringsThrSafe( level, time, std::forward<TLogData>(data) );
-    }
-
-    template<bool ThrSafe, typename TLogData>
-    bool CLoggerBase<ThrSafe, TLogData>::OutStringsThrSafe( std::size_t level, std::chrono::system_clock::time_point time, TLogData &&data ) {
-        class Safe{
-        public:
-            Safe( std::mutex &mutex ) : _mutex (mutex){ if constexpr( ThrSafe ) _mutex.lock(); }
-            ~Safe() {                                   if constexpr( ThrSafe ) _mutex.unlock(); }
-        private:
-            std::mutex &_mutex;
-        };
-
-        Safe safe_lock( _out_mutex );
-
-        return OutStrings( level, time, std::move( data ));
+        return CLoggerBaseThrSafety<ThrSafe,TLogData>::OutStringsThrSafe( level, time, std::forward<TLogData>(data) );
     }
 
 } // namespace Logger
