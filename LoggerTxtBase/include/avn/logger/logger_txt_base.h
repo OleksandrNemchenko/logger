@@ -29,7 +29,7 @@ public:
     using TDef = CLoggerTxtBaseDefaults<TChar>;
     using TString = std::basic_string<TChar>;
     using TLevels = typename TBase::TLevels;
-    using TLevelsMap = std::unordered_map<size_t, TString>;
+    using TLevelsMap = std::map<size_t, TString>;
 
     CLoggerTxtBase( bool local_time = true );
 
