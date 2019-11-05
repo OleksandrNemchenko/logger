@@ -11,75 +11,31 @@
 #include <thread>
 #include <vector>
 
+#include <avn/logger/data_types.h>
+#include <avn/logger/base_thr_safety.h>
+#include <avn/logger/task.h>
+
 namespace Logger {
 
-    // TODO : off task, i. e. transparently output messages
-
-    template<bool ThrSafe, typename TLogData> class CLoggerBaseThrSafety;
-
     template<bool ThrSafe, typename TLogData>
-    class CLoggerBase : public CLoggerBaseThrSafety<ThrSafe, TLogData>{
-
+    class CLoggerBase : public CLoggerBaseThrSafety<ThrSafe, TLogData>, public CLoggerTaskInterface<TLogData>{
     public:
-        using TLevels = std::set<std::size_t>;
 
-    public:
-        class CTask {
-            friend class CLoggerBase;
-        private:
-            CTask( CLoggerBase &logger, bool init_succeeded = false ) :
-            _succeeded( init_succeeded ), _logger( logger ), _out_levels( logger.GetLevels() )
-                {}
-
-        public:
-            CTask( const CTask & ) = delete;
-            CTask( CTask && ) = default;
-            ~CTask();
-
-            CTask& SetTaskResult( bool succeeded )  { _succeeded = succeeded; return *this; }
-            CTask& SetSuccess()                     { return SetTaskResult( true ); }
-            CTask& SetFail()                        { return SetTaskResult( false ); }
-            bool TaskResult() const                 { return _succeeded; }
-
-            CTask& AddToLog( std::size_t level, TLogData &&data, std::chrono::system_clock::time_point time );
-
-            CTask& InitLevel( std::size_t level, bool to_output );
-            CTask& SetLevels( TLevels levels )    { _out_levels = levels; return *this; }
-            CTask& OnLevel( std::size_t level )   { InitLevel(level, true);  return *this; }
-            CTask& OffLevel( std::size_t level )  { InitLevel(level, false); return *this; }
-
-        private:
-            struct SLogEntry {
-                SLogEntry( std::size_t level, TLogData &&data, std::chrono::system_clock::time_point time ) :
-                    _time(time), _level(level), _data(std::forward<TLogData>(data)) {}
-
-                std::chrono::system_clock::time_point _time;
-                std::size_t _level;
-                TLogData _data;
-            };
-
-            CLoggerBase& _logger;
-            TLevels _out_levels;
-            std::vector<SLogEntry> _log_entries;
-            bool _succeeded;
-        };
-
-    public:
-        friend class CTask;
-
-        using TTasks = std::stack<CTask *>;
+        using TTaskInterface = CLoggerTaskInterface<TLogData>;
+        using TTasks = std::stack<CTask<TLogData> *>;
         using TThreads = std::map<std::thread::id, TTasks>;
 
         CLoggerBase() = default;
         CLoggerBase( const CLoggerBase & ) = delete;
 
     protected:
-        const TLevels& GetLevels() const { return _out_levels; }
+        const TLevels& GetLevels() const override { return _out_levels; }
 
         const TThreads& GetThreadTasks() const { return _threads; }
 
-        CTask AddTask( bool init_succeeded = false );
-        CTask AddTask( TLevels levels, bool init_succeeded = false );
+        CTask<TLogData> AddTask( bool init_succeeded );
+        CTask<TLogData> AddTask()                   { return AddTask( false ); }
+        CTask<TLogData> AddTask( TLevels levels, bool init_succeeded = false );
 
         CLoggerBase& InitLevel( std::size_t level, bool to_output );
         CLoggerBase& OnLevel( std::size_t level )  { return InitLevel(level, true); }
@@ -87,7 +43,7 @@ namespace Logger {
         CLoggerBase& SetLevels( TLevels levels )   { _out_levels = levels; return *this; }
         bool ToBeAdded( std::size_t level ) const;
 
-        bool ForceAddToLog( std::size_t level, TLogData &&data, std::chrono::system_clock::time_point time = std::chrono::system_clock::now() );
+        bool ForceAddToLog( std::size_t level, TLogData &&data, std::chrono::system_clock::time_point time = std::chrono::system_clock::now() ) override;
 
         bool AddToLog( std::size_t level, TLogData &&data, std::chrono::system_clock::time_point time = std::chrono::system_clock::now() );
 
@@ -95,70 +51,18 @@ namespace Logger {
         TLevels _out_levels;
         TThreads _threads;
 
-        void RemoveTask();
+        void RemoveTask() override;
     };
 
-    template<typename TLogData>
-    class CLoggerBaseThrSafety<true, TLogData>{
-    protected:
-        bool OutStringsThrSafe( std::size_t level, std::chrono::system_clock::time_point time, TLogData &&data );
-        virtual bool OutStrings( std::size_t level, std::chrono::system_clock::time_point time, TLogData &&data ) = 0;
-
-    private:
-        std::mutex _out_mutex;
-    };
-
-    template<typename TLogData>
-    class CLoggerBaseThrSafety<false, TLogData>{
-    protected:
-        bool OutStringsThrSafe( std::size_t level, std::chrono::system_clock::time_point time, TLogData &&data );
-        virtual bool OutStrings( std::size_t level, std::chrono::system_clock::time_point time, TLogData &&data ) = 0;
-    };
-
-    template<typename TLogData>
-    bool CLoggerBaseThrSafety<true, TLogData>::OutStringsThrSafe( std::size_t level, std::chrono::system_clock::time_point time, TLogData &&data ){
-        std::lock_guard<decltype(_out_mutex)> lock_guard( _out_mutex );
-        return OutStrings( level, time, std::move( data ));
-    }
-
-    template<typename TLogData>
-    bool CLoggerBaseThrSafety<false, TLogData>::OutStringsThrSafe( std::size_t level, std::chrono::system_clock::time_point time, TLogData &&data ){
-        return OutStrings( level, time, std::move( data ));
-    }
-
     template<bool ThrSafe, typename TLogData>
-    typename CLoggerBase<ThrSafe, TLogData>::CTask& CLoggerBase<ThrSafe, TLogData>::CTask::InitLevel( std::size_t level, bool to_output ) {
-        if( to_output ) _out_levels.emplace( level );
-        else            _out_levels.erase( level );
-        return *this;
-    }
-
-    template<bool ThrSafe, typename TLogData>
-    typename CLoggerBase<ThrSafe, TLogData>::CTask& CLoggerBase<ThrSafe, TLogData>::CTask::AddToLog( std::size_t level, TLogData &&data, std::chrono::system_clock::time_point time ) {
-        _log_entries.emplace_back( level, std::forward<TLogData>(data), time );
-        return *this;
-    }
-
-    template<bool ThrSafe, typename TLogData>
-    CLoggerBase<ThrSafe, TLogData>::CTask::~CTask() {
-        for( auto &entry : _log_entries ) {
-            if( !_succeeded || _out_levels.count( entry._level ))
-                _logger.ForceAddToLog( entry._level, std::move( entry._data ), entry._time );
-        }
-
-        _log_entries.clear();
-        _logger.RemoveTask();
-    }
-
-    template<bool ThrSafe, typename TLogData>
-    typename CLoggerBase<ThrSafe, TLogData>::CTask CLoggerBase<ThrSafe, TLogData>::AddTask( bool init_succeeded ) {
-        CTask task( *this, init_succeeded );
+    CTask<TLogData> CLoggerBase<ThrSafe, TLogData>::AddTask( bool init_succeeded ) {
+        auto task = TTaskInterface::CreateTask( init_succeeded );
         _threads[std::this_thread::get_id()].push(&task);
         return task;
     }
 
     template<bool ThrSafe, typename TLogData>
-    typename CLoggerBase<ThrSafe, TLogData>::CTask CLoggerBase<ThrSafe, TLogData>::AddTask(TLevels levels, bool init_succeeded ) {
+    CTask<TLogData> CLoggerBase<ThrSafe, TLogData>::AddTask(TLevels levels, bool init_succeeded ) {
         auto task = AddTask( init_succeeded );
         task.SetLevels( std::forward<TLevels>(levels) );
         return task;
