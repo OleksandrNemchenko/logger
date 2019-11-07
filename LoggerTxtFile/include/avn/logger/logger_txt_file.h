@@ -17,7 +17,6 @@ public:
     using TBase = CLoggerTxtBase<LockThr, TChar>;
     using TString = std::basic_string<TChar>;
     using TStream = std::basic_ofstream<TChar>;
-    using TLevels = typename CLoggerBase<LockThr,TChar>::TLevels;
 
     CLoggerTxtFile( bool local_time = true ): CLoggerTxtBase<LockThr, TChar>(local_time), _flush_always( false )    {}
     CLoggerTxtFile( const std::filesystem::path &filename, std::ios_base::openmode mode = std::ios_base::out, bool local_time = true ) :

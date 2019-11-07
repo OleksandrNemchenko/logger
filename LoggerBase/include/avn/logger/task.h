@@ -18,7 +18,7 @@ namespace Logger {
         friend class CTask<TLogData>;
 
     protected:
-        virtual bool ForceAddToLog( std::size_t level, TLogData &&data, std::chrono::system_clock::time_point time = std::chrono::system_clock::now() ) = 0;
+        virtual bool ForceAddToLog( std::size_t level, TLogData &&data, std::chrono::system_clock::time_point time ) = 0;
         virtual const TLevels& GetLevels() const = 0;
 
         CTask<TLogData> CreateTask( bool init_succeeded ) {

@@ -28,7 +28,6 @@ namespace Logger {
         CLoggerBase() = default;
         CLoggerBase( const CLoggerBase & ) = delete;
 
-    protected:
         const TLevels& GetLevels() const override { return _out_levels; }
 
         const TThreads& GetThreadTasks() const { return _threads; }
@@ -37,10 +36,10 @@ namespace Logger {
         CTask<TLogData> AddTask()                   { return AddTask( false ); }
         CTask<TLogData> AddTask( TLevels levels, bool init_succeeded = false );
 
-        CLoggerBase& InitLevel( std::size_t level, bool to_output );
-        CLoggerBase& OnLevel( std::size_t level )  { return InitLevel(level, true); }
-        CLoggerBase& OffLevel( std::size_t level ) { return InitLevel(level, false); }
-        CLoggerBase& SetLevels( TLevels levels )   { _out_levels = levels; return *this; }
+        void InitLevel( std::size_t level, bool to_output );
+        void OnLevel( std::size_t level )  { InitLevel(level, true); }
+        void OffLevel( std::size_t level ) { InitLevel(level, false); }
+        void SetLevels( TLevels levels )   { _out_levels = levels; }
         bool ToBeAdded( std::size_t level ) const;
 
         bool ForceAddToLog( std::size_t level, TLogData &&data, std::chrono::system_clock::time_point time = std::chrono::system_clock::now() ) override;
@@ -75,10 +74,9 @@ namespace Logger {
     }
 
     template<bool ThrSafe, typename TLogData>
-    CLoggerBase<ThrSafe, TLogData>& CLoggerBase<ThrSafe, TLogData>::InitLevel( std::size_t level, bool to_output ) {
+    void CLoggerBase<ThrSafe, TLogData>::InitLevel( std::size_t level, bool to_output ) {
         if( to_output ) _out_levels.emplace( level );
         else            _out_levels.erase( level );
-        return *this;
     }
 
     template<bool ThrSafe, typename TLogData>
