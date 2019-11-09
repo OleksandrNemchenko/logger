@@ -75,8 +75,55 @@ namespace {
 
 }   // namespace
 
+size_t test_logger_task_group_base(void){
+    Logger::CLoggerGroup<CLoggerTest, CLoggerTest2> log_grp;
+    size_t errors = 0;
+    bool res = true;
+
+    log_grp.InitLevel(1, true );
+    log_grp.InitLevel(2, false );
+    log_grp.Logger<0>().OnLevel(3);
+    log_grp.Logger<1>().OffLevel(3);
+
+    {
+        auto log_tasks = log_grp.AddTask( true );
+
+        log_grp.AddToLog(1, 'a');
+        log_grp.AddToLog(2, 'a');
+        log_grp.AddToLog(3, 'a');
+
+    }
+
+    if( log_grp.Logger<0>()._calls._out_strings != 2 || log_grp.Logger<1>()._calls._out_strings != 1 ){
+        ++errors;
+        std::cout << "[ERROR] Test 9 : Incorrect logging level initialization for CLoggerGroupTask" << std::endl;
+
+    }
+
+    log_grp.Logger<0>().ClearFlags();
+    log_grp.Logger<1>().ClearFlags();
+
+    {
+        auto log_tasks = log_grp.AddTask( false );
+        log_tasks.SetFail();
+
+        log_grp.AddToLog(1, 'a');
+        log_grp.AddToLog(2, 'a');
+        log_grp.AddToLog(3, 'a');
+
+    }
+
+    if( log_grp.Logger<0>()._calls._out_strings != 3 || log_grp.Logger<1>()._calls._out_strings != 3 ){
+        ++errors;
+        std::cout << "[ERROR] Test 10 : Incorrect logging level for failed CLoggerGroupTask" << std::endl;
+
+    }
+
+    return errors;
+}
+
 size_t test_logger_group_base(void){
-    Logger::CLoggerGroup<char, CLoggerTest, CLoggerTest2> log_grp;
+    Logger::CLoggerGroup<CLoggerTest, CLoggerTest2> log_grp;
     size_t errors = 0;
     bool res = true;
 
@@ -90,13 +137,13 @@ size_t test_logger_group_base(void){
 
     if( !levels_0.count(1) || levels_0.count(2) || !levels_0.count(3) ||
         !levels_1.count(1) || levels_1.count(2) || levels_1.count(3) ) {
-        std::cout << "[ERROR] Incorrect logging level initialization for CLoggerGroup" << std::endl;
+        std::cout << "[ERROR] Test 7 : Incorrect logging level initialization for CLoggerGroup" << std::endl;
         ++errors;
     }
 
     if( !log_grp.AddToLog( 1, 'a' ) || log_grp.AddToLog( 2, 'a' ) || log_grp.AddToLog( 3, 'a' ) ||
         log_grp.Logger<0>()._calls._out_strings != 2 || log_grp.Logger<1>()._calls._out_strings != 1 ){
-        std::cout << "[ERROR] Incorrect AddToLog processing for CLoggerGroup" << std::endl;
+        std::cout << "[ERROR] Test 8 : Incorrect AddToLog processing for CLoggerGroup" << std::endl;
         ++errors;
     }
 
@@ -106,7 +153,7 @@ size_t test_logger_group_base(void){
 size_t test_logger_base(void){
 
     std::cout << "START test_base" << std::endl;
-
+/*
     make_step([]()
               {
                   return !test_log.AddToLog(1, '+') && !test_log._calls._out_strings;
@@ -198,6 +245,8 @@ size_t test_logger_base(void){
               "Test 6 : Unable to process nested tasks in different threads");
 
     errors += test_logger_group_base();
+*/
+    errors += test_logger_task_group_base();
 
     if(errors)
         std::cout << "UNSUCCESSFULLY finish test_base with " << errors << " errors" << std::endl;

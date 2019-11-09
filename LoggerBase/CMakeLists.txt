@@ -11,6 +11,7 @@ target_sources(logger_base
         ${CMAKE_CURRENT_SOURCE_DIR}/include/avn/logger/data_types.h
         ${CMAKE_CURRENT_SOURCE_DIR}/include/avn/logger/logger_base.h
         ${CMAKE_CURRENT_SOURCE_DIR}/include/avn/logger/logger_group.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/avn/logger/logger_group_task.h
         ${CMAKE_CURRENT_SOURCE_DIR}/include/avn/logger/task.h
         )
 
