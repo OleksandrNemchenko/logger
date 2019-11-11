@@ -14,18 +14,22 @@
 #include <avn/logger/data_types.h>
 #include <avn/logger/base_thr_safety.h>
 #include <avn/logger/task.h>
+#include <avn/logger/logger_group.h>
 
 namespace Logger {
 
     template<bool _ThrSafe, typename _TLogData>
-    class CLoggerBase : public CLoggerBaseThrSafety<_ThrSafe, _TLogData>, public CLoggerTaskInterface<_TLogData>{
+    class CLoggerBase :
+            public CLoggerBaseThrSafety<_ThrSafe, _TLogData>,
+            private ITaskLogger<_TLogData>,
+            private ILoggerGroup<_TLogData>
+            {
     public:
 
         constexpr static bool ThrSafe{ _ThrSafe };
         using TLogData = _TLogData;
-        using TTaskInterface = CLoggerTaskInterface<_TLogData>;
-        using TTasks = std::stack<CTask<_TLogData> *>;
-        using TThreads = std::map<std::thread::id, TTasks>;
+        using TTask = std::stack<CTask<_TLogData> *>;
+        using TThreads = std::map<std::thread::id, TTask>;
 
         CLoggerBase() = default;
         CLoggerBase( const CLoggerBase & ) = delete;
@@ -35,11 +39,10 @@ namespace Logger {
 
         const TThreads& GetThreadsTasks() const { return _threads; }
 
-        CTask<_TLogData> AddTask( bool init_succeeded );
+        CTask<_TLogData> AddTask( bool init_success_state );
         CTask<_TLogData> AddTask()                   { return AddTask( false ); }
-        CTask<_TLogData> AddTask( TLevels levels, bool init_succeeded );
+        CTask<_TLogData> AddTask( TLevels levels, bool init_success_state );
         CTask<_TLogData> AddTask( TLevels levels )   { return AddTask( levels, false ); }
-
 
         void InitLevel( std::size_t level, bool to_output );
         void OnLevel( std::size_t level )  { InitLevel(level, true); }
@@ -47,18 +50,27 @@ namespace Logger {
         void SetLevels( TLevels levels )   { _out_levels = levels; }
         bool ToBeAdded( std::size_t level ) const;
 
-        bool ForceAddToLog( std::size_t level, _TLogData &&data, std::chrono::system_clock::time_point time = std::chrono::system_clock::now() ) override;
+        bool ForceAddToLog( std::size_t level, _TLogData &&data )   { return ForceAddToLog( level, std::move( data ), std::chrono::system_clock::now() ); }
+        bool ForceAddToLog( std::size_t level, _TLogData &&data, std::chrono::system_clock::time_point time ) override;
 
         bool AddToLog( std::size_t level, _TLogData &&data, std::chrono::system_clock::time_point time = std::chrono::system_clock::now() );
 
-        CTask<_TLogData> * AddTaskDynamically( bool init_succeeded ) override;
+        auto GetTaskLoggerInterface()   { return static_cast<ITaskLogger<TLogData>*>( this ); }
+        auto GetLoggerGroupInterface()   { return static_cast<ILoggerGroup<TLogData>*>( this ); }
 
     private:
+        using ITask = ITaskLogger<_TLogData>;
+        using IGroup = ILoggerGroup<_TLogData>;
+
         TLevels _out_levels;
         TThreads _threads;
 
         void RemoveTask() override;
 
+        CTask<_TLogData> * AddTaskForLoggerGroup( bool init_succeeded ) override;
+        CTask<_TLogData> * AddTaskForLoggerGroup() override                    { return AddTaskForLoggerGroup( false ); }
+        CTask<_TLogData> * AddTaskForLoggerGroup( TLevels levels, bool init_succeeded ) override;
+        CTask<_TLogData> * AddTaskForLoggerGroup( TLevels levels ) override    { return AddTaskForLoggerGroup( levels, false ); }
 
     };
 
@@ -69,23 +81,30 @@ namespace Logger {
     }
 
     template<bool _ThrSafe, typename _TLogData>
-    CTask<_TLogData> CLoggerBase<_ThrSafe, _TLogData>::AddTask( bool init_succeeded ) {
-        auto task = TTaskInterface::CreateTask( init_succeeded );
+    CTask<_TLogData> CLoggerBase<_ThrSafe, _TLogData>::AddTask( bool init_success_state ) {
+        auto task = ITask::CreateTask( init_success_state );
         _threads[std::this_thread::get_id()].push(&task);
         return task;
     }
 
     template<bool _ThrSafe, typename _TLogData>
-    CTask<_TLogData> CLoggerBase<_ThrSafe, _TLogData>::AddTask(TLevels levels, bool init_succeeded ) {
-        auto task = AddTask( init_succeeded );
+    CTask<_TLogData> *CLoggerBase<_ThrSafe, _TLogData>::AddTaskForLoggerGroup( bool init_succeeded ) {
+        auto task = IGroup::CreateTask( *this, init_succeeded );
+        _threads[std::this_thread::get_id()].push(task);
+        return task;
+    }
+
+    template<bool _ThrSafe, typename _TLogData>
+    CTask<_TLogData> CLoggerBase<_ThrSafe, _TLogData>::AddTask(TLevels levels, bool init_success_state ) {
+        auto task = AddTask( init_success_state );
         task.SetLevels( std::forward<TLevels>(levels) );
         return task;
     }
 
     template<bool _ThrSafe, typename _TLogData>
-    CTask<_TLogData> * CLoggerBase<_ThrSafe, _TLogData>::AddTaskDynamically( bool init_succeeded ) {
-        auto task = TTaskInterface::CreateTaskDynamically( init_succeeded );
-        _threads[std::this_thread::get_id()].push(task);
+    CTask<_TLogData> * CLoggerBase<_ThrSafe, _TLogData>::AddTaskForLoggerGroup(TLevels levels, bool init_success_state ) {
+        auto task = AddTaskForLoggerGroup( init_success_state );
+        task->SetLevels( std::forward<TLevels>(levels) );
         return task;
     }
 

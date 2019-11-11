@@ -15,6 +15,7 @@ namespace Logger {
     template<typename _TLogData>
     class CLoggerBaseThrSafety<true, _TLogData>{
     protected:
+        using TLogData = _TLogData;
         bool OutStringsThrSafe( std::size_t level, std::chrono::system_clock::time_point time, _TLogData &&data ){
             std::lock_guard<decltype(_out_mutex)> lock_guard( _out_mutex );
             return OutStrings( level, time, std::move( data ));
@@ -28,6 +29,7 @@ namespace Logger {
     template<typename _TLogData>
     class CLoggerBaseThrSafety<false, _TLogData>{
     protected:
+        using TLogData = _TLogData;
         bool OutStringsThrSafe( std::size_t level, std::chrono::system_clock::time_point time, _TLogData &&data ){
             return OutStrings( level, time, std::move( data ));
         }

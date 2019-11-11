@@ -6,9 +6,27 @@
 #define _AVN_LOGGER_LOGGER_GROUP_H
 
 #include <tuple>
+#include <avn/logger/logger_base.h>
 #include <avn/logger/logger_group_task.h>
 
 namespace Logger {
+
+    template< typename _TLogData >
+    class ILoggerGroup {
+        template< typename... _TLogger >
+        friend class CLoggerGroup;
+
+    protected:
+        virtual CTask<_TLogData> * AddTaskForLoggerGroup( bool init_succeeded ) = 0;
+        virtual CTask<_TLogData> * AddTaskForLoggerGroup() = 0;
+        virtual CTask<_TLogData> * AddTaskForLoggerGroup( TLevels levels, bool init_succeeded ) = 0;
+        virtual CTask<_TLogData> * AddTaskForLoggerGroup( TLevels levels ) = 0;
+
+        CTask<_TLogData> * CreateTask( ITaskLogger<_TLogData> &logger, bool init_success_state ) {
+            return new CTask<_TLogData>( logger, init_success_state );
+        };
+
+    };  // class CLoggerGroup
 
     template< typename... _TLogger >
     class CLoggerGroup {
@@ -27,7 +45,10 @@ namespace Logger {
         bool ForceAddToLog( std::size_t level, TLogData &&data, std::chrono::system_clock::time_point time = std::chrono::system_clock::now() );
         bool AddToLog( std::size_t level, TLogData &&data, std::chrono::system_clock::time_point time = std::chrono::system_clock::now() );
 
-        auto AddTask( bool succeeded );
+        auto AddTask();
+        auto AddTask( bool init_success_state );
+        auto AddTask( TLevels levels );
+        auto AddTask( TLevels levels, bool init_success_state );
 
     private:
         TArray _logger;
@@ -76,9 +97,33 @@ namespace Logger {
     }
 
     template< typename... _TLogger >
-    auto CLoggerGroup<_TLogger...>::AddTask( bool succeeded ) {
-        auto tasks = std::apply( [succeeded]( auto&&... logger ){
-            return std::make_tuple( logger.AddTaskDynamically(succeeded) ... );
+    auto CLoggerGroup<_TLogger...>::AddTask() {
+        auto tasks = std::apply( []( auto&&... logger ){
+            return std::make_tuple( (logger.GetLoggerGroupInterface())->AddTaskForLoggerGroup() ... );
+        }, _logger );
+        return CLoggerGroupTask( std::move( tasks ));
+    }
+
+    template< typename... _TLogger >
+    auto CLoggerGroup<_TLogger...>::AddTask( bool init_success_state ) {
+        auto tasks = std::apply( [init_success_state]( auto&&... logger ){
+            return std::make_tuple( (logger.GetLoggerGroupInterface())->AddTaskForLoggerGroup( init_success_state ) ... );
+        }, _logger );
+        return CLoggerGroupTask( std::move( tasks ));
+    }
+
+    template< typename... _TLogger >
+    auto CLoggerGroup<_TLogger...>::AddTask( TLevels levels ) {
+        auto tasks = std::apply( [&levels]( auto&&... logger ){
+            return std::make_tuple( (logger.GetLoggerGroupInterface())->AddTaskForLoggerGroup( levels ) ... );
+        }, _logger );
+        return CLoggerGroupTask( std::move( tasks ));
+    }
+
+    template< typename... _TLogger >
+    auto CLoggerGroup<_TLogger...>::AddTask( TLevels levels, bool init_success_state ) {
+        auto tasks = std::apply( [&levels,init_success_state]( auto&&... logger ){
+            return std::make_tuple( (logger.GetLoggerGroupInterface())->AddTaskForLoggerGroup( levels, init_success_state ) ... );
         }, _logger );
         return CLoggerGroupTask( std::move( tasks ));
     }
