@@ -35,20 +35,20 @@ namespace Logger {
         CLoggerBase( const CLoggerBase & ) = delete;
         virtual ~CLoggerBase();
 
-        const TLevels& GetLevels() const override { return _out_levels; }
+        const TLevels& Levels() const override { return _out_levels; }
 
-        const TThreads& GetThreadsTasks() const { return _threads; }
+        const TThreads& ThreadsTasks() const { return _threads; }
 
         CTask<_TLogData> AddTask( bool init_success_state );
         CTask<_TLogData> AddTask()                   { return AddTask( false ); }
         CTask<_TLogData> AddTask( TLevels levels, bool init_success_state );
         CTask<_TLogData> AddTask( TLevels levels )   { return AddTask( levels, false ); }
 
-        void InitLevel( std::size_t level, bool to_output );
+        void InitLevel( std::size_t level, bool to_output = true );
         void OnLevel( std::size_t level )  { InitLevel(level, true); }
         void OffLevel( std::size_t level ) { InitLevel(level, false); }
         void SetLevels( TLevels levels )   { _out_levels = levels; }
-        bool ToBeAdded( std::size_t level ) const;
+        bool TaskOrToBeAdded( std::size_t level ) const;
 
         bool ForceAddToLog( std::size_t level, _TLogData &&data )   { return ForceAddToLog( level, std::move( data ), std::chrono::system_clock::now() ); }
         bool ForceAddToLog( std::size_t level, _TLogData &&data, std::chrono::system_clock::time_point time ) override;
@@ -121,7 +121,7 @@ namespace Logger {
     }
 
     template<bool _ThrSafe, typename _TLogData>
-    bool CLoggerBase<_ThrSafe, _TLogData>::ToBeAdded( std::size_t level ) const {
+    bool CLoggerBase<_ThrSafe, _TLogData>::TaskOrToBeAdded( std::size_t level ) const {
         const auto thread = _threads.find(std::this_thread::get_id());
         if( thread != _threads.cend() && !thread->second.empty() )
             return true;
@@ -140,7 +140,7 @@ namespace Logger {
             assert( top );
             top->AddToLog( level, std::forward<_TLogData>(data), time );
             return true;
-        } else if( ToBeAdded(level) )
+        } else if( TaskOrToBeAdded(level) )
             return CLoggerBaseThrSafety<_ThrSafe,_TLogData>::OutStringsThrSafe( level, time, std::forward<_TLogData>(data) );
         else
             return false;

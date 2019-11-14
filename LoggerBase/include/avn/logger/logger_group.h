@@ -36,6 +36,7 @@ namespace Logger {
 
         template< size_t num > auto       & Logger()        { return std::get<num>( _logger ); }
         template< size_t num > const auto & Logger() const  { return std::get<num>( _logger ); }
+        constexpr auto SizeOf() const                       { return sizeof...( _TLogger ); }
 
         void InitLevel( std::size_t level, bool to_output );
         void OnLevel( std::size_t level );

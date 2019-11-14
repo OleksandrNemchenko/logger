@@ -18,8 +18,8 @@ namespace Logger {
     class ITaskLogger{
         friend class CTask<_TLogData>;
 
-    private:
-        virtual const TLevels& GetLevels() const = 0;
+    protected:
+        virtual const TLevels& Levels() const = 0;
         virtual bool ForceAddToLog( std::size_t level, _TLogData &&data, std::chrono::system_clock::time_point time ) = 0;
         virtual void RemoveTask() = 0;
 
@@ -35,7 +35,7 @@ namespace Logger {
 
     private:
         CTask( ITaskLogger<_TLogData> &logger, bool init_succeeded ) :
-                _success_state( init_succeeded ), _logger( logger ), _out_levels( logger.GetLevels() )
+                _success_state( init_succeeded ), _logger( logger ), _out_levels( logger.Levels() )
             {}
 
     public:

@@ -7,7 +7,7 @@
 #include <tests.h>
 #include <avn/logger/logger_txt_cout.h>
 
-size_t test_logger_txt_cout(){
+size_t test_txt_cout(){
 
     using namespace std;
 

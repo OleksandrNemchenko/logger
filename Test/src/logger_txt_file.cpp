@@ -9,7 +9,7 @@
 #include <tests.h>
 #include <avn/logger/logger_txt_file.h>
 
-size_t test_logger_txt_file(){
+size_t test_txt_file(){
 
     using namespace std;
 
