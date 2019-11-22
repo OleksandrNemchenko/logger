@@ -53,7 +53,8 @@ namespace Logger {
         bool ForceAddToLog( std::size_t level, _TLogData &&data )   { return ForceAddToLog( level, std::move( data ), std::chrono::system_clock::now() ); }
         bool ForceAddToLog( std::size_t level, _TLogData &&data, std::chrono::system_clock::time_point time ) override;
 
-        bool AddToLog( std::size_t level, _TLogData &&data, std::chrono::system_clock::time_point time = std::chrono::system_clock::now() );
+        bool AddToLog( std::size_t level, _TLogData &&data, std::chrono::system_clock::time_point time );
+        bool AddToLog( std::size_t level, _TLogData &&data)     { return AddToLog( level, std::move(data), std::chrono::system_clock::now() ); }
 
         auto GetTaskLoggerInterface()   { return static_cast<ITaskLogger<TLogData>*>( this ); }
         auto GetLoggerGroupInterface()   { return static_cast<ILoggerGroup<TLogData>*>( this ); }
@@ -141,14 +142,14 @@ namespace Logger {
             top->AddToLog( level, std::forward<_TLogData>(data), time );
             return true;
         } else if( TaskOrToBeAdded(level) )
-            return CLoggerBaseThrSafety<_ThrSafe,_TLogData>::OutStringsThrSafe( level, time, std::forward<_TLogData>(data) );
+            return CLoggerBaseThrSafety<_ThrSafe,_TLogData>::OutStringsThrSafe( level, time, move(data) );
         else
             return false;
     }
 
     template<bool _ThrSafe, typename _TLogData>
     bool CLoggerBase<_ThrSafe, _TLogData>::ForceAddToLog( std::size_t level, _TLogData &&data, std::chrono::system_clock::time_point time ) {
-        return CLoggerBaseThrSafety<_ThrSafe,_TLogData>::OutStringsThrSafe( level, time, std::forward<_TLogData>(data) );
+        return CLoggerBaseThrSafety<_ThrSafe,_TLogData>::OutStringsThrSafe( level, time, std::move(data) );
     }
 
 } // namespace Logger

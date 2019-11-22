@@ -39,6 +39,8 @@ namespace Logger {
             {}
 
     public:
+        using TLogData = _TLogData;
+
         CTask( const CTask & ) = delete;
         CTask( CTask && ) = default;
         ~CTask();
@@ -48,7 +50,11 @@ namespace Logger {
         CTask& SetFail()                                { return SetTaskResult( false ); }
         bool TaskResult() const                         { return _success_state; }
 
+        CTask& AddToLog( std::size_t level, _TLogData &&data );
         CTask& AddToLog( std::size_t level, _TLogData &&data, std::chrono::system_clock::time_point time );
+
+        CTask& AddToLog( std::size_t level, const _TLogData &data );
+        CTask& AddToLog( std::size_t level, const _TLogData &data, std::chrono::system_clock::time_point time );
 
         CTask& InitLevel( std::size_t level, bool to_output );
         CTask& SetLevels( TLevels levels )    { _out_levels = levels; return *this; }
@@ -58,7 +64,10 @@ namespace Logger {
     private:
         struct SLogEntry {
             SLogEntry( std::size_t level, _TLogData &&data, std::chrono::system_clock::time_point time ) :
-                _time(time), _level(level), _data(std::forward<_TLogData>(data)) {}
+                    _time(time), _level(level), _data(std::move(data)) {}
+
+            SLogEntry( std::size_t level, const _TLogData &data, std::chrono::system_clock::time_point time ) :
+                    _time(time), _level(level), _data(data) {}
 
             std::chrono::system_clock::time_point _time;
             std::size_t _level;
@@ -79,8 +88,26 @@ namespace Logger {
     }
 
     template<typename _TLogData>
+    CTask<_TLogData>& CTask<_TLogData>::AddToLog( std::size_t level, _TLogData &&data ) {
+        _log_entries.emplace_back( level, std::move(data) );
+        return *this;
+    }
+
+    template<typename _TLogData>
+    CTask<_TLogData>& CTask<_TLogData>::AddToLog( std::size_t level, const _TLogData &data ) {
+        _log_entries.emplace_back( level, data, std::chrono::system_clock::now() );
+        return *this;
+    }
+
+    template<typename _TLogData>
     CTask<_TLogData>& CTask<_TLogData>::AddToLog( std::size_t level, _TLogData &&data, std::chrono::system_clock::time_point time ) {
-        _log_entries.emplace_back( level, std::forward<_TLogData>(data), time );
+        _log_entries.emplace_back( level, std::move(data), time );
+        return *this;
+    }
+
+    template<typename _TLogData>
+    CTask<_TLogData>& CTask<_TLogData>::AddToLog( std::size_t level, const _TLogData &data, std::chrono::system_clock::time_point time ) {
+        _log_entries.emplace_back( level, data, time );
         return *this;
     }
 

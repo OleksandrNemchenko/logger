@@ -12,19 +12,23 @@ namespace Logger {
     template< typename... _TTaskPtr >
     class CLoggerGroupTask {
     public:
-        using _TArrayPtr = std::tuple< _TTaskPtr... >;
+        using TArrayPtr = std::tuple< _TTaskPtr... >;
+        using TLogData = typename std::remove_pointer_t<std::tuple_element_t<0, TArrayPtr>>::TLogData;
 
-        CLoggerGroupTask( const _TArrayPtr &) = delete;
-        CLoggerGroupTask( _TArrayPtr &&task ) : _task( std::move( task )) {std::apply( []( auto&&... task ){ ( assert( task ), ... ); }, _task ); }
+        CLoggerGroupTask( const TArrayPtr &) = delete;
+        CLoggerGroupTask( TArrayPtr &&task ) : _task( std::move( task )) {std::apply( []( auto&&... task ){ ( assert( task ), ... ); }, _task ); }
 
         ~CLoggerGroupTask() { std::apply( []( auto&&... task ){ ( delete task, ... ); }, _task ); }
 
-        template< size_t num > auto &       Task()        { return std::get<num>( _task ); }
-        template< size_t num > const auto & Task() const  { return std::get<num>( _task ); }
+        template< size_t num > auto &       Task()        { return *std::get<num>( _task ); }
+        template< size_t num > const auto & Task() const  { return *std::get<num>( _task ); }
 
         CLoggerGroupTask& SetTaskResult( bool success );
         CLoggerGroupTask& SetSuccess();
         CLoggerGroupTask& SetFail();
+
+        CLoggerGroupTask& AddToLog( std::size_t level, const TLogData &data );
+        CLoggerGroupTask& AddToLog( std::size_t level, const TLogData &data, std::chrono::system_clock::time_point time );
 
         CLoggerGroupTask& InitLevel( std::size_t level, bool to_output );
         CLoggerGroupTask& SetLevels( TLevels levels );
@@ -32,7 +36,7 @@ namespace Logger {
         CLoggerGroupTask& OffLevel( std::size_t level );
 
     private:
-        _TArrayPtr _task;
+        TArrayPtr _task;
 
     };  // class CLoggerGroup
 
@@ -77,6 +81,19 @@ namespace Logger {
             std::apply( [level]( auto&... task ) { ( task->OffLevel( level ), ... ); }, _task );
             return *this;
     }
+
+    template< typename... _TTaskPtr >
+    CLoggerGroupTask<_TTaskPtr...>& CLoggerGroupTask<_TTaskPtr...>::AddToLog( std::size_t level, const TLogData &data ) {
+        std::apply( [level,data]( auto&... task ) { ( task->AddToLog( level, data ), ... ); }, _task );
+        return *this;
+    }
+
+    template< typename... _TTaskPtr >
+    CLoggerGroupTask<_TTaskPtr...>& CLoggerGroupTask<_TTaskPtr...>::AddToLog( std::size_t level, const TLogData &data, std::chrono::system_clock::time_point time ) {
+        std::apply( [level,data,time]( auto&... task ) { ( task->AddToLog( level, data, time ), ... ); }, _task );
+        return *this;
+    }
+
 
 }   // namespace Logger
 
