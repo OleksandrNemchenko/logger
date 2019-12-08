@@ -12,7 +12,7 @@ target_sources(logger_base
         ${CMAKE_CURRENT_SOURCE_DIR}/include/avn/logger/logger_base.h
         ${CMAKE_CURRENT_SOURCE_DIR}/include/avn/logger/logger_group.h
         ${CMAKE_CURRENT_SOURCE_DIR}/include/avn/logger/logger_group_task.h
-        ${CMAKE_CURRENT_SOURCE_DIR}/include/avn/logger/task.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/avn/logger/logger_task.h
         )
 
 target_include_directories(logger_base

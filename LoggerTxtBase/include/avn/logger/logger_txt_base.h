@@ -24,23 +24,18 @@ public:
 
 template<bool LockThr, typename TChar>
 class CLoggerTxtBase : public CLoggerBase<LockThr, std::basic_string<TChar>>, public CLoggerTxtBaseDefaults<TChar> {
-public:
+public :
     using TString = std::basic_string<TChar>;
+    using TLevelsMap = std::map<size_t, TString>;
+private :
     using TBase = CLoggerBase<LockThr, TString>;
     using TDef = CLoggerTxtBaseDefaults<TChar>;
-    using TLevelsMap = std::map<size_t, TString>;
 
+public :
     CLoggerTxtBase( bool local_time = true );
 
     CLoggerTxtBase& AddLevelDescr( size_t level, TString name )     { _levels_map[level] = std::forward<TString>( name ); return *this; }
-    CLoggerTxtBase& InitLevel( std::size_t level, bool to_output )  { TBase::InitLevel( level, to_output ); return *this; }
-    CLoggerTxtBase& OnLevel( std::size_t level )                    { TBase::OnLevel( level );              return *this; }
-    CLoggerTxtBase& SetLevels( TLevels levels )                     { TBase::SetLevels( levels );           return *this; }
-    CLoggerTxtBase& OffLevel( std::size_t level )                   { TBase::OffLevel( level );             return *this; }
     const TLevelsMap& LevelsMap() const                             { return _levels_map; }
-    CTask<TString> AddTask( bool init_succeeded = false )                   { return TBase::AddTask( init_succeeded ); }
-    CTask<TString> AddTask( TLevels levels, bool init_succeeded = false )   { return TBase::AddTask( levels, init_succeeded ); }
-    CLoggerTxtBase& FinishTask( bool success )                      { TBase::FinishTask( success ); return *this; }
 
     template<typename... T>
     CLoggerTxtBase& AddString( std::size_t level, T&&... args );

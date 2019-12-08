@@ -13,7 +13,7 @@
 
 #include <avn/logger/data_types.h>
 #include <avn/logger/base_thr_safety.h>
-#include <avn/logger/task.h>
+#include <avn/logger/logger_task.h>
 #include <avn/logger/logger_group.h>
 
 namespace Logger {
@@ -28,7 +28,7 @@ namespace Logger {
 
         constexpr static bool ThrSafe{ _ThrSafe };
         using TLogData = _TLogData;
-        using TTask = std::stack<CTask<_TLogData> *>;
+        using TTask = std::stack<CLoggerTask<_TLogData> *>;
         using TThreads = std::map<std::thread::id, TTask>;
 
         CLoggerBase() = default;
@@ -39,10 +39,10 @@ namespace Logger {
 
         const TThreads& ThreadsTasks() const { return _threads; }
 
-        CTask<_TLogData> AddTask( bool init_success_state );
-        CTask<_TLogData> AddTask()                   { return AddTask( false ); }
-        CTask<_TLogData> AddTask( TLevels levels, bool init_success_state );
-        CTask<_TLogData> AddTask( TLevels levels )   { return AddTask( levels, false ); }
+        CLoggerTask<_TLogData> AddTask( bool init_success_state );
+        CLoggerTask<_TLogData> AddTask()                   { return AddTask( false ); }
+        CLoggerTask<_TLogData> AddTask( TLevels levels, bool init_success_state );
+        CLoggerTask<_TLogData> AddTask( TLevels levels )   { return AddTask( levels, false ); }
 
         void InitLevel( std::size_t level, bool to_output = true );
         void OnLevel( std::size_t level )  { InitLevel(level, true); }
@@ -68,10 +68,10 @@ namespace Logger {
 
         void RemoveTask() override;
 
-        CTask<_TLogData> * AddTaskForLoggerGroup( bool init_succeeded ) override;
-        CTask<_TLogData> * AddTaskForLoggerGroup() override                    { return AddTaskForLoggerGroup( false ); }
-        CTask<_TLogData> * AddTaskForLoggerGroup( TLevels levels, bool init_succeeded ) override;
-        CTask<_TLogData> * AddTaskForLoggerGroup( TLevels levels ) override    { return AddTaskForLoggerGroup( levels, false ); }
+        CLoggerTask<_TLogData> * AddTaskForLoggerGroup( bool init_succeeded ) override;
+        CLoggerTask<_TLogData> * AddTaskForLoggerGroup() override                    { return AddTaskForLoggerGroup( false ); }
+        CLoggerTask<_TLogData> * AddTaskForLoggerGroup( TLevels levels, bool init_succeeded ) override;
+        CLoggerTask<_TLogData> * AddTaskForLoggerGroup( TLevels levels ) override    { return AddTaskForLoggerGroup( levels, false ); }
 
     };
 
@@ -82,28 +82,28 @@ namespace Logger {
     }
 
     template<bool _ThrSafe, typename _TLogData>
-    CTask<_TLogData> CLoggerBase<_ThrSafe, _TLogData>::AddTask( bool init_success_state ) {
+    CLoggerTask<_TLogData> CLoggerBase<_ThrSafe, _TLogData>::AddTask( bool init_success_state ) {
         auto task = ITask::CreateTask( init_success_state );
         _threads[std::this_thread::get_id()].push(&task);
         return task;
     }
 
     template<bool _ThrSafe, typename _TLogData>
-    CTask<_TLogData> *CLoggerBase<_ThrSafe, _TLogData>::AddTaskForLoggerGroup( bool init_succeeded ) {
+    CLoggerTask<_TLogData> *CLoggerBase<_ThrSafe, _TLogData>::AddTaskForLoggerGroup( bool init_succeeded ) {
         auto task = IGroup::CreateTask( *this, init_succeeded );
         _threads[std::this_thread::get_id()].push(task);
         return task;
     }
 
     template<bool _ThrSafe, typename _TLogData>
-    CTask<_TLogData> CLoggerBase<_ThrSafe, _TLogData>::AddTask(TLevels levels, bool init_success_state ) {
+    CLoggerTask<_TLogData> CLoggerBase<_ThrSafe, _TLogData>::AddTask(TLevels levels, bool init_success_state ) {
         auto task = AddTask( init_success_state );
         task.SetLevels( std::forward<TLevels>(levels) );
         return task;
     }
 
     template<bool _ThrSafe, typename _TLogData>
-    CTask<_TLogData> * CLoggerBase<_ThrSafe, _TLogData>::AddTaskForLoggerGroup(TLevels levels, bool init_success_state ) {
+    CLoggerTask<_TLogData> * CLoggerBase<_ThrSafe, _TLogData>::AddTaskForLoggerGroup(TLevels levels, bool init_success_state ) {
         auto task = AddTaskForLoggerGroup( init_success_state );
         task->SetLevels( std::forward<TLevels>(levels) );
         return task;

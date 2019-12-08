@@ -16,7 +16,7 @@ namespace Logger {
         using TLogData = typename std::remove_pointer_t<std::tuple_element_t<0, TArrayPtr>>::TLogData;
 
         CLoggerGroupTask( const TArrayPtr &) = delete;
-        CLoggerGroupTask( TArrayPtr &&task ) : _task( std::move( task )) {std::apply( []( auto&&... task ){ ( assert( task ), ... ); }, _task ); }
+        CLoggerGroupTask( TArrayPtr &&task ) : _task( std::move( task )) { }
 
         ~CLoggerGroupTask() { std::apply( []( auto&&... task ){ ( delete task, ... ); }, _task ); }
 
@@ -24,8 +24,8 @@ namespace Logger {
         template< size_t num > const auto & Task() const  { return *std::get<num>( _task ); }
 
         CLoggerGroupTask& SetTaskResult( bool success );
-        CLoggerGroupTask& SetSuccess();
-        CLoggerGroupTask& SetFail();
+        CLoggerGroupTask& Succeeded();
+        CLoggerGroupTask& Failed();
 
         CLoggerGroupTask& AddToLog( std::size_t level, const TLogData &data );
         CLoggerGroupTask& AddToLog( std::size_t level, const TLogData &data, std::chrono::system_clock::time_point time );
@@ -47,14 +47,14 @@ namespace Logger {
     }
 
     template< typename... _TTaskPtr >
-    CLoggerGroupTask<_TTaskPtr...>& CLoggerGroupTask<_TTaskPtr...>::SetSuccess() {
-        std::apply( []( auto&... task ) { ( task->SetSuccess(), ... ); }, _task );
+    CLoggerGroupTask<_TTaskPtr...>& CLoggerGroupTask<_TTaskPtr...>::Succeeded() {
+        std::apply( []( auto&... task ) { ( task->Succeeded(), ... ); }, _task );
         return *this;
     }
 
     template< typename... _TTaskPtr >
-    CLoggerGroupTask<_TTaskPtr...>& CLoggerGroupTask<_TTaskPtr...>::SetFail() {
-        std::apply( []( auto&... task ) { ( task->SetFail(), ... ); }, _task );
+    CLoggerGroupTask<_TTaskPtr...>& CLoggerGroupTask<_TTaskPtr...>::Failed() {
+        std::apply( []( auto&... task ) { ( task->Failed(), ... ); }, _task );
         return *this;
     }
 

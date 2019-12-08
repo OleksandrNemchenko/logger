@@ -17,13 +17,13 @@ namespace Logger {
         friend class CLoggerGroup;
 
     protected:
-        virtual CTask<_TLogData> * AddTaskForLoggerGroup( bool init_succeeded ) = 0;
-        virtual CTask<_TLogData> * AddTaskForLoggerGroup() = 0;
-        virtual CTask<_TLogData> * AddTaskForLoggerGroup( TLevels levels, bool init_succeeded ) = 0;
-        virtual CTask<_TLogData> * AddTaskForLoggerGroup( TLevels levels ) = 0;
+        virtual CLoggerTask<_TLogData> * AddTaskForLoggerGroup( bool init_succeeded ) = 0;
+        virtual CLoggerTask<_TLogData> * AddTaskForLoggerGroup() = 0;
+        virtual CLoggerTask<_TLogData> * AddTaskForLoggerGroup( TLevels levels, bool init_succeeded ) = 0;
+        virtual CLoggerTask<_TLogData> * AddTaskForLoggerGroup( TLevels levels ) = 0;
 
-        CTask<_TLogData> * CreateTask( ITaskLogger<_TLogData> &logger, bool init_success_state ) {
-            return new CTask<_TLogData>( logger, init_success_state );
+        CLoggerTask<_TLogData> * CreateTask( ITaskLogger<_TLogData> &logger, bool init_success_state ) {
+            return new CLoggerTask<_TLogData>( logger, init_success_state );
         };
 
     };  // class CLoggerGroup
@@ -51,9 +51,8 @@ namespace Logger {
         auto AddTask( TLevels levels );
         auto AddTask( TLevels levels, bool init_success_state );
 
-    private:
+    protected:
         TArray _logger;
-
 
     };  // class CLoggerGroup
 

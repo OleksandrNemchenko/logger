@@ -131,7 +131,7 @@ size_t test_logger_task_group_base(void){
 
     {
         auto log_tasks = log_grp.AddTask( false );
-        log_tasks.SetFail();
+        log_tasks.Failed();
 
         log_grp.AddToLog(1, 'a');
         log_grp.AddToLog(2, 'a');
@@ -183,42 +183,24 @@ size_t test_logger_group_task(void){
     make_step([]() {
         auto task = log_grp.AddTask(Logger::TLevels{3});
 
-        task.Task<0>().SetSuccess();
-        task.Task<1>().SetFail();
+        task.Task<0>().Succeeded();
+        task.Task<1>().Failed();
 
         task.AddToLog( 1, "+" );
         if( CLoggerTest::_calls._out_strings != 0 && CLoggerTest2::_calls._out_strings != 1 )
             return false;
 
         return true;
-    }, "Test test_logger_group_task. : ");
-
-    make_step([]() {
-        return true;
-    }, "Test test_logger_group_task. : ");
-
-    make_step([]() {
-        return true;
-    }, "Test test_logger_group_task. : ");
-
-    make_step([]() {
-        return true;
-    }, "Test test_logger_group_task. : ");
-
-    make_step([]() {
-        return true;
-    }, "Test test_logger_group_task. : ");
-
-    make_step([](){
-        return logger_test_1_instances == 0 && logger_test_2_instances == 0;
-    }, "Test test_logger_group_task.last : Incorrect logger_test_x_instances");
+    }, "Test test_logger_group_task.1 : Incorrect Succeeded / Failed");
 
     return errors;
 }
 
-size_t test_task(void){
+size_t test_logger_task(void){
 
     errors = 0;
+
+    logger_test_1_instances = 0;
 
     make_step([]() {
         test_log.SetLevels({1, 3});
@@ -259,8 +241,19 @@ size_t test_task(void){
         if( CLoggerTest::_calls._out_strings != 3 )
             return false;
 
+        {
+            test_log.ClearFlags();
+            auto task = test_log.AddTask( true );
+            task.OffLevel(2);
+            test_log.AddToLog(1, "+");
+            test_log.AddToLog(2, "-");
+            test_log.AddToLog(3, "+");
+       }
+        if( CLoggerTest::_calls._out_strings != 2 )
+            return false;
+
         return true;
-    }, "Test test_task.1 : Incorrect TaskOrToBeAdded, AddTask, SetLevels and AddToLog calls inside task");
+    }, "Test test_task.1 : Incorrect TaskOrToBeAdded, AddTask, SetLevels, InitLevel and AddToLog calls inside task");
 
     make_step([]() {
         bool local_res = true;
@@ -295,7 +288,7 @@ size_t test_task(void){
                 auto task2 = test_log.AddTask(true);
                 test_log.AddToLog(2, "+");
                 test_log.AddToLog(1, "+");
-                task2.SetFail();
+                task2.Failed();
             }
             test_log.AddToLog(4, "-");
         }
@@ -319,7 +312,7 @@ size_t test_task(void){
                 auto task2 = test_log.AddTask(true);
                 test_log.AddToLog(2, "+");
                 test_log.AddToLog(1, "+");
-                task2.SetFail();
+                task2.Failed();
             }
             test_log.AddToLog(4, "-");
         }
@@ -341,6 +334,9 @@ size_t test_task(void){
 size_t test_logger_group(void){
 
     errors = 0;
+
+    logger_test_1_instances = 0;
+    logger_test_2_instances = 0;
 
     make_step([]() {
         log_grp.Logger<0>().ClearFlags();   log_grp.Logger<1>().ClearFlags();
@@ -398,6 +394,8 @@ size_t test_logger_group(void){
 size_t test_logger_base(void){
 
     errors = 0;
+
+    logger_test_1_instances = 0;
 
     make_step([]() {
         test_log.ClearFlags();
@@ -467,12 +465,10 @@ size_t test_base(){
     std::cout << "START test_base... ";
 
     first_error = true;
-    logger_test_1_instances = 0;
-    logger_test_2_instances = 0;
 
     res += test_logger_base();
     res += test_logger_group();
-    res += test_task();
+    res += test_logger_task();
     res += test_logger_group_task();
 
     if( !res )
