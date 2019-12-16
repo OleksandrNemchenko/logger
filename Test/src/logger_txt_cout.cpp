@@ -13,8 +13,8 @@ size_t test_txt_cout(){
 
     std::cout << "START test_txt_cout" << std::endl;
 
-    Logger::CLoggerTxtCout<false, wchar_t> wlog;
-    Logger::CLoggerTxtCout<true, char> log;
+    Logger::CLoggerTxtCOut<false, wchar_t> wlog;
+    Logger::CLoggerTxtCOut<true, char> log;
 
     wlog.AddLevelDescr( 0, L"TEST-0" );
     wlog.OnLevel( 0 );

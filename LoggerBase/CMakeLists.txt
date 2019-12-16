@@ -1,11 +1,11 @@
 
-cmake_minimum_required(VERSION 3.14 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
 
-project(logger_base VERSION 1.0.0 LANGUAGES CXX)
+project(avn_logger_base VERSION 0.2.0 LANGUAGES CXX)
 
-add_library(logger_base INTERFACE)
+add_library(avn_logger_base INTERFACE)
 
-target_sources(logger_base
+target_sources(avn_logger_base
         INTERFACE
         ${CMAKE_CURRENT_SOURCE_DIR}/include/avn/logger/base_thr_safety.h
         ${CMAKE_CURRENT_SOURCE_DIR}/include/avn/logger/data_types.h
@@ -15,7 +15,19 @@ target_sources(logger_base
         ${CMAKE_CURRENT_SOURCE_DIR}/include/avn/logger/logger_task.h
         )
 
-target_include_directories(logger_base
+target_include_directories(avn_logger_base
         INTERFACE
-        ${CMAKE_CURRENT_SOURCE_DIR}/include
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<INSTALL_INTERFACE:include>
         )
+
+include(GNUInstallDirs)
+
+install(TARGETS avn_logger_base
+        EXPORT avn_logger_base
+        INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+        )
+
+#install(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/include/
+#        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+#        )
