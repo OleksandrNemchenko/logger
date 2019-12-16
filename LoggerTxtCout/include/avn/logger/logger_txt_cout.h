@@ -11,19 +11,19 @@
 namespace Logger {
 
 template<typename TChar>
-class CLoggerTxtCoutStream {
+class CLoggerTxtCOutStream {
 protected:
     std::basic_ostream<TChar> &OutStream();
 };
 
 template<bool LockThr, typename TChar>
-class CLoggerTxtCout : public CLoggerTxtBase<LockThr, TChar>, public CLoggerTxtCoutStream<TChar> {
+class CLoggerTxtCOut : public CLoggerTxtBase<LockThr, TChar>, public CLoggerTxtCOutStream<TChar> {
 public:
     using TBase = CLoggerTxtBase<LockThr, TChar>;
     using TString = std::basic_string<TChar>;
-    using TStream = CLoggerTxtCoutStream<TChar>;
+    using TStream = CLoggerTxtCOutStream<TChar>;
 
-    CLoggerTxtCout( bool local_time = true ): CLoggerTxtBase<LockThr, TChar>(local_time)    {}
+    CLoggerTxtCOut( bool local_time = true ): CLoggerTxtBase<LockThr, TChar>(local_time)    {}
 
 private:
 
@@ -31,15 +31,15 @@ private:
 };
 
 template<bool LockThr, typename TChar>
-bool CLoggerTxtCout<LockThr, TChar>::OutStrings( std::size_t level, std::chrono::system_clock::time_point time, TString &&data ){
+bool CLoggerTxtCOut<LockThr, TChar>::OutStrings( std::size_t level, std::chrono::system_clock::time_point time, TString &&data ){
 
     TStream::OutStream() << TBase::PrepareString( level, time, std::move(data) ) << std::endl;
 
     return true;
 }
 
-template<> inline std::ostream  &CLoggerTxtCoutStream<char>::OutStream()    { return std::cout; }
-template<> inline std::wostream &CLoggerTxtCoutStream<wchar_t>::OutStream() { return std::wcout; }
+template<> inline std::ostream  &CLoggerTxtCOutStream<char>::OutStream()    { return std::cout; }
+template<> inline std::wostream &CLoggerTxtCOutStream<wchar_t>::OutStream() { return std::wcout; }
 
 } // namespace Logger
 

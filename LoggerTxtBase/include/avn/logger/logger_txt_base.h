@@ -24,24 +24,18 @@ public:
 
 template<bool LockThr, typename TChar>
 class CLoggerTxtBase : public CLoggerBase<LockThr, std::basic_string<TChar>>, public CLoggerTxtBaseDefaults<TChar> {
-public:
-    using TBase = CLoggerBase<LockThr, std::basic_string<TChar>>;
-    using TDef = CLoggerTxtBaseDefaults<TChar>;
+public :
     using TString = std::basic_string<TChar>;
-    using TLevels = typename TBase::TLevels;
     using TLevelsMap = std::map<size_t, TString>;
+private :
+    using TBase = CLoggerBase<LockThr, TString>;
+    using TDef = CLoggerTxtBaseDefaults<TChar>;
 
+public :
     CLoggerTxtBase( bool local_time = true );
 
-    CLoggerTxtBase& AddLevelDescr( size_t level, TString name )     { _levels[level] = std::forward<TString>( name ); return *this; }
-    CLoggerTxtBase& InitLevel( std::size_t level, bool to_output )  { TBase::InitLevel( level, to_output ); return *this; }
-    CLoggerTxtBase& OnLevel( std::size_t level )                    { TBase::OnLevel( level );              return *this; }
-    CLoggerTxtBase& SetLevels( TLevels levels )                     { TBase::SetLevels( levels );           return *this; }
-    CLoggerTxtBase& OffLevel( std::size_t level )                   { TBase::OffLevel( level );             return *this; }
-    const TLevelsMap& Levels() const                                { return _levels; }
-    typename TBase::CTask AddTask( bool init_succeeded = false )                    { return TBase::AddTask( init_succeeded ); }
-    typename TBase::CTask AddTask( TLevels levels, bool init_succeeded = false )    { return TBase::AddTask( levels, init_succeeded ); }
-    CLoggerTxtBase& FinishTask( bool success )                      { TBase::FinishTask( success ); return *this; }
+    CLoggerTxtBase& AddLevelDescr( size_t level, TString name )     { _levels_map[level] = std::forward<TString>( name ); return *this; }
+    const TLevelsMap& LevelsMap() const                             { return _levels_map; }
 
     template<typename... T>
     CLoggerTxtBase& AddString( std::size_t level, T&&... args );
@@ -64,7 +58,7 @@ protected:
     TString PrepareString( std::size_t level, std::chrono::system_clock::time_point time, TString &&data ) const;
 
 private:
-    TLevelsMap _levels;
+    TLevelsMap _levels_map;
     std::function<std::tm* ( const std::time_t* )> _time_converter;
     TString _output_format;
     TString _level_prefix;
@@ -85,7 +79,7 @@ CLoggerTxtBase<LockThr, TChar>::CLoggerTxtBase( bool local_time ):
 template<bool LockThr, typename TChar>
 template<typename... T>
 CLoggerTxtBase<LockThr, TChar>& CLoggerTxtBase<LockThr, TChar>::AddString( std::chrono::system_clock::time_point time, std::size_t level, T&&... args ) {
-    if( !TBase::ToBeAdded(level) )
+    if( !TBase::TaskOrToBeAdded(level) )
         return *this;
     std::basic_stringstream<TChar> stream;
     ( stream << ... << std::forward<T>(args) );
@@ -101,10 +95,10 @@ CLoggerTxtBase<LockThr, TChar>& CLoggerTxtBase<LockThr, TChar>::AddString( std::
 
 template<bool LockThr, typename TChar>
 typename CLoggerTxtBase<LockThr, TChar>::TString CLoggerTxtBase<LockThr, TChar>::PrepareString( std::size_t level, std::chrono::system_clock::time_point time, TString &&data ) const {
-    const auto level_it = _levels.find(level);
+    const auto level_it = _levels_map.find(level);
     TString str;
 
-    assert( level_it != _levels.cend() );
+    assert( level_it != _levels_map.cend() );
 
     std::time_t time_moment = std::chrono::system_clock::to_time_t( time );
     std::basic_stringstream<TChar> sstr;

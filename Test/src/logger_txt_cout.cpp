@@ -7,14 +7,14 @@
 #include <tests.h>
 #include <avn/logger/logger_txt_cout.h>
 
-size_t test_logger_txt_cout(){
+size_t test_txt_cout(){
 
     using namespace std;
 
     std::cout << "START test_txt_cout" << std::endl;
 
-    Logger::CLoggerTxtCout<false, wchar_t> wlog;
-    Logger::CLoggerTxtCout<true, char> log;
+    Logger::CLoggerTxtCOut<false, wchar_t> wlog;
+    Logger::CLoggerTxtCOut<true, char> log;
 
     wlog.AddLevelDescr( 0, L"TEST-0" );
     wlog.OnLevel( 0 );

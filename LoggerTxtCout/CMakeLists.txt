@@ -1,21 +1,22 @@
 
-cmake_minimum_required(VERSION 3.14 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
 
-project(logger_txt_cout VERSION 1.0.0 LANGUAGES CXX)
+project(avn_logger_txt_cout VERSION 1.0.0 LANGUAGES CXX)
 
-add_library(logger_txt_cout INTERFACE)
+add_library(avn_logger_txt_cout INTERFACE)
 
-target_sources(logger_txt_cout
+target_sources(avn_logger_txt_cout
         INTERFACE
         ${CMAKE_CURRENT_SOURCE_DIR}/include/avn/logger/logger_txt_cout.h
         )
 
-target_link_libraries(logger_txt_cout
+target_link_libraries(avn_logger_txt_cout
         INTERFACE
-        logger_txt_base
+        avn_logger_txt_base
         )
 
-target_include_directories(logger_txt_cout
+target_include_directories(avn_logger_txt_cout
         INTERFACE
-        ${CMAKE_CURRENT_SOURCE_DIR}/include
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<INSTALL_INTERFACE:include>
         )

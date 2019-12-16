@@ -3,6 +3,6 @@
 
 #pragma once
 
-size_t test_logger_base(void);
-size_t test_logger_txt_file(void);
-size_t test_logger_txt_cout(void);
+size_t test_base();
+size_t test_txt_file();
+size_t test_txt_cout();
