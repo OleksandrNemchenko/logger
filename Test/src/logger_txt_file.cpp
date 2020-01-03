@@ -20,7 +20,7 @@ size_t test_txt_file(){
 
     log.Imbue( utf8_locale );
     log.AddLevelDescr( 0, L"TEST-0" );
-    log.OnLevel( 0 );
+    log.EnableLevel( 0 );
     log.AddString( 0, L"This is test string : integer = ", 10 );
 
 
