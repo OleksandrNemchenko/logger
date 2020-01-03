@@ -1,2 +1,4 @@
 .idea
 debug/*
+release/*
+docs/doxygen

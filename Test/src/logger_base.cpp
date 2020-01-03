@@ -20,14 +20,14 @@ namespace {
         CLoggerTest()   { ++logger_test_1_instances; }
         ~CLoggerTest()  { --logger_test_1_instances; }
 
-        bool OutStrings(std::size_t level, std::chrono::system_clock::time_point time, std::string &&data) override {
+        bool OutData(std::size_t level, std::chrono::system_clock::time_point time, std::string &&data) override {
             ++_calls._out_strings;
             return true;
         }
 
         using CLoggerBase::AddTask;
-        using CLoggerBase::OnLevel;
-        using CLoggerBase::OffLevel;
+        using CLoggerBase::EnableLevel;
+        using CLoggerBase::DisableLevel;
         using CLoggerBase::AddToLog;
         using CLoggerBase::SetLevels;
 
@@ -52,14 +52,14 @@ namespace {
         CLoggerTest2()  { ++logger_test_2_instances; }
         ~CLoggerTest2() { --logger_test_2_instances; }
 
-        bool OutStrings(std::size_t level, std::chrono::system_clock::time_point time, std::string &&data) override {
+        bool OutData(std::size_t level, std::chrono::system_clock::time_point time, std::string &&data) override {
             ++_calls._out_strings;
             return true;
         }
 
         using CLoggerBase::AddTask;
-        using CLoggerBase::OnLevel;
-        using CLoggerBase::OffLevel;
+        using CLoggerBase::EnableLevel;
+        using CLoggerBase::DisableLevel;
         using CLoggerBase::AddToLog;
         using CLoggerBase::SetLevels;
 
@@ -108,8 +108,8 @@ size_t test_logger_task_group_base(void){
 
     log_grp.InitLevel(1, true );
     log_grp.InitLevel(2, false );
-    log_grp.Logger<0>().OnLevel(3);
-    log_grp.Logger<1>().OffLevel(3);
+    log_grp.Logger<0>().EnableLevel(3);
+    log_grp.Logger<1>().DisableLevel(3);
 
     {
         auto log_tasks = log_grp.AddTask( true );
@@ -154,8 +154,8 @@ size_t test_logger_group_base(void){
 
     log_grp.InitLevel(1, true );
     log_grp.InitLevel(2, false );
-    log_grp.Logger<0>().OnLevel(3);
-    log_grp.Logger<1>().OffLevel(3);
+    log_grp.Logger<0>().EnableLevel(3);
+    log_grp.Logger<1>().DisableLevel(3);
 
     auto levels_0 = log_grp.Logger<0>().GetLevels();
     auto levels_1 = log_grp.Logger<1>().GetLevels();
@@ -244,7 +244,7 @@ size_t test_logger_task(void){
         {
             test_log.ClearFlags();
             auto task = test_log.AddTask( true );
-            task.OffLevel(2);
+            task.DisableLevel(2);
             test_log.AddToLog(1, "+");
             test_log.AddToLog(2, "-");
             test_log.AddToLog(3, "+");
@@ -354,11 +354,11 @@ size_t test_logger_group(void){
         if( log_grp.Logger<0>().Levels() != Logger::TLevels{1,3} || log_grp.Logger<1>().Levels() != Logger::TLevels{1,3} )
             return false;
 
-        log_grp.OnLevel(2);
+        log_grp.EnableLevel(2);
         if( log_grp.Logger<0>().Levels() != Logger::TLevels{1,2,3} || log_grp.Logger<1>().Levels() != Logger::TLevels{1,2,3} )
             return false;
 
-        log_grp.OffLevel(2);
+        log_grp.DisableLevel(2);
         if( log_grp.Logger<0>().Levels() != Logger::TLevels{1,3} || log_grp.Logger<1>().Levels() != Logger::TLevels{1,3} )
             return false;
 
@@ -434,11 +434,11 @@ size_t test_logger_base(void){
         if( test_log.Levels() != Logger::TLevels {1, 2, 4} )
             return false;
 
-        test_log.OnLevel( 3 );
+        test_log.EnableLevel( 3 );
         if( test_log.Levels() != Logger::TLevels {1, 2, 3, 4} )
             return false;
 
-        test_log.OffLevel( 3 );
+        test_log.DisableLevel( 3 );
         if( test_log.Levels() != Logger::TLevels {1, 2, 4} )
             return false;
 
@@ -450,7 +450,7 @@ size_t test_logger_base(void){
             return false;
 
         return true;
-    }, "Test test_logger_base.2 : Incorrect SetLevels, InitLevel, OnLevel, OffLevel, TaskOrToBeAdded calls without task");
+    }, "Test test_logger_base.2 : Incorrect SetLevels, InitLevel, EnableLevel, DisableLevel, TaskOrToBeAdded calls without task");
 
     make_step([](){
         return logger_test_1_instances == 0;
