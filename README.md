@@ -42,5 +42,5 @@ You can make and start test_logger target to test all features. Visit this targe
       functional object that will be called for log message decorating
 
 ## History
-* [version 1.0](https://github.com/OleksandrNemchenko/logger/tree/release/1.0) :
+* [version 1.0](https://github.com/OleksandrNemchenko/logger/tree/release/v1.0) :
     - logger library with tasks and group entities.
