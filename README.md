@@ -120,9 +120,6 @@ Logger library contains interface library only except UUT target, so you can dir
 You can make and start test_logger target to test all features. Visit this target source files to see library usage.
 
 ## Roadmap
-* version 1.1 :
-    - create Doxygen documentation for all entities
-    - create gh-pages description
 * version 1.2+ :
     - add library detailed description
     - add library usage examples
@@ -133,5 +130,8 @@ You can make and start test_logger target to test all features. Visit this targe
       functional object that will be called for log message decorating
 
 ## History
+* [version 1.1](https://github.com/OleksandrNemchenko/logger/tree/release/v1.1) : [documentation](https://oleksandrnemchenko.github.io/logger/v1.1/index.html)
+    - create Doxygen documentation for all entities
+    - create gh-pages description
 * [version 1.0](https://github.com/OleksandrNemchenko/logger/tree/release/v1.0) :
     - logger library with tasks and group entities.
