@@ -114,9 +114,9 @@ namespace ALogger {
          *
          * Message will be output regardless level and task presence.
          *
-         * \param level Message level
-         * \param data Message to be output
-         * \param time Timestamp. Current time by default
+         * \param[in] level Message level
+         * \param[in] data Message to be output
+         * \param[in] time Timestamp. Current time by default
          *
          * \return true if message is output
          */
@@ -124,9 +124,9 @@ namespace ALogger {
 
         /** Output the message for all loggers inside container
          *
-         * \param level Message level
-         * \param data Message to be output
-         * \param time Timestamp. Current time by default
+         * \param[in] level Message level
+         * \param[in] data Message to be output
+         * \param[in] time Timestamp. Current time by default
          *
          * \return true if message is output
          */

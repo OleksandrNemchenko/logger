@@ -124,8 +124,8 @@ namespace ALogger {
          *
          * Message will be output with the current timestamp.
          *
-         * \param level Message level
-         * \param data Message to be output
+         * \param[in] level Message level
+         * \param[in] data Message to be output
          *
          * \return Current task instance
          */
@@ -137,9 +137,9 @@ namespace ALogger {
          *
          * Message will be owned by logger.
          *
-         * \param level Message level
-         * \param data Message to be output
-         * \param time Message time
+         * \param[in] level Message level
+         * \param[in] data Message to be output
+         * \param[in] time Message time
          *
          * \return Current task instance
          */
@@ -151,8 +151,8 @@ namespace ALogger {
          *
          * Message will be output with the current timestamp.
          *
-         * \param level Message level
-         * \param data Message to be output
+         * \param[in] level Message level
+         * \param[in] data Message to be output
          *
          * \return Current task instance
          */
@@ -162,8 +162,8 @@ namespace ALogger {
          *
          * Message could be output at the task end.
          *
-         * \param level Message level
-         * \param data Message to be output
+         * \param[in] level Message level
+         * \param[in] data Message to be output
          *
          * \return Current task instance
          */
@@ -171,8 +171,8 @@ namespace ALogger {
 
         /** Enable or disable specified level
          *
-         * \param level Level to be enabled or disabled
-         * \param to_enable To enable or disable \a level
+         * \param[in] level Level to be enabled or disabled
+         * \param[in] to_enable To enable or disable \a level
          *
          * \return Current task instance
          */
@@ -180,7 +180,7 @@ namespace ALogger {
 
         /** Enable specified levels
          *
-         * \param level levels to be enabled
+         * \param[in] level levels to be enabled
          *
          * \return Current task instance
          */
@@ -188,7 +188,7 @@ namespace ALogger {
 
         /** Enable specified level
          *
-         * \param level Level to be enabled
+         * \param[in] level Level to be enabled
          *
          * \return Current task instance
          */
@@ -196,7 +196,7 @@ namespace ALogger {
 
         /** Disable specified level
          *
-         * \param level Level to be disabled
+         * \param[in] level Level to be disabled
          *
          * \return Current task instance
          */

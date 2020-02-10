@@ -64,8 +64,8 @@ namespace ALogger {
          *
          * This function calls #ALogger::ALoggerTxtBase::addLevelDescr for each container element
          *
-         * \param level Level identifier
-         * \param name Level description
+         * \param[in] level Level identifier
+         * \param[in] name Level description
          */
         void addLevelDescr(size_t level, TString name);
 
@@ -82,10 +82,8 @@ namespace ALogger {
         * \warning Each type must be able to to be used as argument for
         * std::basic_stringstream<TChar>::operator<<(std::forward<T>(args)) call
         *
-        * \param level Level identifier
-        * \param args Arguments
-        *
-        * \return Current instance reference
+        * \param[in] level Level identifier
+        * \param[in] args Arguments
         */
         template<typename... T>
         void addString(std::size_t level, const T&... args);
@@ -101,12 +99,10 @@ namespace ALogger {
         * \warning Each type must be able to to be used as argument for
         * std::basic_stringstream<TChar>::operator<<(std::forward<T>(args)) call
         *
-        * \param time Message timestamp
-        * \param level Level identifier
-        * \param args Arguments
-        *
-        * \return Current instance reference
-        */
+        * \param[in] time Message timestamp
+        * \param[in] level Level identifier
+        * \param[in] args Arguments
+       */
         template<typename... T>
         void addString(std::chrono::system_clock::time_point time, std::size_t level, const T&... args);
 
@@ -114,9 +110,7 @@ namespace ALogger {
          *
          * This function calls #ALogger::ALoggerTxtBase::setDateOutputFormat for each container element.
          *
-         * \param output_format std::put_time timestamp format
-         *
-         * \return Current instance reference
+         * \param[in] output_format std::put_time timestamp format
          */
         void setDateOutputFormat(const TString& output_format);
 
@@ -124,9 +118,7 @@ namespace ALogger {
          *
          * This function calls #ALogger::ALoggerTxtBase::setLevelPrefix for each container element.
          *
-         * \param level_prefix Level prefix
-         *
-         * \return Current instance reference
+         * \param[in] level_prefix Level prefix
          */
         void setLevelPrefix(const TString& level_prefix);
 
@@ -134,21 +126,17 @@ namespace ALogger {
          *
          * This function calls #ALogger::ALoggerTxtBase::setLevelPostfix for each container element.
          *
-         * \param level_postfix Level postfix
-         *
-         * \return Current instance reference
+         * \param[in] level_postfix Level postfix
          */
         void setLevelPostfix(const TString& level_postfix);
 
         /** Default space text
          *
-         * \param space Space between different elements
+         * \param[in] space Space between different elements
          *
          * This function calls #ALogger::ALoggerTxtBase::setSpace for each container element.
          *
-         * \param space Space between different elements
-         *
-         * \return Current instance reference
+         * \param[in] space Space between different elements
          */
         void setSpace(const TString& space);
 
@@ -165,10 +153,8 @@ namespace ALogger {
         * \warning Each type must be able to to be used as argument for
         * std::basic_stringstream<TChar>::operator<<(std::forward<T>(args)) call
         *
-        * \param level Level identifier
-        * \param args Arguments
-        *
-        * \return Current instance reference
+        * \param[in] level Level identifier
+        * \param[in] args Arguments
         */
         template<typename... T>
         void operator() (std::size_t level, const T&... args)    { addString(level, args...); }
@@ -184,11 +170,9 @@ namespace ALogger {
         * \warning Each type must be able to to be used as argument for
         * std::basic_stringstream<TChar>::operator<<(std::forward<T>(args)) call
         *
-        * \param time Message timestamp
-        * \param level Level identifier
-        * \param args Arguments
-        *
-        * \return Current instance reference
+        * \param[in] time Message timestamp
+        * \param[in] level Level identifier
+        * \param[in] args Arguments
         */
         template<typename... T>
         void operator() (std::chrono::system_clock::time_point time, std::size_t level, const T&... args)    { addString(time, level, args...); }

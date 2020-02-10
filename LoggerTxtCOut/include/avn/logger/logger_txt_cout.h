@@ -85,7 +85,7 @@ namespace ALogger {
 
         /** Default constructor with time zone selector
          *
-         * \param local_time Local time or GMT will be used as time zone. Loca time is selected by default
+         * \param[in] local_time Local time or GMT will be used as time zone. Loca time is selected by default
          */
         ALoggerTxtCOut(bool local_time = true): ALoggerTxtBase<_ThrSafe, _TChar>(local_time)    {}
 

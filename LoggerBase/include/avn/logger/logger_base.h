@@ -158,7 +158,7 @@ namespace ALogger {
          * This call creates task for the current thread with initial \a init_success_state state. levels to be enabled
          * are inherited from current logger.
          *
-         * \param init_success_state Success state at the beginning. It can be changed at the end.
+         * \param[in] init_success_state Success state at the beginning. It can be changed at the end.
          *
          * \return Created task object
          */
@@ -178,8 +178,8 @@ namespace ALogger {
          * This call creates task for the current thread with initial \a init_success_state state. Also it has
          * the \a levels list of levels to be enabled.
          *
-         * \param levels levels to be enabled.
-         * \param init_success_state Success state at the beginning. It can be changed later.
+         * \param[in] levels levels to be enabled.
+         * \param[in] init_success_state Success state at the beginning. It can be changed later.
          *
          * \return Created task object
          */
@@ -190,7 +190,7 @@ namespace ALogger {
          * This call creates task for the current thread with default initial state. Also it has the \a levels list of
          * levels to be enabled.
          *
-         * \param levels levels to be enabled.
+         * \param[in] levels levels to be enabled.
          *
          * \return Created task object
          */
@@ -198,32 +198,33 @@ namespace ALogger {
 
         /** Enable or disable specific level
          *
-         * \param level Level to be enabled or disabled.
-         * \param to_enable If true, \a level will be enabled. Otherwise it will be disabled.
+         * \param[in] level Level to be enabled or disabled.
+         * \param[in] to_enable If true, \a level will be enabled. Otherwise it will be disabled.
          */
         void initLevel(std::size_t level, bool to_enable = true);
 
         /** Enable level
          *
-         * \param level Level to be enabled.
+         * \param[in] level Level to be enabled.
          */
         void enableLevel(std::size_t level) { initLevel(level, true); }
 
         /** Disable level
          *
-         * \param level Level to be disabled.
+         * \param[in] level Level to be disabled.
          */
         void disableLevel(std::size_t level) { initLevel(level, false); }
-        
+
         /** Set levels
          * 
-         * \param levels Levels to use
+         * \param[in] levels Levels to use
          */
         void setlevels(TLevels levels) { _outLevels = levels; }
 
         /** Check level to be output
          *
-         * \param level Level to check.
+         * \param[in] level Level to check.
+         *
          * \return true if task is active or this level is enabled.
          */
         bool taskOrToBeAdded(std::size_t level) const;
@@ -234,8 +235,8 @@ namespace ALogger {
          *
          * Message will be output with the current timestamp.
          *
-         * \param level Message level
-         * \param data Message to be output
+         * \param[in] level Message level
+         * \param[in] data Message to be output
          *
          * \return true if message is output
          */
@@ -245,9 +246,9 @@ namespace ALogger {
          *
          * Message will be output regardless level and task presence.
          *
-         * \param level Message level
-         * \param data Message to be output
-         * \param time Timestamp
+         * \param[in] level Message level
+         * \param[in] data Message to be output
+         * \param[in] time Timestamp
          *
          * \return true if message is output
          */
@@ -260,8 +261,8 @@ namespace ALogger {
          *
          * Message will be output with the current timestamp.
          *
-         * \param level Message level
-         * \param data Message to be output
+         * \param[in] level Message level
+         * \param[in] data Message to be output
          *
          * \return true if message is output
          */
@@ -272,9 +273,9 @@ namespace ALogger {
          * If a task is active, message could be output at the task end. If no task is active, message will be output
          * only if logger level is enabled.
          *
-         * \param level Message level
-         * \param data Message to be output
-         * \param time Timestamp
+         * \param[in] level Message level
+         * \param[in] data Message to be output
+         * \param[in] time Timestamp
          *
          * \return true if message is output
          */

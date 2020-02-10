@@ -74,7 +74,7 @@ namespace ALogger {
 
         /** Set task result for all tasks inside container
          *
-         * \param success Task result as succeeded or failed
+         * \param[in] success Task result as succeeded or failed
          *
          * \return Current task group instance
          */
@@ -96,8 +96,8 @@ namespace ALogger {
          *
          * Current timestamp will be used
          *
-         * \param level Message level
-         * \param data Message to be output
+         * \param[in] level Message level
+         * \param[in] data Message to be output
          *
          * \return Current task group instance
          */
@@ -105,9 +105,9 @@ namespace ALogger {
 
         /** Add the message for all tasks inside container
          *
-         * \param level Message level
-         * \param data Message to be output
-         * \param time Message timestamp
+         * \param[in] level Message level
+         * \param[in] data Message to be output
+         * \param[in] time Message timestamp
          *
          * \return Current task group instance
          */
@@ -115,9 +115,9 @@ namespace ALogger {
 
         /** Enable or disable specified logger level
          *
-         * \param level Message level to be disabled or enabled
-         * \param to_enable Enables or disabled logger level
-         * \param time Message timestamp
+         * \param[in] level Message level to be disabled or enabled
+         * \param[in] to_enable Enables or disabled logger level
+         * \param[in] time Message timestamp
          *
          * \return Current task group instance
          */
@@ -125,7 +125,7 @@ namespace ALogger {
 
         /** Enable specified logger levels
          *
-         * \param levels Message levels to be enabled
+         * \param[in] levels Message levels to be enabled
          *
          * \return Current task group instance
          */
@@ -133,7 +133,7 @@ namespace ALogger {
 
         /** Enable specified logger level
          *
-         * \param levels Message level to be enabled
+         * \param[in] levels Message level to be enabled
          *
          * \return Current task group instance
          */
@@ -141,7 +141,7 @@ namespace ALogger {
 
         /** Disable specified logger level
          *
-         * \param levels Message level to be disabled
+         * \param[in] levels Message level to be disabled
          *
          * \return Current task group instance
          */

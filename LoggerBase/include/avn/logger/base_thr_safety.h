@@ -53,9 +53,10 @@ namespace ALogger {
          *
          * This function is used to output logger data with thread security mode.
          *
-         * \param level ALogger level. Different security levels has to be implemented by children classes.
-         * \param time ALogger event timestamp.
-         * \param data Data that has to be output.
+         * \param[in] level ALogger level. Different security levels has to be implemented by children classes.
+         * \param[in] time ALogger event timestamp.
+         * \param[in] data Data that has to be output.
+         *
          * \return true if data was output successfully or false otherwise.
          */
         bool outDataThrSafe(std::size_t level, std::chrono::system_clock::time_point time, _TLogData&& data)
@@ -68,9 +69,10 @@ namespace ALogger {
          *
          * This function is called from #outDataThrSafe to output logger data.
          *
-         * \param level ALogger level. Different levels has to be implemented by children classes.
-         * \param time ALogger event timestamp.
-         * \param data Data that has to be output.
+         * \param[in] level ALogger level. Different levels has to be implemented by children classes.
+         * \param[in] time ALogger event timestamp.
+         * \param[in] data Data that has to be output.
+         *
          * \return true if data was output successfully or false otherwise.
          */
         virtual bool outData(std::size_t level, std::chrono::system_clock::time_point time, _TLogData&& data) = 0;
@@ -94,9 +96,10 @@ namespace ALogger {
          *
          * This function is used to output logger data with single thread mode. Actually it simple calls #outData function.
          *
-         * \param level ALogger level. Different levels has to be implemented by children classes.
-         * \param time ALogger event timestamp.
-         * \param data Data that has to be output.
+         * \param[in] level ALogger level. Different levels has to be implemented by children classes.
+         * \param[in] time ALogger event timestamp.
+         * \param[in] data Data that has to be output.
+         *
          * \return true if data was output successfully or false otherwise.
          */
         bool outDataThrSafe(std::size_t level, std::chrono::system_clock::time_point time, _TLogData&& data)
@@ -108,9 +111,10 @@ namespace ALogger {
          *
          * This function is called from #outDataThrSafe to output logger data.
          *
-         * \param level ALogger level. Different levels has to be implemented by children classes.
-         * \param time ALogger event timestamp.
-         * \param data Data that has to be output.
+         * \param[in] level ALogger level. Different levels has to be implemented by children classes.
+         * \param[in] time ALogger event timestamp.
+         * \param[in] data Data that has to be output.
+         *
          * \return true if data was output successfully or false otherwise.
          */
         virtual bool outData(std::size_t level, std::chrono::system_clock::time_point time, _TLogData&& data) = 0;

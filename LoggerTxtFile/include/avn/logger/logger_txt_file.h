@@ -70,7 +70,7 @@ namespace ALogger {
 
         /** Default constructor
          *
-         * \param local_time Use local time instead of GMT one. True by default
+         * \param[in] local_time Use local time instead of GMT one. True by default
          */
         ALoggerTxtFile(bool local_time = true): ALoggerTxtBase<_ThrSafe, _TChar>(local_time), _flushAlways(false)    {}
 
@@ -78,9 +78,9 @@ namespace ALogger {
          *
          * #openFile is called after object construction
          *
-         * \param filename Output file name and path
-         * \param mode File mode as std::ios_base::openmode mask. std::ios_base::out by default
-         * \param local_time  Use local time instead of GMT one. True by default
+         * \param[in] filename Output file name and path
+         * \param[in] mode File mode as std::ios_base::openmode mask. std::ios_base::out by default
+         * \param[in] local_time  Use local time instead of GMT one. True by default
          */
         ALoggerTxtFile(const std::filesystem::path &filename, std::ios_base::openmode mode = std::ios_base::out, bool local_time = true) :
                 ALoggerTxtFile(local_time)
@@ -90,8 +90,8 @@ namespace ALogger {
 
         /** Open file
          *
-         * \param filename Output file name and path
-         * \param mode File mode as std::ios_base::openmode mask. std::ios_base::out by default
+         * \param[in] filename Output file name and path
+         * \param[in] mode File mode as std::ios_base::openmode mask. std::ios_base::out by default
          *
          * \return Current instance reference
          */
@@ -113,7 +113,7 @@ namespace ALogger {
          *
          * You can flush \a levels specified instantly hen you add such logger messages
          *
-         * \param levels levels list to be flushed instantly
+         * \param[in] levels levels list to be flushed instantly
          *
          * \return Current instance reference
          */
@@ -123,7 +123,7 @@ namespace ALogger {
          *
          * You can flush \a levels specified instantly hen you add such logger messages
          *
-         * \param levels levels list to be flushed instantly
+         * \param[in] levels levels list to be flushed instantly
          *
          * \return Current instance reference
          */
@@ -131,7 +131,7 @@ namespace ALogger {
 
         /** Enable or diable automatic flushing for all messages to the output file
          *
-         * \param flush_always Enable or disable automatic flushing. True by default
+         * \param[in] flush_always Enable or disable automatic flushing. True by default
          *
          * \return Current instance reference
          */
@@ -139,7 +139,7 @@ namespace ALogger {
 
         /** Set the associated locale of the file stream to the given one
          *
-         * \param loc New locale to associate the stream to
+         * \param[in] loc New locale to associate the stream to
          * \return Current instance reference
          */
         ALoggerTxtFile& imbue(const std::locale& loc)             { _fstream.imbue(loc); return *this; }

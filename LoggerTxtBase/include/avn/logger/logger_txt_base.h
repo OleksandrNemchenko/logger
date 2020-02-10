@@ -78,14 +78,14 @@ namespace ALogger {
     public :
         /** Default constructor
          *
-         * \param local_time Local time will be used for timestamp. By default it is true
+         * \param[in] local_time Local time will be used for timestamp. By default it is true
          */
         ALoggerTxtBase(bool local_time = true);
 
         /** Add level descriptor
          *
-         * \param level Level identifier
-         * \param name Level descriptor
+         * \param[in] level Level identifier
+         * \param[in] name Level descriptor
          *
          * \return Current instance reference
          */
@@ -105,8 +105,8 @@ namespace ALogger {
         * \warning Each type must be able to to be used as argument for
         * std::basic_stringstream<TChar>::operator<<(std::forward<T>(args)) call
         *
-        * \param level Level identifier
-        * \param args Arguments
+        * \param[in] level Level identifier
+        * \param[in] args Arguments
         *
         * \return Current instance reference
         */
@@ -122,9 +122,9 @@ namespace ALogger {
         * \warning Each type must be able to to be used as argument for
         * std::basic_stringstream<TChar>::operator<<(std::forward<T>(args)) call
         *
-        * \param time
-        * \param level Level identifier
-        * \param args Arguments
+        * \param[in] time
+        * \param[in] level Level identifier
+        * \param[in] args Arguments
         *
         * \return Current instance reference
         */
@@ -133,7 +133,7 @@ namespace ALogger {
 
         /** Set timestamp to string format
          *
-         * \param output_format std::put_time timestamp format
+         * \param[in] output_format std::put_time timestamp format
          *
          * \return Current instance reference
          */
@@ -141,7 +141,7 @@ namespace ALogger {
 
         /** Default text before level descriptor
          *
-         * \param level_prefix Level prefix
+         * \param[in] level_prefix Level prefix
          *
          * \return Current instance reference
          */
@@ -149,7 +149,7 @@ namespace ALogger {
 
         /** Default text after level descriptor
          *
-         * \param level_postfix Level postfix
+         * \param[in] level_postfix Level postfix
          *
          * \return Current instance reference
          */
@@ -157,7 +157,7 @@ namespace ALogger {
 
         /** Default space text
          *
-         * \param space Space between different elements
+         * \param[in] space Space between different elements
          *
          * \return Current instance reference
          */
@@ -174,8 +174,8 @@ namespace ALogger {
         * \warning Each type must be able to to be used as argument for
         * std::basic_stringstream<TChar>::operator<<(std::forward<T>(args)) call
         *
-        * \param level Level identifier
-        * \param args Arguments
+        * \param[in] level Level identifier
+        * \param[in] args Arguments
         *
         * \return Current instance reference
         */
@@ -191,9 +191,9 @@ namespace ALogger {
         * \warning Each type must be able to to be used as argument for
         * std::basic_stringstream<TChar>::operator<<(std::forward<T>(args)) call
         *
-        * \param time
-        * \param level Level identifier
-        * \param args Arguments
+        * \param[in] time
+        * \param[in] level Level identifier
+        * \param[in] args Arguments
         *
         * \return Current instance reference
         */
@@ -206,11 +206,11 @@ namespace ALogger {
          * This function decorates string by using prefixe, postfix, timestamp format and space string. It is intented
          * to be called by children classes.
          *
-         * \param level Level identifier
-         * \param time Message timestamp
-         * \param data Message string
+         * \param[in] level Level identifier
+         * \param[in] time Message timestamp
+         * \param[in] data Message string
          *
-         * \return
+         * \return Prepared string
          */
         TString prepareString(std::size_t level, std::chrono::system_clock::time_point time, const TString& data) const;
 
