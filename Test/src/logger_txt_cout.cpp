@@ -7,23 +7,22 @@
 #include <tests.h>
 #include <avn/logger/logger_txt_cout.h>
 
-size_t test_txt_cout(){
-
+size_t test_txt_cout()
+{
     using namespace std;
 
     std::cout << "START test_txt_cout" << std::endl;
 
-    Logger::CLoggerTxtCOut<false, wchar_t> wlog;
-    Logger::CLoggerTxtCOut<true, char> log;
+    ALogger::ALoggerTxtCOut<false, wchar_t> wlog;
+    ALogger::ALoggerTxtCOut<true, char> log;
 
-    wlog.AddLevelDescr( 0, L"TEST-0" );
-    wlog.EnableLevel( 0 );
-    wlog.AddString( 0, L"This is test wstring : integer = ", 10 );
+    wlog.addLevelDescr(0, L"TEST-0");
+    wlog.enableLevel(0);
+    wlog.addString(0, L"This is test wstring : integer = ", 10);
 
-    log.AddLevelDescr( 0, "TEST-0" );
-    log.EnableLevel( 0 );
-    log.AddString( 0, "This is test string : integer = ", 10 );
-
+    log.addLevelDescr(0, "TEST-0");
+    log.enableLevel(0);
+    log.addString(0, "This is test string : integer = ", 10);
 
     return 0;
 }

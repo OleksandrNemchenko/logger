@@ -3,29 +3,29 @@
 //
 
 /*! \file logger_group.h
- * \brief CLoggerGroup class implements loggers grouping.
+ * \brief ALoggerGroup class implements loggers grouping.
  *
- * #Logger::CLoggerGroup class is the templated container for different loggers that can be used simultaneously, i. e. you output
+ * #ALogger::ALoggerGroup class is the templated container for different loggers that can be used simultaneously, i. e. you output
  * the same logger message to different targets. For example, you can output the same message for console, disk, network etc.
  * You can enable different logger levels for each target.
  *
- * \warning All loggers inside one #Logger::CLoggerGroup must have the same \a TLogData logger message data type.
+ * \warning All loggers inside one #ALogger::ALoggerGroup must have the same \a TLogData logger message data type.
  *
- * Here is an example of #Logger::CLoggerTxtGroup that is #Logger::CLoggerGroup child for text messages :
+ * Here is an example of #ALogger::ALoggerTxtGroup that is #ALogger::ALoggerGroup child for text messages :
  *
  * \code
-constexpr auto WARNING;                                 // Logger level
+constexpr auto WARNING;                                 // ALogger level
 
-Logger::CLoggerTxtGroup<                                // Loggers group
-        Logger::CLoggerTxtCOut<true, wchar_t>,          // std::cout target
-        Logger::CLoggerTxtFile<true, wchar_t>> _log;    // Text file target
+ALogger::ALoggerTxtGroup<                                // Loggers group
+        ALogger::ALoggerTxtCOut<true, wchar_t>,          // std::cout target
+        ALogger::ALoggerTxtFile<true, wchar_t>> _log;    // Text file target
 
 const std::locale utf8_locale = locale(locale(), new codecvt_utf8<wchar_t>());
 
-_log.Logger<1>().Imbue( utf8_locale );                  // Sets locale for text file
+_log.ALogger<1>().imbue(utf8_locale);                  // Sets locale for text file
 
-_log.EnableLevel( WARNING );                            // Enables WARNING levels
-_log.AddString( WARNING, L"Warning message!" );         // Outputs message
+_log.enableLevel(WARNING);                            // Enables WARNING levels
+_log.addString(WARNING, L"Warning message!");         // Outputs message
 
  * \endcode
  *
@@ -40,25 +40,26 @@ _log.AddString( WARNING, L"Warning message!" );         // Outputs message
 #include <avn/logger/logger_base.h>
 #include <avn/logger/logger_group_task.h>
 
-namespace Logger {
+namespace ALogger {
 
     /** Interface for internal usage */
     template< typename _TLogData >
     class ILoggerGroup {
         template< typename... _TLogger >
-        friend class CLoggerGroup;
+        friend class ALoggerGroup;
 
     protected:
-        virtual CLoggerTask<_TLogData> * AddTaskForLoggerGroup( bool init_succeeded ) = 0;
-        virtual CLoggerTask<_TLogData> * AddTaskForLoggerGroup() = 0;
-        virtual CLoggerTask<_TLogData> * AddTaskForLoggerGroup( TLevels levels, bool init_succeeded ) = 0;
-        virtual CLoggerTask<_TLogData> * AddTaskForLoggerGroup( TLevels levels ) = 0;
+        virtual ALoggerTask<_TLogData>* addTaskForLoggerGroup(bool init_succeeded) = 0;
+        virtual ALoggerTask<_TLogData>* addTaskForLoggerGroup() = 0;
+        virtual ALoggerTask<_TLogData>* addTaskForLoggerGroup(TLevels levels, bool init_succeeded) = 0;
+        virtual ALoggerTask<_TLogData>* addTaskForLoggerGroup(TLevels levels) = 0;
 
-        CLoggerTask<_TLogData> * CreateTask( ITaskLogger<_TLogData> &logger, bool init_success_state ) {
-            return new CLoggerTask<_TLogData>( logger, init_success_state );
+        ALoggerTask<_TLogData>* createTask(ITaskLogger<_TLogData>& logger, bool init_success_state)
+        {
+            return new ALoggerTask<_TLogData>(logger, init_success_state);
         };
 
-    };  // class CLoggerGroup
+    };  // class ALoggerGroup
 
     /** Loggers group container
      *
@@ -69,34 +70,45 @@ namespace Logger {
      * \tparam _TLogger Loggers
      */
     template< typename... _TLogger >
-    class CLoggerGroup {
+    class ALoggerGroup {
     public:
         /** Loggers array type */
         using TArray = std::tuple<_TLogger...>;
 
-        /** Logger data type */
+        /** ALogger data type */
         using TLogData = typename std::tuple_element_t<0, TArray>::TLogData;
 
         /** Return logger reference to the \a num element */
-        template< size_t num > auto       & Logger()        { static_assert( num < sizeof...( _TLogger ), "Requested element's number is out of this logger group size"); return std::get<num>( _logger ); }
+        template< size_t num > auto& logger()
+        {
+            static_assert(num < sizeof...(_TLogger), "Requested element's number is out of this logger group size");
+            return std::get<num>(_logger);
+        }
 
         /** Return logger reference to the \a num element */
-        template< size_t num > const auto & Logger() const  { static_assert( num < sizeof...( _TLogger ), "Requested element's number is out of this logger group size"); return std::get<num>( _logger ); }
+        template< size_t num > const auto& logger() const
+        {
+            static_assert(num < sizeof...(_TLogger), "Requested element's number is out of this logger group size");
+            return std::get<num>(_logger);
+        }
 
         /** Return loggers amount */
-        constexpr auto SizeOf() const                       { return sizeof...( _TLogger ); }
+        constexpr auto sizeOf() const
+        {
+            return sizeof...(_TLogger);
+        }
 
         /** Enable or disable specified level for all loggers inside container */
-        void InitLevel( std::size_t level, bool to_enable );
+        void initLevel(std::size_t level, bool to_enable);
 
         /** Enable specified level for all loggers inside container */
-        void EnableLevel( std::size_t level );
+        void enableLevel(std::size_t level);
 
         /** Disable specified level for all loggers inside container */
-        void DisableLevel( std::size_t level );
+        void disableLevel(std::size_t level);
 
         /** Set levels for all loggers inside container */
-        void SetLevels( TLevels levels );
+        void setlevels(TLevels levels);
 
         /** Force the message to be output for all loggers inside container
          *
@@ -108,7 +120,7 @@ namespace Logger {
          *
          * \return true if message is output
          */
-        bool ForceAddToLog( std::size_t level, TLogData &&data, std::chrono::system_clock::time_point time = std::chrono::system_clock::now() );
+        bool forceAddToLog(std::size_t level, TLogData&& data, std::chrono::system_clock::time_point time = std::chrono::system_clock::now());
 
         /** Output the message for all loggers inside container
          *
@@ -118,97 +130,97 @@ namespace Logger {
          *
          * \return true if message is output
          */
-        bool AddToLog( std::size_t level, TLogData &&data, std::chrono::system_clock::time_point time = std::chrono::system_clock::now() );
+        bool addToLog(std::size_t level, TLogData&& data, std::chrono::system_clock::time_point time = std::chrono::system_clock::now());
 
         /** Add task for all loggers inside container */
-        auto AddTask();
+        auto addTask();
 
         /** Add task with \a init_success_state for all loggers inside container */
-        auto AddTask( bool init_success_state );
+        auto addTask(bool init_success_state);
 
         /** Add task with \a levels enabled for all loggers inside container */
-        auto AddTask( TLevels levels );
+        auto addTask(TLevels levels);
 
         /** Add task with \a init_success_state and \a levels enabled for all loggers inside container */
-        auto AddTask( TLevels levels, bool init_success_state );
+        auto addTask(TLevels levels, bool init_success_state);
 
     protected:
         TArray _logger;
 
-    };  // class CLoggerGroup
+    };  // class ALoggerGroup
 
     template< typename... _TLogger >
-    void CLoggerGroup<_TLogger...>::InitLevel( std::size_t level, bool to_enable ) {
-        std::apply( [=] ( auto&... logger ) {
-            ( logger.InitLevel( level, to_enable ), ... );
-        }, _logger );
+    void ALoggerGroup<_TLogger...>::initLevel(std::size_t level, bool to_enable) {
+        std::apply([=] (auto&... logger) {
+            (logger.initLevel(level, to_enable), ...);
+        }, _logger);
     }
 
     template< typename... _TLogger >
-    void CLoggerGroup<_TLogger...>::EnableLevel( std::size_t level ) {
-        std::apply( [=]( auto&... logger ) {
-            ( logger.EnableLevel( level ), ... );
-        }, _logger );
+    void ALoggerGroup<_TLogger...>::enableLevel(std::size_t level) {
+        std::apply([=](auto&... logger) {
+            (logger.enableLevel(level), ...);
+        }, _logger);
     }
 
     template< typename... _TLogger >
-    void CLoggerGroup<_TLogger...>::DisableLevel( std::size_t level ) {
-        std::apply( [=]( auto&... logger ) {
-            ( logger.DisableLevel( level ), ... );
-        }, _logger );
+    void ALoggerGroup<_TLogger...>::disableLevel(std::size_t level) {
+        std::apply([=](auto&... logger) {
+            (logger.disableLevel(level), ...);
+        }, _logger);
     }
 
     template< typename... _TLogger >
-    void CLoggerGroup<_TLogger...>::SetLevels( TLevels levels ) {
-        std::apply( [&]( auto&... logger ) { ( logger.SetLevels( levels ), ... ); }, _logger );
+    void ALoggerGroup<_TLogger...>::setlevels(TLevels levels) {
+        std::apply([&](auto&... logger) { (logger.setlevels(levels), ...); }, _logger);
     }
 
     template< typename... _TLogger >
-    bool CLoggerGroup<_TLogger...>::ForceAddToLog( std::size_t level, TLogData &&data, std::chrono::system_clock::time_point time ) {
+    bool ALoggerGroup<_TLogger...>::forceAddToLog(std::size_t level, TLogData&& data, std::chrono::system_clock::time_point time) {
         bool res = true;
-        std::apply( [&]( auto&... logger ) { ( res &= ... &= logger.ForceAddToLog( level, std::move(data), time ) ); }, _logger );
+        std::apply([&](auto&... logger) { (res &= ... &= logger.forceAddToLog(level, std::move(data), time)); }, _logger);
         return res;
     }
 
     template< typename... _TLogger >
-    bool CLoggerGroup<_TLogger...>::AddToLog( std::size_t level, TLogData &&data, std::chrono::system_clock::time_point time ) {
+    bool ALoggerGroup<_TLogger...>::addToLog(std::size_t level, TLogData&& data, std::chrono::system_clock::time_point time) {
         bool res = true;
-        std::apply( [&]( auto&... logger ) { ( res &= ... &= logger.AddToLog( level, std::move(data), time ) ); }, _logger );
+        std::apply([&](auto&... logger) { (res &= ... &= logger.addToLog(level, std::move(data), time)); }, _logger);
         return res;
     }
 
     template< typename... _TLogger >
-    auto CLoggerGroup<_TLogger...>::AddTask() {
-        auto tasks = std::apply( []( auto&&... logger ){
-            return std::make_tuple( (logger.GetLoggerGroupInterface())->AddTaskForLoggerGroup() ... );
-        }, _logger );
-        return CLoggerGroupTask( std::move( tasks ));
+    auto ALoggerGroup<_TLogger...>::addTask() {
+        auto tasks = std::apply([](auto&&... logger){
+            return std::make_tuple((logger.getLoggerGroupInterface())->addTaskForLoggerGroup() ...);
+        }, _logger);
+        return ALoggerGroupTask(std::move(tasks ));
     }
 
     template< typename... _TLogger >
-    auto CLoggerGroup<_TLogger...>::AddTask( bool init_success_state ) {
-        auto tasks = std::apply( [init_success_state]( auto&&... logger ){
-            return std::make_tuple( (logger.GetLoggerGroupInterface())->AddTaskForLoggerGroup( init_success_state ) ... );
-        }, _logger );
-        return CLoggerGroupTask( std::move( tasks ));
+    auto ALoggerGroup<_TLogger...>::addTask(bool init_success_state) {
+        auto tasks = std::apply([init_success_state](auto&&... logger){
+            return std::make_tuple((logger.getLoggerGroupInterface())->addTaskForLoggerGroup(init_success_state) ...);
+        }, _logger);
+        return ALoggerGroupTask(std::move(tasks ));
     }
 
     template< typename... _TLogger >
-    auto CLoggerGroup<_TLogger...>::AddTask( TLevels levels ) {
-        auto tasks = std::apply( [&levels]( auto&&... logger ){
-            return std::make_tuple( (logger.GetLoggerGroupInterface())->AddTaskForLoggerGroup( levels ) ... );
-        }, _logger );
-        return CLoggerGroupTask( std::move( tasks ));
+    auto ALoggerGroup<_TLogger...>::addTask(TLevels levels) {
+        auto tasks = std::apply([&levels](auto&&... logger){
+            return std::make_tuple((logger.getLoggerGroupInterface())->addTaskForLoggerGroup(levels) ...);
+        }, _logger);
+        return ALoggerGroupTask(std::move(tasks ));
     }
 
     template< typename... _TLogger >
-    auto CLoggerGroup<_TLogger...>::AddTask( TLevels levels, bool init_success_state ) {
-        auto tasks = std::apply( [&levels,init_success_state]( auto&&... logger ){
-            return std::make_tuple( (logger.GetLoggerGroupInterface())->AddTaskForLoggerGroup( levels, init_success_state ) ... );
-        }, _logger );
-        return CLoggerGroupTask( std::move( tasks ));
+    auto ALoggerGroup<_TLogger...>::addTask(TLevels levels, bool init_success_state) {
+        auto tasks = std::apply([&levels,init_success_state](auto&&... logger){
+            return std::make_tuple((logger.getLoggerGroupInterface())->addTaskForLoggerGroup(levels, init_success_state) ...);
+        }, _logger);
+        return ALoggerGroupTask(std::move(tasks ));
     }
 
-}   // namespace Logger
+}   // namespace ALogger
 
 #endif // _AVN_LOGGER_LOGGER_GROUP_H

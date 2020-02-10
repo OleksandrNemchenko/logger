@@ -1,6 +1,6 @@
 # Logger Library
 This is flexible C++ library to output log information with different log levels, different log channels and different
-log messages grouping.
+log messages grouping. You can see source code in [github.com/OleksandrNemchenko/logger](https://github.com/OleksandrNemchenko/logger).
 
 ## Contents
 - [Features](#features)
@@ -130,6 +130,8 @@ You can make and start test_logger target to test all features. Visit this targe
       functional object that will be called for log message decorating
 
 ## History
+* [version 1.2](https://github.com/OleksandrNemchenko/logger/tree/release/v1.2) : [documentation](https://oleksandrnemchenko.github.io/logger/v1.2/index.html)
+    - move towards to to [C++ Code Guidelines](http://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines)
 * [version 1.1](https://github.com/OleksandrNemchenko/logger/tree/release/v1.1) : [documentation](https://oleksandrnemchenko.github.io/logger/v1.1/index.html)
     - create Doxygen documentation for all entities
     - create gh-pages description

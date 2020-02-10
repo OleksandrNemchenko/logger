@@ -2,9 +2,9 @@
 // PVS-Studio Static Code Analyzer for C, C++, C#, and Java: http://www.viva64.com
 
 /*! \file logger_task.h
- * \brief CLoggerTask class implements logger task.
+ * \brief ALoggerTask class implements logger task.
  *
- * #Logger::CLoggerTask class is the task entity used to output or to hide all messages grouped inside one task.
+ * #ALogger::ALoggerTask class is the task entity used to output or to hide all messages grouped inside one task.
  *
  * To understand task entity let discuss an example. Say, you have some function that connects to the database and
  * change some field. Like this you have many small operations like database connection, search query and add query. On
@@ -13,7 +13,7 @@
  * etc. But if function is successful, you don't need to output all this messages, even may be no messages at all. In
  * this case logger tasks will help you.
  *
- * When you call #Logger::CLoggerBase::AddTask function, you enable task mode for the current thread. During this mode all
+ * When you call #ALogger::ALoggerBase::addTask function, you enable task mode for the current thread. During this mode all
  * messages are  collected in the internal array and they are not output. They will be output at the task finish. Before
  * task finish you set task mode - successful or not. If the task is unsuccessful, all messages will be output. In
  * another case only enabled messages will be output.
@@ -22,29 +22,29 @@
  *
  * \code
 
-// CLogger - the same class as in example above.
+// ALogger - the same class as in example above.
 
-CLogger logger;
+ALogger logger;
 
-logger.EnableLevel( CLogger::ERROR );
+logger.enableLevel(ALogger::ERROR);
 
 {
-  auto task = logger.AddTask();    // CLoggerTask task is in unsuccessful state
+  auto task = logger.addTask();    // ALoggerTask task is in unsuccessful state
 
-  logger.Output( CLogger::DEBUG, msg1 );
-  logger.Output( CLogger::WARNING, msg2 );
-  logger.Output( CLogger::ERROR, msg3 );
+  logger.Output(ALogger::DEBUG, msg1);
+  logger.Output(ALogger::WARNING, msg2);
+  logger.Output(ALogger::ERROR, msg3);
 
 }   // At this point all messages will be output.
 
 {
-  auto task = logger.AddTask();    // CLoggerTask task is in unsuccessful state
+  auto task = logger.addTask();    // ALoggerTask task is in unsuccessful state
 
-  logger.Output( CLogger::DEBUG, msg4 );
-  logger.Output( CLogger::WARNING, msg5 );
-  logger.Output( CLogger::ERROR, msg6 );
+  logger.Output(ALogger::DEBUG, msg4);
+  logger.Output(ALogger::WARNING, msg5);
+  logger.Output(ALogger::ERROR, msg6);
 
-  task.Succeeded(); // Now task is in successful state
+  task.succeeded(); // Now task is in successful state
 }   // At this point message msg6 will be output.
 
  * \endcode
@@ -59,61 +59,62 @@ logger.EnableLevel( CLogger::ERROR );
 
 #include <avn/logger/data_types.h>
 
-namespace Logger {
+namespace ALogger {
 
-    template<typename _TLogData> class CLoggerTask;
+    template<typename _TLogData> class ALoggerTask;
     template<typename _TLogData> class ILoggerGroup;
 
     /** Interface for internal usage */
     template<typename _TLogData>
     class ITaskLogger{
-        friend class CLoggerTask<_TLogData>;
+        friend class ALoggerTask<_TLogData>;
 
     protected:
-        virtual const TLevels& Levels() const = 0;
-        virtual bool ForceAddToLog( std::size_t level, _TLogData &&data, std::chrono::system_clock::time_point time ) = 0;
-        virtual void RemoveTask() = 0;
+        virtual const TLevels& levels() const = 0;
+        virtual bool forceAddToLog(std::size_t level, _TLogData&& data, std::chrono::system_clock::time_point time) = 0;
+        virtual void removeTask() = 0;
 
-        CLoggerTask<_TLogData> CreateTask( bool init_success_state ) {
-            return CLoggerTask<_TLogData>( *this, init_success_state );
+        ALoggerTask<_TLogData> createTask(bool init_success_state)
+        {
+            return ALoggerTask<_TLogData>(*this, init_success_state);
         };
     };
 
-    /** Logger task
+    /** ALogger task
      *
-     * Task is created by #Logger::CLoggerBase::AddTask function and its overloads.
+     * Task is created by #ALogger::ALoggerBase::addTask function and its overloads.
      *
-     * \tparam _TLogData Logger data type. It can be string for text output, XML data field etc.
+     * \tparam _TLogData ALogger data type. It can be string for text output, XML data field etc.
      */
     template< typename _TLogData >
-    class CLoggerTask {
+    class ALoggerTask {
         friend class ITaskLogger<_TLogData>;
         friend class ILoggerGroup<_TLogData>;
 
     private:
-        CLoggerTask( ITaskLogger<_TLogData> &logger, bool init_succeeded ) :
-                _success_state( init_succeeded ), _logger( logger ), _out_levels( logger.Levels() )
+        ALoggerTask(ITaskLogger<_TLogData>& logger, bool init_succeeded) :
+                _successState(init_succeeded), _logger(logger), _outLevels(logger.levels())
             {}
 
     public:
-        /** Logger data type */
+        /** ALogger data type */
         using TLogData = _TLogData;
 
-        CLoggerTask( const CLoggerTask & ) = delete;
-        CLoggerTask( CLoggerTask && ) = default;
-        ~CLoggerTask();
+        ALoggerTask(const ALoggerTask&) = delete;
+        ALoggerTask(ALoggerTask&&) = default;
+        ~ALoggerTask();
 
         /** Set task result - success or fail */
-        CLoggerTask& SetTaskResult( bool init_success_state ) { _success_state = init_success_state; return *this; }
+        ALoggerTask& setTaskResult(bool init_success_state) { _successState = init_success_state; return *this; }
 
         /** Set task result as succeeded */
-        CLoggerTask& Succeeded()                        { return SetTaskResult( true ); }
+        ALoggerTask& succeeded()                            { return setTaskResult(true); }
 
         /** Set task result as failed */
-        CLoggerTask& Failed()                           { return SetTaskResult( false ); }
+        ALoggerTask& failed()                               { return setTaskResult(false); }
 
         /** Get task result */
-        bool TaskResult() const                         { return _success_state; }
+        bool TaskResult() const                             { return _successState; }
 
         /** Output the message
          *
@@ -128,7 +129,7 @@ namespace Logger {
          *
          * \return Current task instance
          */
-        CLoggerTask& AddToLog( std::size_t level, _TLogData &&data );
+        ALoggerTask& addToLog(std::size_t level, _TLogData&& data);
 
         /** Output the message
          *
@@ -142,7 +143,7 @@ namespace Logger {
          *
          * \return Current task instance
          */
-        CLoggerTask& AddToLog( std::size_t level, _TLogData &&data, std::chrono::system_clock::time_point time );
+        ALoggerTask& addToLog(std::size_t level, _TLogData&& data, std::chrono::system_clock::time_point time);
 
         /** Output the message
          *
@@ -155,7 +156,7 @@ namespace Logger {
          *
          * \return Current task instance
          */
-        CLoggerTask& AddToLog( std::size_t level, const _TLogData &data );
+        ALoggerTask& addToLog(std::size_t level, const _TLogData& data);
 
         /** Output the message
          *
@@ -166,7 +167,7 @@ namespace Logger {
          *
          * \return Current task instance
          */
-        CLoggerTask& AddToLog( std::size_t level, const _TLogData &data, std::chrono::system_clock::time_point time );
+        ALoggerTask& addToLog(std::size_t level, const _TLogData& data, std::chrono::system_clock::time_point time);
 
         /** Enable or disable specified level
          *
@@ -175,15 +176,15 @@ namespace Logger {
          *
          * \return Current task instance
          */
-        CLoggerTask& InitLevel( std::size_t level, bool to_enable );
+        ALoggerTask& initLevel(std::size_t level, bool to_enable);
 
         /** Enable specified levels
          *
-         * \param level Levels to be enabled
+         * \param level levels to be enabled
          *
          * \return Current task instance
          */
-        CLoggerTask& SetLevels( TLevels levels )    { _out_levels = levels; return *this; }
+        ALoggerTask& setlevels(TLevels levels)    { _outLevels = levels; return *this; }
 
         /** Enable specified level
          *
@@ -191,7 +192,7 @@ namespace Logger {
          *
          * \return Current task instance
          */
-        CLoggerTask& EnableLevel( std::size_t level )   { InitLevel(level, true ); return *this; }
+        ALoggerTask& enableLevel(std::size_t level)   { initLevel(level, true); return *this; }
 
         /** Disable specified level
          *
@@ -199,14 +200,14 @@ namespace Logger {
          *
          * \return Current task instance
          */
-        CLoggerTask& DisableLevel( std::size_t level )  { InitLevel(level, false); return *this; }
+        ALoggerTask& disableLevel(std::size_t level)  { initLevel(level, false); return *this; }
 
     private:
         struct SLogEntry {
-            SLogEntry( std::size_t level, _TLogData &&data, std::chrono::system_clock::time_point time ) :
+            SLogEntry(std::size_t level, _TLogData&& data, std::chrono::system_clock::time_point time) :
                     _time(time), _level(level), _data(std::move(data)) {}
 
-            SLogEntry( std::size_t level, const _TLogData &data, std::chrono::system_clock::time_point time ) :
+            SLogEntry(std::size_t level, const _TLogData& data, std::chrono::system_clock::time_point time) :
                     _time(time), _level(level), _data(data) {}
 
             std::chrono::system_clock::time_point _time;
@@ -215,53 +216,59 @@ namespace Logger {
         };
 
         ITaskLogger<_TLogData>& _logger;
-        TLevels _out_levels;
-        std::vector<SLogEntry> _log_entries;
-        bool _success_state;
+        TLevels _outLevels;
+        std::vector<SLogEntry> _logEntries;
+        bool _successState;
     };
 
     template<typename _TLogData>
-    CLoggerTask<_TLogData>& CLoggerTask<_TLogData>::InitLevel( std::size_t level, bool to_enable ) {
-        if( to_enable ) _out_levels.emplace( level );
-        else            _out_levels.erase( level );
+    ALoggerTask<_TLogData>& ALoggerTask<_TLogData>::initLevel(std::size_t level, bool to_enable)
+    {
+        if (to_enable) _outLevels.emplace(level);
+        else           _outLevels.erase(level);
         return *this;
     }
 
     template<typename _TLogData>
-    CLoggerTask<_TLogData>& CLoggerTask<_TLogData>::AddToLog( std::size_t level, _TLogData &&data ) {
-        _log_entries.emplace_back( level, std::move(data) );
+    ALoggerTask<_TLogData>& ALoggerTask<_TLogData>::addToLog(std::size_t level, _TLogData&& data)
+    {
+        _logEntries.emplace_back(level, std::move(data));
         return *this;
     }
 
     template<typename _TLogData>
-    CLoggerTask<_TLogData>& CLoggerTask<_TLogData>::AddToLog( std::size_t level, const _TLogData &data ) {
-        _log_entries.emplace_back( level, data, std::chrono::system_clock::now() );
+    ALoggerTask<_TLogData>& ALoggerTask<_TLogData>::addToLog(std::size_t level, const _TLogData& data)
+    {
+        _logEntries.emplace_back(level, data, std::chrono::system_clock::now());
         return *this;
     }
 
     template<typename _TLogData>
-    CLoggerTask<_TLogData>& CLoggerTask<_TLogData>::AddToLog( std::size_t level, _TLogData &&data, std::chrono::system_clock::time_point time ) {
-        _log_entries.emplace_back( level, std::move(data), time );
+    ALoggerTask<_TLogData>& ALoggerTask<_TLogData>::addToLog(std::size_t level, _TLogData&& data, std::chrono::system_clock::time_point time)
+    {
+        _logEntries.emplace_back(level, std::move(data), time);
         return *this;
     }
 
     template<typename _TLogData>
-    CLoggerTask<_TLogData>& CLoggerTask<_TLogData>::AddToLog( std::size_t level, const _TLogData &data, std::chrono::system_clock::time_point time ) {
-        _log_entries.emplace_back( level, data, time );
+    ALoggerTask<_TLogData>& ALoggerTask<_TLogData>::addToLog(std::size_t level, const _TLogData& data, std::chrono::system_clock::time_point time)
+    {
+        _logEntries.emplace_back(level, data, time);
         return *this;
     }
 
     template<typename _TLogData>
-    CLoggerTask<_TLogData>::~CLoggerTask() {
-        for( auto &entry : _log_entries ) {
-            if( !_success_state || _out_levels.count( entry._level ))
-                _logger.ForceAddToLog( entry._level, std::move( entry._data ), entry._time );
+    ALoggerTask<_TLogData>::~ALoggerTask()
+    {
+        for (auto& entry : _logEntries) {
+            if (!_successState || _outLevels.count(entry._level ))
+                _logger.forceAddToLog(entry._level, std::move(entry._data), entry._time);
         }
 
-        _log_entries.clear();
-        _logger.RemoveTask();
+        _logEntries.clear();
+        _logger.removeTask();
     }
 
-} // namespace Logger
+} // namespace ALogger
 
 #endif  // _AVN_LOGGER_BASE_TASK_H_
