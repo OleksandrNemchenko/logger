@@ -107,6 +107,13 @@ namespace ALogger {
         /** Disable specified level for all loggers inside container */
         void disableLevel(std::size_t level);
 
+        /** Disable tasks
+         *
+         * This call is useful for debug mode whe you need to see all messages instantly
+         *
+         */
+        void disableTasks();
+
         /** Set levels for all loggers inside container */
         void setlevels(TLevels levels);
 
@@ -180,6 +187,11 @@ namespace ALogger {
         bool res = true;
         std::apply([&](auto&... logger) { (res &= ... &= logger.forceAddToLog(level, std::move(data), time)); }, _logger);
         return res;
+    }
+
+    template< typename... _TLogger >
+    void ALoggerGroup<_TLogger...>::disableTasks() {
+        std::apply([&](auto&... logger) { (logger.disableTasks(), ...); }, _logger);
     }
 
     template< typename... _TLogger >

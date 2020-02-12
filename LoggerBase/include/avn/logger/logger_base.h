@@ -93,6 +93,9 @@ logger.enableLevel(ALogger::ERROR);
 }   // At this point message msg6 will be output.
 
  * \endcode
+ *
+ * However, during application debugging taks mode is not useful because you see messages only after task finish. You
+ * can temporary or for Debug mode build disable task mode by #ALogger::ALoggerBase::disableTasks call.
  */
 
 #ifndef _AVN_LOGGER_BASE_H_
@@ -215,6 +218,12 @@ namespace ALogger {
          */
         void disableLevel(std::size_t level) { initLevel(level, false); }
 
+        /** Disable tasks
+         *
+         * This call useful for debug mode whe you need to see all messages instantly
+         */
+        void disableTasks() { _enableTasks = false; }
+
         /** Set levels
          * 
          * \param[in] levels Levels to use
@@ -307,6 +316,7 @@ namespace ALogger {
 
         TLevels _outLevels;
         TThreads _threads;
+        bool _enableTasks = true;
 
         void removeTask() override;
 
@@ -388,7 +398,7 @@ namespace ALogger {
         auto thread = _threads.find(std::this_thread::get_id());
         auto& tasks = thread->second;
 
-        if (thread != _threads.end() && !tasks.empty()) {
+        if (_enableTasks && thread != _threads.end() && !tasks.empty()) {
             auto& top = tasks.top();
             assert(top);
             top->addToLog(level, std::forward<_TLogData>(data), time);
