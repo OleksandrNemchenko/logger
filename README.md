@@ -120,7 +120,7 @@ Logger library contains interface library only except UUT target, so you can dir
 You can make and start test_logger target to test all features. Visit this target source files to see library usage.
 
 ## Roadmap
-* version 1.2+ :
+* version 1.3+ :
     - add library detailed description
     - add library usage examples
     - make full test coverage
@@ -132,6 +132,7 @@ You can make and start test_logger target to test all features. Visit this targe
 ## History
 * [version 1.2](https://github.com/OleksandrNemchenko/logger/tree/release/v1.2) : [documentation](https://oleksandrnemchenko.github.io/logger/v1.2/index.html)
     - move towards to to [C++ Code Guidelines](http://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines)
+    - add QStrin support for loggers
 * [version 1.1](https://github.com/OleksandrNemchenko/logger/tree/release/v1.1) : [documentation](https://oleksandrnemchenko.github.io/logger/v1.1/index.html)
     - create Doxygen documentation for all entities
     - create gh-pages description

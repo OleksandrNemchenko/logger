@@ -88,6 +88,22 @@ namespace ALogger {
             openFile(filename, mode);
         }
 
+#ifdef QT_VERSION
+        /** Constructor with output file configuration
+         *
+         * #openFile is called after object construction
+         *
+         * \param[in] filename Output file name and path
+         * \param[in] mode File mode as std::ios_base::openmode mask. std::ios_base::out by default
+         * \param[in] local_time  Use local time instead of GMT one. True by default
+         */
+        ALoggerTxtFile(const QString &filename, std::ios_base::openmode mode = std::ios_base::out, bool local_time = true) :
+                ALoggerTxtFile(local_time)
+        {
+            openFile(filename, mode);
+        }
+#endif QT_VERSION
+
         /** Open file
          *
          * \param[in] filename Output file name and path
@@ -96,6 +112,17 @@ namespace ALogger {
          * \return Current instance reference
          */
         ALoggerTxtFile& openFile(const std::filesystem::path &filename, std::ios_base::openmode mode = std::ios_base::out)    { _fstream.open(filename, mode); return *this; }
+
+#ifdef QT_VERSION
+        /** Open file
+         *
+         * \param[in] filename Output file name and path
+         * \param[in] mode File mode as std::ios_base::openmode mask. std::ios_base::out by default
+         *
+         * \return Current instance reference
+         */
+        ALoggerTxtFile& openFile(const QString &filename, std::ios_base::openmode mode = std::ios_base::out)    { return openFile(filename.toStdWString(), mode); }
+#endif // QT_VERSION
 
         /** Close currently opened file
          *
@@ -140,9 +167,8 @@ namespace ALogger {
         /** Set the associated locale of the file stream to the given one
          *
          * \param[in] loc New locale to associate the stream to
-         * \return Current instance reference
          */
-        ALoggerTxtFile& imbue(const std::locale& loc)             { _fstream.imbue(loc); return *this; }
+        void imbue(const std::locale& loc) override               { _fstream.imbue(loc); return *this; }
 
         /** Get output file stream
          *

@@ -177,6 +177,12 @@ namespace ALogger {
         template<typename... T>
         void operator() (std::chrono::system_clock::time_point time, std::size_t level, const T&... args)    { addString(time, level, args...); }
 
+        /** Set the associated locale of the stream to the given one
+         *
+         * \param[in] loc New locale to associate the stream to
+         */
+        void imbue(const std::locale& loc);
+
     };  // class ALoggerTxtGroup
 
     template< typename... _TLogger >
@@ -209,6 +215,12 @@ namespace ALogger {
     void ALoggerTxtGroup<_TLogger...>::setLevelPrefix(const TString& level_prefix)
     {
         std::apply([level_prefix] (auto&... logger) { (logger.setLevelPrefix(level_prefix), ...); }, TBase::_logger);
+    }
+
+    template< typename... _TLogger >
+    void ALoggerTxtGroup<_TLogger...>::imbue(const std::locale& loc)
+    {
+        std::apply([loc] (auto&... logger) { (logger.imbue(loc), ...); }, TBase::_logger);
     }
 
     template< typename... _TLogger >

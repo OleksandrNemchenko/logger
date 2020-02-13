@@ -48,7 +48,7 @@ namespace ALogger {
     /** Output console stream class
      *
      * This class instantiates output stream for different _TChar type. If you use non-standart _TChar, you have to implement
-     * OutStream for this type
+     * outStream for this type
      *
      * \tparam _TChar Character type
      */
@@ -60,7 +60,7 @@ namespace ALogger {
          *
          * \return Output stream
          */
-        std::basic_ostream<_TChar>& OutStream();
+        std::basic_ostream<_TChar>& outStream();
     };
 
     /** Text stream logger message
@@ -89,6 +89,12 @@ namespace ALogger {
          */
         ALoggerTxtCOut(bool local_time = true): ALoggerTxtBase<_ThrSafe, _TChar>(local_time)    {}
 
+        /** Set the associated locale of the stream to the given one
+         *
+         * \param[in] loc New locale to associate the stream to
+         */
+        void imbue(const std::locale& loc) override            { TStream::outStream().imbue(loc); return *this; }
+
     private:
         bool outData(std::size_t level, std::chrono::system_clock::time_point time, TString&& data) override final;
     };
@@ -96,12 +102,12 @@ namespace ALogger {
     template<bool _ThrSafe, typename _TChar>
     bool ALoggerTxtCOut<_ThrSafe, _TChar>::outData(std::size_t level, std::chrono::system_clock::time_point time, TString&& data)
     {
-        TStream::OutStream() << ALoggerTxtBase<_ThrSafe, _TChar>::prepareString(level, time, std::move(data)) << std::endl;
+        TStream::outStream() << ALoggerTxtBase<_ThrSafe, _TChar>::prepareString(level, time, std::move(data)) << std::endl;
         return true;
     }
 
-    template<> inline std::ostream&  ALoggerTxtCOutStream<char>::OutStream()    { return std::cout;  }
-    template<> inline std::wostream& ALoggerTxtCOutStream<wchar_t>::OutStream() { return std::wcout; }
+    template<> inline std::ostream&  ALoggerTxtCOutStream<char>::outStream()    { return std::cout;  }
+    template<> inline std::wostream& ALoggerTxtCOutStream<wchar_t>::outStream() { return std::wcout; }
 
 } // namespace ALogger
 

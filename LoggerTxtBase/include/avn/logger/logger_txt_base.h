@@ -29,6 +29,35 @@
 
 namespace ALogger {
 
+    /** Unspecialied template to use std::basic_stringstream<_TChar>::operator<< call
+     *
+     * \note You can specialize this function for your type
+     *
+     * \tparam _TChar String stream std::basic_stringstream::char_type type
+     * \tparam T Argument type
+     * \param[in] stream String stream
+     * \param[in] arg Argument
+     */
+    template<typename _TChar, typename T>
+    inline void toStrStream(std::basic_stringstream<_TChar> &stream, T &&arg) { stream << std::forward<T>(arg); }
+
+// Qt Objects
+#ifdef QT_VERSION
+    /** QString argument for char based text logger
+     *
+     * \param stream String stream based on char type
+     * \param arg QString argument
+     */
+    inline void toStrStream(std::basic_stringstream<char> &stream, QString arg) { stream << arg.toStdString(); }
+
+    /** QString argument for wchar_t based text logger
+     *
+     * \param stream String stream based on wchar_t type
+     * \param arg QString argument
+     */
+    inline void toStrStream(std::basic_stringstream<wchar_t> &stream, QString arg) { stream << arg.toStdWString(); }
+#endif // QT_VERSION
+
     /** Default values for logger msssage decorating
      *
      * \tparam _TChar ALogger message symbol type
@@ -200,6 +229,12 @@ namespace ALogger {
         template<typename... T>
         ALoggerTxtBase& operator() (std::chrono::system_clock::time_point time, std::size_t level, T&&... args)    { return addString(time, level, args...); }
 
+        /** Set the associated locale of the stream to the given one
+         *
+         * \param[in] loc New locale to associate the stream to
+         */
+        virtual void imbue(const std::locale& loc) { }
+
     protected:
         /** Decorate string
          *
@@ -240,7 +275,7 @@ namespace ALogger {
         if (!TBase::taskOrToBeAdded(level))
             return *this;
         std::basic_stringstream<_TChar> stream;
-        (stream << ... << std::forward<T>(args));
+        (toStrStream(stream, std::forward<T>(args)), ...);
         TBase::addToLog(level, stream.str(), time);
         return *this;
     }
