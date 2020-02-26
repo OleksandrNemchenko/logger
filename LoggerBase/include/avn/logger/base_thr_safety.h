@@ -76,7 +76,7 @@ namespace ALogger {
          *
          * \return true if data was output successfully or false otherwise.
          */
-        virtual bool outData(std::size_t level, std::chrono::system_clock::time_point time, _TLogData&& data) = 0;
+        virtual bool outData(std::size_t level, std::chrono::system_clock::time_point time, _TLogData&& data) noexcept = 0;
 
     private:
         std::mutex _outMutex;
@@ -103,7 +103,7 @@ namespace ALogger {
          *
          * \return true if data was output successfully or false otherwise.
          */
-        bool outDataThrSafe(std::size_t level, std::chrono::system_clock::time_point time, _TLogData&& data)
+        bool outDataThrSafe(std::size_t level, std::chrono::system_clock::time_point time, _TLogData&& data) noexcept
         {
             return outData(level, time, std::move(data));
         }
@@ -118,7 +118,7 @@ namespace ALogger {
          *
          * \return true if data was output successfully or false otherwise.
          */
-        virtual bool outData(std::size_t level, std::chrono::system_clock::time_point time, _TLogData&& data) = 0;
+        virtual bool outData(std::size_t level, std::chrono::system_clock::time_point time, _TLogData&& data) noexcept = 0;
     };
 
 } // namespace ALogger

@@ -60,7 +60,7 @@ namespace ALogger {
          *
          * \return Output stream
          */
-        std::basic_ostream<_TChar>& outStream();
+        std::basic_ostream<_TChar>& outStream() noexcept;
     };
 
     /** Text stream logger message
@@ -87,27 +87,27 @@ namespace ALogger {
          *
          * \param[in] local_time Local time or GMT will be used as time zone. Loca time is selected by default
          */
-        ALoggerTxtCOut(bool local_time = true): ALoggerTxtBase<_ThrSafe, _TChar>(local_time)    {}
+        ALoggerTxtCOut(bool local_time = true) noexcept : ALoggerTxtBase<_ThrSafe, _TChar>(local_time)    {}
 
         /** Set the associated locale of the stream to the given one
          *
          * \param[in] loc New locale to associate the stream to
          */
-        void imbue(const std::locale& loc) override            { TStream::outStream().imbue(loc); }
+        void imbue(const std::locale& loc) noexcept override            { TStream::outStream().imbue(loc); }
 
     private:
-        bool outData(std::size_t level, std::chrono::system_clock::time_point time, TString&& data) override final;
+        bool outData(std::size_t level, std::chrono::system_clock::time_point time, TString&& data) noexcept override;
     };
 
     template<bool _ThrSafe, typename _TChar>
-    bool ALoggerTxtCOut<_ThrSafe, _TChar>::outData(std::size_t level, std::chrono::system_clock::time_point time, TString&& data)
+    bool ALoggerTxtCOut<_ThrSafe, _TChar>::outData(std::size_t level, std::chrono::system_clock::time_point time, TString&& data) noexcept
     {
         TStream::outStream() << ALoggerTxtBase<_ThrSafe, _TChar>::prepareString(level, time, std::move(data)) << std::endl;
         return true;
     }
 
-    template<> inline std::ostream&  ALoggerTxtCOutStream<char>::outStream()    { return std::cout;  }
-    template<> inline std::wostream& ALoggerTxtCOutStream<wchar_t>::outStream() { return std::wcout; }
+    template<> inline std::ostream&  ALoggerTxtCOutStream<char>::outStream() noexcept    { return std::cout;  }
+    template<> inline std::wostream& ALoggerTxtCOutStream<wchar_t>::outStream() noexcept { return std::wcout; }
 
 } // namespace ALogger
 

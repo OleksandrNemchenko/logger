@@ -132,7 +132,8 @@ You can make and start test_logger target to test all features. Visit this targe
 ## History
 * [version 1.2](https://github.com/OleksandrNemchenko/logger/tree/release/v1.2) : [documentation](https://oleksandrnemchenko.github.io/logger/v1.2/index.html)
     - move towards to to [C++ Code Guidelines](http://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines)
-    - add QStrin support for loggers
+    - make all functions as noexcept
+    - add QString support for loggers
 * [version 1.1](https://github.com/OleksandrNemchenko/logger/tree/release/v1.1) : [documentation](https://oleksandrnemchenko.github.io/logger/v1.1/index.html)
     - create Doxygen documentation for all entities
     - create gh-pages description

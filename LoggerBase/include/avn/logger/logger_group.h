@@ -49,12 +49,12 @@ namespace ALogger {
         friend class ALoggerGroup;
 
     protected:
-        virtual ALoggerTask<_TLogData>* addTaskForLoggerGroup(bool init_succeeded) = 0;
-        virtual ALoggerTask<_TLogData>* addTaskForLoggerGroup() = 0;
-        virtual ALoggerTask<_TLogData>* addTaskForLoggerGroup(TLevels levels, bool init_succeeded) = 0;
-        virtual ALoggerTask<_TLogData>* addTaskForLoggerGroup(TLevels levels) = 0;
+        virtual ALoggerTask<_TLogData>* addTaskForLoggerGroup(bool init_succeeded) noexcept = 0;
+        virtual ALoggerTask<_TLogData>* addTaskForLoggerGroup() noexcept = 0;
+        virtual ALoggerTask<_TLogData>* addTaskForLoggerGroup(TLevels levels, bool init_succeeded) noexcept = 0;
+        virtual ALoggerTask<_TLogData>* addTaskForLoggerGroup(TLevels levels) noexcept = 0;
 
-        ALoggerTask<_TLogData>* createTask(ITaskLogger<_TLogData>& logger, bool init_success_state)
+        ALoggerTask<_TLogData>* createTask(ITaskLogger<_TLogData>& logger, bool init_success_state) noexcept
         {
             return new ALoggerTask<_TLogData>(logger, init_success_state);
         };
@@ -79,43 +79,43 @@ namespace ALogger {
         using TLogData = typename std::tuple_element_t<0, TArray>::TLogData;
 
         /** Return logger reference to the \a num element */
-        template< size_t num > auto& logger()
+        template< size_t num > auto& logger() noexcept
         {
             static_assert(num < sizeof...(_TLogger), "Requested element's number is out of this logger group size");
             return std::get<num>(_logger);
         }
 
         /** Return logger reference to the \a num element */
-        template< size_t num > const auto& logger() const
+        template< size_t num > const auto& logger() const noexcept
         {
             static_assert(num < sizeof...(_TLogger), "Requested element's number is out of this logger group size");
             return std::get<num>(_logger);
         }
 
         /** Return loggers amount */
-        constexpr auto sizeOf() const
+        constexpr auto sizeOf() const noexcept
         {
             return sizeof...(_TLogger);
         }
 
         /** Enable or disable specified level for all loggers inside container */
-        void initLevel(std::size_t level, bool to_enable);
+        void initLevel(std::size_t level, bool to_enable) noexcept;
 
         /** Enable specified level for all loggers inside container */
-        void enableLevel(std::size_t level);
+        void enableLevel(std::size_t level) noexcept;
 
         /** Disable specified level for all loggers inside container */
-        void disableLevel(std::size_t level);
+        void disableLevel(std::size_t level) noexcept;
 
         /** Disable tasks
          *
          * This call is useful for debug mode whe you need to see all messages instantly
          *
          */
-        void disableTasks();
+        void disableTasks() noexcept;
 
         /** Set levels for all loggers inside container */
-        void setlevels(TLevels levels);
+        void setlevels(TLevels levels) noexcept;
 
         /** Force the message to be output for all loggers inside container
          *
@@ -127,7 +127,7 @@ namespace ALogger {
          *
          * \return true if message is output
          */
-        bool forceAddToLog(std::size_t level, TLogData&& data, std::chrono::system_clock::time_point time = std::chrono::system_clock::now());
+        bool forceAddToLog(std::size_t level, TLogData&& data, std::chrono::system_clock::time_point time = std::chrono::system_clock::now()) noexcept;
 
         /** Output the message for all loggers inside container
          *
@@ -137,19 +137,19 @@ namespace ALogger {
          *
          * \return true if message is output
          */
-        bool addToLog(std::size_t level, TLogData&& data, std::chrono::system_clock::time_point time = std::chrono::system_clock::now());
+        bool addToLog(std::size_t level, TLogData&& data, std::chrono::system_clock::time_point time = std::chrono::system_clock::now()) noexcept;
 
         /** Add task for all loggers inside container */
-        auto addTask();
+        auto addTask() noexcept;
 
         /** Add task with \a init_success_state for all loggers inside container */
-        auto addTask(bool init_success_state);
+        auto addTask(bool init_success_state) noexcept;
 
         /** Add task with \a levels enabled for all loggers inside container */
-        auto addTask(TLevels levels);
+        auto addTask(TLevels levels) noexcept;
 
         /** Add task with \a init_success_state and \a levels enabled for all loggers inside container */
-        auto addTask(TLevels levels, bool init_success_state);
+        auto addTask(TLevels levels, bool init_success_state) noexcept;
 
     protected:
         TArray _logger;
@@ -157,80 +157,80 @@ namespace ALogger {
     };  // class ALoggerGroup
 
     template< typename... _TLogger >
-    void ALoggerGroup<_TLogger...>::initLevel(std::size_t level, bool to_enable) {
+    void ALoggerGroup<_TLogger...>::initLevel(std::size_t level, bool to_enable) noexcept {
         std::apply([=] (auto&... logger) {
             (logger.initLevel(level, to_enable), ...);
         }, _logger);
     }
 
     template< typename... _TLogger >
-    void ALoggerGroup<_TLogger...>::enableLevel(std::size_t level) {
+    void ALoggerGroup<_TLogger...>::enableLevel(std::size_t level) noexcept {
         std::apply([=](auto&... logger) {
             (logger.enableLevel(level), ...);
         }, _logger);
     }
 
     template< typename... _TLogger >
-    void ALoggerGroup<_TLogger...>::disableLevel(std::size_t level) {
+    void ALoggerGroup<_TLogger...>::disableLevel(std::size_t level) noexcept {
         std::apply([=](auto&... logger) {
             (logger.disableLevel(level), ...);
         }, _logger);
     }
 
     template< typename... _TLogger >
-    void ALoggerGroup<_TLogger...>::setlevels(TLevels levels) {
+    void ALoggerGroup<_TLogger...>::setlevels(TLevels levels) noexcept {
         std::apply([&](auto&... logger) { (logger.setlevels(levels), ...); }, _logger);
     }
 
     template< typename... _TLogger >
-    bool ALoggerGroup<_TLogger...>::forceAddToLog(std::size_t level, TLogData&& data, std::chrono::system_clock::time_point time) {
-        bool res = true;
+    bool ALoggerGroup<_TLogger...>::forceAddToLog(std::size_t level, TLogData&& data, std::chrono::system_clock::time_point time) noexcept {
+        bool res{true};
         std::apply([&](auto&... logger) { (res &= ... &= logger.forceAddToLog(level, std::move(data), time)); }, _logger);
         return res;
     }
 
     template< typename... _TLogger >
-    void ALoggerGroup<_TLogger...>::disableTasks() {
+    void ALoggerGroup<_TLogger...>::disableTasks() noexcept {
         std::apply([&](auto&... logger) { (logger.disableTasks(), ...); }, _logger);
     }
 
     template< typename... _TLogger >
-    bool ALoggerGroup<_TLogger...>::addToLog(std::size_t level, TLogData&& data, std::chrono::system_clock::time_point time) {
-        bool res = true;
+    bool ALoggerGroup<_TLogger...>::addToLog(std::size_t level, TLogData&& data, std::chrono::system_clock::time_point time) noexcept {
+        bool res{true};
         std::apply([&](auto&... logger) { (res &= ... &= logger.addToLog(level, std::move(data), time)); }, _logger);
         return res;
     }
 
     template< typename... _TLogger >
-    auto ALoggerGroup<_TLogger...>::addTask() {
+    auto ALoggerGroup<_TLogger...>::addTask() noexcept {
         auto tasks = std::apply([](auto&&... logger){
             return std::make_tuple((logger.getLoggerGroupInterface())->addTaskForLoggerGroup() ...);
         }, _logger);
-        return ALoggerGroupTask(std::move(tasks ));
+        return ALoggerGroupTask(std::move(tasks));
     }
 
     template< typename... _TLogger >
-    auto ALoggerGroup<_TLogger...>::addTask(bool init_success_state) {
+    auto ALoggerGroup<_TLogger...>::addTask(bool init_success_state) noexcept {
         auto tasks = std::apply([init_success_state](auto&&... logger){
             return std::make_tuple((logger.getLoggerGroupInterface())->addTaskForLoggerGroup(init_success_state) ...);
         }, _logger);
-        return ALoggerGroupTask(std::move(tasks ));
+        return ALoggerGroupTask(std::move(tasks));
     }
 
     template< typename... _TLogger >
-    auto ALoggerGroup<_TLogger...>::addTask(TLevels levels) {
+    auto ALoggerGroup<_TLogger...>::addTask(TLevels levels) noexcept {
         auto tasks = std::apply([&levels](auto&&... logger){
             return std::make_tuple((logger.getLoggerGroupInterface())->addTaskForLoggerGroup(levels) ...);
         }, _logger);
-        return ALoggerGroupTask(std::move(tasks ));
+        return ALoggerGroupTask(std::move(tasks));
     }
 
     template< typename... _TLogger >
-    auto ALoggerGroup<_TLogger...>::addTask(TLevels levels, bool init_success_state) {
+    auto ALoggerGroup<_TLogger...>::addTask(TLevels levels, bool init_success_state) noexcept {
         auto tasks = std::apply([&levels,init_success_state](auto&&... logger){
             return std::make_tuple((logger.getLoggerGroupInterface())->addTaskForLoggerGroup(levels, init_success_state) ...);
         }, _logger);
-        return ALoggerGroupTask(std::move(tasks ));
+        return ALoggerGroupTask(std::move(tasks));
     }
 
 }   // namespace ALogger

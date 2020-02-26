@@ -70,11 +70,11 @@ namespace ALogger {
         friend class ALoggerTask<_TLogData>;
 
     protected:
-        virtual const TLevels& levels() const = 0;
-        virtual bool forceAddToLog(std::size_t level, _TLogData&& data, std::chrono::system_clock::time_point time) = 0;
-        virtual void removeTask() = 0;
+        virtual const TLevels& levels() const noexcept = 0;
+        virtual bool forceAddToLog(std::size_t level, _TLogData&& data, std::chrono::system_clock::time_point time) noexcept = 0;
+        virtual void removeTask() noexcept = 0;
 
-        ALoggerTask<_TLogData> createTask(bool init_success_state)
+        ALoggerTask<_TLogData> createTask(bool init_success_state) noexcept
         {
             return ALoggerTask<_TLogData>(*this, init_success_state);
         };
@@ -92,7 +92,7 @@ namespace ALogger {
         friend class ILoggerGroup<_TLogData>;
 
     private:
-        ALoggerTask(ITaskLogger<_TLogData>& logger, bool init_succeeded) :
+        ALoggerTask(ITaskLogger<_TLogData>& logger, bool init_succeeded) noexcept :
                 _successState(init_succeeded), _logger(logger), _outLevels(logger.levels())
             {}
 
@@ -100,21 +100,22 @@ namespace ALogger {
         /** ALogger data type */
         using TLogData = _TLogData;
 
+        ALoggerTask() = delete;
         ALoggerTask(const ALoggerTask&) = delete;
-        ALoggerTask(ALoggerTask&&) = default;
-        ~ALoggerTask();
+        ALoggerTask(ALoggerTask&&) noexcept = default;
+        ~ALoggerTask() noexcept;
 
         /** Set task result - success or fail */
-        ALoggerTask& setTaskResult(bool init_success_state) { _successState = init_success_state; return *this; }
+        ALoggerTask& setTaskResult(bool init_success_state) noexcept { _successState = init_success_state; return *this; }
 
         /** Set task result as succeeded */
-        ALoggerTask& succeeded()                            { return setTaskResult(true); }
+        ALoggerTask& succeeded() noexcept                            { return setTaskResult(true); }
 
         /** Set task result as failed */
-        ALoggerTask& failed()                               { return setTaskResult(false); }
+        ALoggerTask& failed() noexcept                               { return setTaskResult(false); }
 
         /** Get task result */
-        bool TaskResult() const                             { return _successState; }
+        bool TaskResult() const noexcept                             { return _successState; }
 
         /** Output the message
          *
@@ -129,7 +130,7 @@ namespace ALogger {
          *
          * \return Current task instance
          */
-        ALoggerTask& addToLog(std::size_t level, _TLogData&& data);
+        ALoggerTask& addToLog(std::size_t level, _TLogData&& data) noexcept;
 
         /** Output the message
          *
@@ -143,7 +144,7 @@ namespace ALogger {
          *
          * \return Current task instance
          */
-        ALoggerTask& addToLog(std::size_t level, _TLogData&& data, std::chrono::system_clock::time_point time);
+        ALoggerTask& addToLog(std::size_t level, _TLogData&& data, std::chrono::system_clock::time_point time) noexcept;
 
         /** Output the message
          *
@@ -156,7 +157,7 @@ namespace ALogger {
          *
          * \return Current task instance
          */
-        ALoggerTask& addToLog(std::size_t level, const _TLogData& data);
+        ALoggerTask& addToLog(std::size_t level, const _TLogData& data) noexcept;
 
         /** Output the message
          *
@@ -167,7 +168,7 @@ namespace ALogger {
          *
          * \return Current task instance
          */
-        ALoggerTask& addToLog(std::size_t level, const _TLogData& data, std::chrono::system_clock::time_point time);
+        ALoggerTask& addToLog(std::size_t level, const _TLogData& data, std::chrono::system_clock::time_point time) noexcept;
 
         /** Enable or disable specified level
          *
@@ -176,7 +177,7 @@ namespace ALogger {
          *
          * \return Current task instance
          */
-        ALoggerTask& initLevel(std::size_t level, bool to_enable);
+        ALoggerTask& initLevel(std::size_t level, bool to_enable) noexcept;
 
         /** Enable specified levels
          *
@@ -184,7 +185,7 @@ namespace ALogger {
          *
          * \return Current task instance
          */
-        ALoggerTask& setlevels(TLevels levels)    { _outLevels = levels; return *this; }
+        ALoggerTask& setlevels(TLevels levels) noexcept   { _outLevels = levels; return *this; }
 
         /** Enable specified level
          *
@@ -192,7 +193,7 @@ namespace ALogger {
          *
          * \return Current task instance
          */
-        ALoggerTask& enableLevel(std::size_t level)   { initLevel(level, true); return *this; }
+        ALoggerTask& enableLevel(std::size_t level) noexcept  { initLevel(level, true); return *this; }
 
         /** Disable specified level
          *
@@ -200,14 +201,14 @@ namespace ALogger {
          *
          * \return Current task instance
          */
-        ALoggerTask& disableLevel(std::size_t level)  { initLevel(level, false); return *this; }
+        ALoggerTask& disableLevel(std::size_t level) noexcept { initLevel(level, false); return *this; }
 
     private:
         struct SLogEntry {
-            SLogEntry(std::size_t level, _TLogData&& data, std::chrono::system_clock::time_point time) :
+            SLogEntry(std::size_t level, _TLogData&& data, std::chrono::system_clock::time_point time) noexcept :
                     _time(time), _level(level), _data(std::move(data)) {}
 
-            SLogEntry(std::size_t level, const _TLogData& data, std::chrono::system_clock::time_point time) :
+            SLogEntry(std::size_t level, const _TLogData& data, std::chrono::system_clock::time_point time) noexcept :
                     _time(time), _level(level), _data(data) {}
 
             std::chrono::system_clock::time_point _time;
@@ -222,7 +223,7 @@ namespace ALogger {
     };
 
     template<typename _TLogData>
-    ALoggerTask<_TLogData>& ALoggerTask<_TLogData>::initLevel(std::size_t level, bool to_enable)
+    ALoggerTask<_TLogData>& ALoggerTask<_TLogData>::initLevel(std::size_t level, bool to_enable) noexcept
     {
         if (to_enable) _outLevels.emplace(level);
         else           _outLevels.erase(level);
@@ -230,35 +231,35 @@ namespace ALogger {
     }
 
     template<typename _TLogData>
-    ALoggerTask<_TLogData>& ALoggerTask<_TLogData>::addToLog(std::size_t level, _TLogData&& data)
+    ALoggerTask<_TLogData>& ALoggerTask<_TLogData>::addToLog(std::size_t level, _TLogData&& data) noexcept
     {
         _logEntries.emplace_back(level, std::move(data));
         return *this;
     }
 
     template<typename _TLogData>
-    ALoggerTask<_TLogData>& ALoggerTask<_TLogData>::addToLog(std::size_t level, const _TLogData& data)
+    ALoggerTask<_TLogData>& ALoggerTask<_TLogData>::addToLog(std::size_t level, const _TLogData& data) noexcept
     {
         _logEntries.emplace_back(level, data, std::chrono::system_clock::now());
         return *this;
     }
 
     template<typename _TLogData>
-    ALoggerTask<_TLogData>& ALoggerTask<_TLogData>::addToLog(std::size_t level, _TLogData&& data, std::chrono::system_clock::time_point time)
+    ALoggerTask<_TLogData>& ALoggerTask<_TLogData>::addToLog(std::size_t level, _TLogData&& data, std::chrono::system_clock::time_point time) noexcept
     {
         _logEntries.emplace_back(level, std::move(data), time);
         return *this;
     }
 
     template<typename _TLogData>
-    ALoggerTask<_TLogData>& ALoggerTask<_TLogData>::addToLog(std::size_t level, const _TLogData& data, std::chrono::system_clock::time_point time)
+    ALoggerTask<_TLogData>& ALoggerTask<_TLogData>::addToLog(std::size_t level, const _TLogData& data, std::chrono::system_clock::time_point time) noexcept
     {
         _logEntries.emplace_back(level, data, time);
         return *this;
     }
 
     template<typename _TLogData>
-    ALoggerTask<_TLogData>::~ALoggerTask()
+    ALoggerTask<_TLogData>::~ALoggerTask() noexcept
     {
         for (auto& entry : _logEntries) {
             if (!_successState || _outLevels.count(entry._level ))

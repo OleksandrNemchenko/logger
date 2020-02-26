@@ -72,7 +72,7 @@ namespace ALogger {
          *
          * \param[in] local_time Use local time instead of GMT one. True by default
          */
-        ALoggerTxtFile(bool local_time = true): ALoggerTxtBase<_ThrSafe, _TChar>(local_time), _flushAlways(false)    {}
+        ALoggerTxtFile(bool local_time = true) noexcept : ALoggerTxtBase<_ThrSafe, _TChar>(local_time), _flushAlways(false)    {}
 
         /** Constructor with output file configuration
          *
@@ -82,7 +82,7 @@ namespace ALogger {
          * \param[in] mode File mode as std::ios_base::openmode mask. std::ios_base::out by default
          * \param[in] local_time  Use local time instead of GMT one. True by default
          */
-        ALoggerTxtFile(const std::filesystem::path &filename, std::ios_base::openmode mode = std::ios_base::out, bool local_time = true) :
+        ALoggerTxtFile(const std::filesystem::path &filename, std::ios_base::openmode mode = std::ios_base::out, bool local_time = true) noexcept :
                 ALoggerTxtFile(local_time)
         {
             openFile(filename, mode);
@@ -97,7 +97,7 @@ namespace ALogger {
          * \param[in] mode File mode as std::ios_base::openmode mask. std::ios_base::out by default
          * \param[in] local_time  Use local time instead of GMT one. True by default
          */
-        ALoggerTxtFile(const QString &filename, std::ios_base::openmode mode = std::ios_base::out, bool local_time = true) :
+        ALoggerTxtFile(const QString &filename, std::ios_base::openmode mode = std::ios_base::out, bool local_time = true) noexcept :
                 ALoggerTxtFile(local_time)
         {
             openFile(filename, mode);
@@ -111,7 +111,7 @@ namespace ALogger {
          *
          * \return Current instance reference
          */
-        ALoggerTxtFile& openFile(const std::filesystem::path &filename, std::ios_base::openmode mode = std::ios_base::out)    { _fstream.open(filename, mode); return *this; }
+        ALoggerTxtFile& openFile(const std::filesystem::path &filename, std::ios_base::openmode mode = std::ios_base::out) noexcept    { _fstream.open(filename, mode); return *this; }
 
 #ifdef QT_VERSION
         /** Open file
@@ -128,13 +128,13 @@ namespace ALogger {
          *
          * \return Current instance reference
          */
-        ALoggerTxtFile& closeFile()   { _fstream.close(); return *this; }
+        ALoggerTxtFile& closeFile() noexcept   { _fstream.close(); return *this; }
 
         /** Flush all output messages to the output file
          *
          * \return Current instance reference
          */
-        ALoggerTxtFile& flushFile()                                 { _fstream.flush(); return *this; }
+        ALoggerTxtFile& flushFile() noexcept                                 { _fstream.flush(); return *this; }
 
         /** Enable automatic flushing for specific message levels to the output file
          *
@@ -144,7 +144,7 @@ namespace ALogger {
          *
          * \return Current instance reference
          */
-        ALoggerTxtFile& setFlushlevels(const TLevels& levels)     { _flushLevels = levels; _flushAlways = false; return *this; }
+        ALoggerTxtFile& setFlushlevels(const TLevels& levels) noexcept     { _flushLevels = levels; _flushAlways = false; return *this; }
 
         /** Enable automatic flushing for specific message levels to the output file
          *
@@ -154,7 +154,7 @@ namespace ALogger {
          *
          * \return Current instance reference
          */
-        ALoggerTxtFile& setFlushlevels(TLevels&& levels)          { _flushLevels = std::move(levels); _flushAlways = false; return *this; }
+        ALoggerTxtFile& setFlushlevels(TLevels&& levels) noexcept          { _flushLevels = std::move(levels); _flushAlways = false; return *this; }
 
         /** Enable or diable automatic flushing for all messages to the output file
          *
@@ -162,52 +162,52 @@ namespace ALogger {
          *
          * \return Current instance reference
          */
-        ALoggerTxtFile& SetFlushAlways(bool flush_always = true)  { _flushAlways = flush_always; return *this; }
+        ALoggerTxtFile& SetFlushAlways(bool flush_always = true) noexcept  { _flushAlways = flush_always; return *this; }
 
         /** Set the associated locale of the file stream to the given one
          *
          * \param[in] loc New locale to associate the stream to
          */
-        void imbue(const std::locale& loc) override               { _fstream.imbue(loc); }
+        void imbue(const std::locale& loc) noexcept override               { _fstream.imbue(loc); }
 
         /** Get output file stream
          *
          * \return Output file stream
          */
-        TStream& stream()                                         { return _fstream; }
+        TStream& stream() noexcept                                         { return _fstream; }
 
         /** Check that output file is opened
          *
          * \return True if file is opened
          */
-        bool IsOpenedFile() const                                 { return _fstream.is_open(); }
+        bool IsOpenedFile() const noexcept                                 { return _fstream.is_open(); }
 
         /** Get output file stream
          *
          * \return Output file stream
          */
-        const TStream& stream() const                             { return _fstream; }
+        const TStream& stream() const noexcept                             { return _fstream; }
 
         /** Get output file stream
          *
          * \return Output file stream
          */
-        operator TStream& ()                                      { return stream(); }
+        operator TStream& () noexcept                                      { return stream(); }
 
         /** Check that output file is opened
          *
          * \return True if file is opened
          */
-        operator bool () const                                    { return IsOpenedFile(); }
+        operator bool () const noexcept                                    { return IsOpenedFile(); }
 
         /** Get output file stream
          *
          * \return Output file stream
          */
-        operator const TStream& () const                          { return stream(); }
+        operator const TStream& () const noexcept                          { return stream(); }
 
     private:
-        bool outData(std::size_t level, std::chrono::system_clock::time_point time, TString&& data) override final;
+        bool outData(std::size_t level, std::chrono::system_clock::time_point time, TString&& data) noexcept override;
 
         TStream _fstream;
         TLevels _flushLevels;
@@ -216,7 +216,7 @@ namespace ALogger {
     };
 
     template<bool _ThrSafe, typename _TChar>
-    bool ALoggerTxtFile<_ThrSafe, _TChar>::outData(std::size_t level, std::chrono::system_clock::time_point time, TString&& data)
+    bool ALoggerTxtFile<_ThrSafe, _TChar>::outData(std::size_t level, std::chrono::system_clock::time_point time, TString&& data) noexcept
     {
         assert(_fstream.is_open());
 

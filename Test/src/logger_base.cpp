@@ -20,7 +20,7 @@ namespace {
         ALoggerTest()   { ++_loggerTest1Instances; }
         ~ALoggerTest()  { --_loggerTest1Instances; }
 
-        bool outData(std::size_t level, std::chrono::system_clock::time_point time, std::string&& data) override
+        bool outData(std::size_t level, std::chrono::system_clock::time_point time, std::string&& data) noexcept override
         {
             ++_calls._outStrings;
             return true;
@@ -53,7 +53,7 @@ namespace {
         ALoggerTest2()  { ++logger_test_2_instances; }
         ~ALoggerTest2() { --logger_test_2_instances; }
 
-        bool outData(std::size_t level, std::chrono::system_clock::time_point time, std::string&& data) override
+        bool outData(std::size_t level, std::chrono::system_clock::time_point time, std::string&& data) noexcept override
         {
             ++_calls._outStrings;
             return true;

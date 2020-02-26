@@ -67,7 +67,7 @@ namespace ALogger {
          * \param[in] level Level identifier
          * \param[in] name Level description
          */
-        void addLevelDescr(size_t level, TString name);
+        void addLevelDescr(size_t level, TString name) noexcept;
 
         /** Output the text message arguments for all container elements simultaneously
         *
@@ -86,7 +86,7 @@ namespace ALogger {
         * \param[in] args Arguments
         */
         template<typename... T>
-        void addString(std::size_t level, const T&... args);
+        void addString(std::size_t level, const T&... args) noexcept;
 
         /** Output the text message arguments for all container elements simultaneously
         *
@@ -104,7 +104,7 @@ namespace ALogger {
         * \param[in] args Arguments
        */
         template<typename... T>
-        void addString(std::chrono::system_clock::time_point time, std::size_t level, const T&... args);
+        void addString(std::chrono::system_clock::time_point time, std::size_t level, const T&... args) noexcept;
 
         /** Set timestamp to string format
          *
@@ -112,7 +112,7 @@ namespace ALogger {
          *
          * \param[in] output_format std::put_time timestamp format
          */
-        void setDateOutputFormat(const TString& output_format);
+        void setDateOutputFormat(const TString& output_format) noexcept;
 
         /** Default text before level descriptor
          *
@@ -120,7 +120,7 @@ namespace ALogger {
          *
          * \param[in] level_prefix Level prefix
          */
-        void setLevelPrefix(const TString& level_prefix);
+        void setLevelPrefix(const TString& level_prefix) noexcept;
 
         /** Default text after level descriptor
          *
@@ -128,7 +128,7 @@ namespace ALogger {
          *
          * \param[in] level_postfix Level postfix
          */
-        void setLevelPostfix(const TString& level_postfix);
+        void setLevelPostfix(const TString& level_postfix) noexcept;
 
         /** Default space text
          *
@@ -138,7 +138,7 @@ namespace ALogger {
          *
          * \param[in] space Space between different elements
          */
-        void setSpace(const TString& space);
+        void setSpace(const TString& space) noexcept;
 
         /** Output the text message arguments for all container elements simultaneously
         *
@@ -157,7 +157,7 @@ namespace ALogger {
         * \param[in] args Arguments
         */
         template<typename... T>
-        void operator() (std::size_t level, const T&... args)    { addString(level, args...); }
+        void operator() (std::size_t level, const T&... args) noexcept    { addString(level, args...); }
 
         /** Output the text message arguments for all container elements simultaneously
         *
@@ -175,62 +175,62 @@ namespace ALogger {
         * \param[in] args Arguments
         */
         template<typename... T>
-        void operator() (std::chrono::system_clock::time_point time, std::size_t level, const T&... args)    { addString(time, level, args...); }
+        void operator() (std::chrono::system_clock::time_point time, std::size_t level, const T&... args) noexcept    { addString(time, level, args...); }
 
         /** Set the associated locale of the stream to the given one
          *
          * \param[in] loc New locale to associate the stream to
          */
-        void imbue(const std::locale& loc);
+        void imbue(const std::locale& loc) noexcept;
 
     };  // class ALoggerTxtGroup
 
     template< typename... _TLogger >
-    void ALoggerTxtGroup<_TLogger...>::addLevelDescr(size_t level, TString name)
+    void ALoggerTxtGroup<_TLogger...>::addLevelDescr(size_t level, TString name) noexcept
     {
         std::apply([level,name] (auto&... logger) { (logger.addLevelDescr(level, name), ...); }, TBase::_logger);
     }
 
     template< typename... _TLogger >
     template<typename... T>
-    void ALoggerTxtGroup<_TLogger...>::addString(std::size_t level, const T&... args)
+    void ALoggerTxtGroup<_TLogger...>::addString(std::size_t level, const T&... args) noexcept
     {
         std::apply([level,args...] (auto&... logger) { (logger.addString(level, args...), ...); }, TBase::_logger);
     }
 
     template< typename... _TLogger >
     template<typename... T>
-    void ALoggerTxtGroup<_TLogger...>::addString(std::chrono::system_clock::time_point time, std::size_t level, const T&... args)
+    void ALoggerTxtGroup<_TLogger...>::addString(std::chrono::system_clock::time_point time, std::size_t level, const T&... args) noexcept
     {
         std::apply([time,level,args...] (auto&... logger) { (logger.addString(time, level, args...), ...); }, TBase::_logger);
     }
 
     template< typename... _TLogger >
-    void ALoggerTxtGroup<_TLogger...>::setDateOutputFormat(const TString& output_format)
+    void ALoggerTxtGroup<_TLogger...>::setDateOutputFormat(const TString& output_format) noexcept
     {
         std::apply([output_format] (auto&... logger) { (logger.setDateOutputFormat(output_format), ...); }, TBase::_logger);
     }
 
     template< typename... _TLogger >
-    void ALoggerTxtGroup<_TLogger...>::setLevelPrefix(const TString& level_prefix)
+    void ALoggerTxtGroup<_TLogger...>::setLevelPrefix(const TString& level_prefix) noexcept
     {
         std::apply([level_prefix] (auto&... logger) { (logger.setLevelPrefix(level_prefix), ...); }, TBase::_logger);
     }
 
     template< typename... _TLogger >
-    void ALoggerTxtGroup<_TLogger...>::imbue(const std::locale& loc)
+    void ALoggerTxtGroup<_TLogger...>::imbue(const std::locale& loc) noexcept
     {
         std::apply([loc] (auto&... logger) { (logger.imbue(loc), ...); }, TBase::_logger);
     }
 
     template< typename... _TLogger >
-    void ALoggerTxtGroup<_TLogger...>::setLevelPostfix(const TString& level_postfix)
+    void ALoggerTxtGroup<_TLogger...>::setLevelPostfix(const TString& level_postfix) noexcept
     {
         std::apply([level_postfix] (auto&... logger) { (logger.setLevelPostfix(level_postfix), ...); }, TBase::_logger);
     }
 
     template< typename... _TLogger >
-    void ALoggerTxtGroup<_TLogger...>::setSpace(const TString& space)
+    void ALoggerTxtGroup<_TLogger...>::setSpace(const TString& space) noexcept
     {
         std::apply([space] (auto&... logger) { (logger.setSpace(space), ...); }, TBase::_logger);
     }

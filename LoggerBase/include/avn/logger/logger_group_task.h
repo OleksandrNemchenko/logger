@@ -59,18 +59,18 @@ namespace ALogger {
         using TLogData = typename std::remove_pointer_t<std::tuple_element_t<0, TArrayPtr>>::TLogData;
 
         ALoggerGroupTask(const TArrayPtr&) = delete;
-        ALoggerGroupTask(TArrayPtr&& task) : _task(std::move(task )) { }
+        ALoggerGroupTask(TArrayPtr&& task) noexcept : _task(std::move(task )) { }
 
-        ~ALoggerGroupTask() { std::apply([](auto&&... task){ (delete task, ...); }, _task); }
-
-        /** Return task reference to the \a num element */
-        template< size_t num > auto&       task()         { static_assert(num < sizeof...(_TTaskPtr), "Requested element's number is out of this task group size"); return *std::get<num>(_task); }
+        ~ALoggerGroupTask() noexcept { std::apply([](auto&&... task){ (delete task, ...); }, _task); }
 
         /** Return task reference to the \a num element */
-        template< size_t num > const auto& task() const   { static_assert(num < sizeof...(_TTaskPtr), "Requested element's number is out of this task group size"); return *std::get<num>(_task); }
+        template< size_t num > auto& task() noexcept                { static_assert(num < sizeof...(_TTaskPtr), "Requested element's number is out of this task group size"); return *std::get<num>(_task); }
+
+        /** Return task reference to the \a num element */
+        template< size_t num > const auto& task() const noexcept    { static_assert(num < sizeof...(_TTaskPtr), "Requested element's number is out of this task group size"); return *std::get<num>(_task); }
 
         /** Return loggers amount */
-        constexpr auto sizeOf() const                     { return sizeof...(_TTaskPtr); }
+        constexpr auto sizeOf() const noexcept                      { return sizeof...(_TTaskPtr); }
 
         /** Set task result for all tasks inside container
          *
@@ -78,19 +78,19 @@ namespace ALogger {
          *
          * \return Current task group instance
          */
-        ALoggerGroupTask& setTaskResult(bool success);
+        ALoggerGroupTask& setTaskResult(bool success) noexcept;
 
         /** Set succeeded task result for all tasks inside container
          *
          * \return Current task group instance
          */
-        ALoggerGroupTask& succeeded();
+        ALoggerGroupTask& succeeded() noexcept;
 
         /** Set failed task result for all tasks inside container
          *
          * \return Current task group instance
          */
-        ALoggerGroupTask& failed();
+        ALoggerGroupTask& failed() noexcept;
 
         /** Add the message for all tasks inside container
          *
@@ -101,7 +101,7 @@ namespace ALogger {
          *
          * \return Current task group instance
          */
-        ALoggerGroupTask& addToLog(std::size_t level, const TLogData& data);
+        ALoggerGroupTask& addToLog(std::size_t level, const TLogData& data) noexcept;
 
         /** Add the message for all tasks inside container
          *
@@ -111,7 +111,7 @@ namespace ALogger {
          *
          * \return Current task group instance
          */
-        ALoggerGroupTask& addToLog(std::size_t level, const TLogData& data, std::chrono::system_clock::time_point time);
+        ALoggerGroupTask& addToLog(std::size_t level, const TLogData& data, std::chrono::system_clock::time_point time) noexcept;
 
         /** Enable or disable specified logger level
          *
@@ -121,7 +121,7 @@ namespace ALogger {
          *
          * \return Current task group instance
          */
-        ALoggerGroupTask& initLevel(std::size_t level, bool to_enable);
+        ALoggerGroupTask& initLevel(std::size_t level, bool to_enable) noexcept;
 
         /** Enable specified logger levels
          *
@@ -129,7 +129,7 @@ namespace ALogger {
          *
          * \return Current task group instance
          */
-        ALoggerGroupTask& setlevels(TLevels levels);
+        ALoggerGroupTask& setlevels(TLevels levels) noexcept;
 
         /** Enable specified logger level
          *
@@ -137,7 +137,7 @@ namespace ALogger {
          *
          * \return Current task group instance
          */
-        ALoggerGroupTask& enableLevel(std::size_t level);
+        ALoggerGroupTask& enableLevel(std::size_t level) noexcept;
 
         /** Disable specified logger level
          *
@@ -145,7 +145,7 @@ namespace ALogger {
          *
          * \return Current task group instance
          */
-        ALoggerGroupTask& disableLevel(std::size_t level);
+        ALoggerGroupTask& disableLevel(std::size_t level) noexcept;
 
     private:
         TArrayPtr _task;
@@ -153,63 +153,63 @@ namespace ALogger {
     };  // class ALoggerGroup
 
     template< typename... _TTaskPtr >
-    ALoggerGroupTask<_TTaskPtr...>& ALoggerGroupTask<_TTaskPtr...>::setTaskResult(bool success)
+    ALoggerGroupTask<_TTaskPtr...>& ALoggerGroupTask<_TTaskPtr...>::setTaskResult(bool success) noexcept
     {
         std::apply([success](auto&... task) { (task->setTaskResult(success), ...); }, _task);
         return *this;
     }
 
     template< typename... _TTaskPtr >
-    ALoggerGroupTask<_TTaskPtr...>& ALoggerGroupTask<_TTaskPtr...>::succeeded()
+    ALoggerGroupTask<_TTaskPtr...>& ALoggerGroupTask<_TTaskPtr...>::succeeded() noexcept
     {
         std::apply([](auto&... task) { (task->succeeded(), ...); }, _task);
         return *this;
     }
 
     template< typename... _TTaskPtr >
-    ALoggerGroupTask<_TTaskPtr...>& ALoggerGroupTask<_TTaskPtr...>::failed()
+    ALoggerGroupTask<_TTaskPtr...>& ALoggerGroupTask<_TTaskPtr...>::failed() noexcept
     {
         std::apply([](auto&... task) { (task->failed(), ...); }, _task);
         return *this;
     }
 
     template< typename... _TTaskPtr >
-    ALoggerGroupTask<_TTaskPtr...>& ALoggerGroupTask<_TTaskPtr...>::initLevel(std::size_t level, bool to_enable)
+    ALoggerGroupTask<_TTaskPtr...>& ALoggerGroupTask<_TTaskPtr...>::initLevel(std::size_t level, bool to_enable) noexcept
     {
             std::apply([level,to_enable](auto&... task) { (task->initLevel(level, to_enable), ...); }, _task);
             return *this;
     }
 
     template< typename... _TTaskPtr >
-    ALoggerGroupTask<_TTaskPtr...>& ALoggerGroupTask<_TTaskPtr...>::setlevels(TLevels levels)
+    ALoggerGroupTask<_TTaskPtr...>& ALoggerGroupTask<_TTaskPtr...>::setlevels(TLevels levels) noexcept
     {
             std::apply([&levels](auto&... task) { (task->setlevels(levels), ...); }, _task);
             return *this;
     }
 
     template< typename... _TTaskPtr >
-    ALoggerGroupTask<_TTaskPtr...>& ALoggerGroupTask<_TTaskPtr...>::enableLevel(std::size_t level)
+    ALoggerGroupTask<_TTaskPtr...>& ALoggerGroupTask<_TTaskPtr...>::enableLevel(std::size_t level) noexcept
     {
             std::apply([level](auto&... task) { (task->enableLevel(level), ...); }, _task);
             return *this;
     }
 
     template< typename... _TTaskPtr >
-    ALoggerGroupTask<_TTaskPtr...>& ALoggerGroupTask<_TTaskPtr...>::disableLevel(std::size_t level)
+    ALoggerGroupTask<_TTaskPtr...>& ALoggerGroupTask<_TTaskPtr...>::disableLevel(std::size_t level) noexcept
     {
             std::apply([level](auto&... task) { (task->disableLevel(level), ...); }, _task);
             return *this;
     }
 
     template< typename... _TTaskPtr >
-    ALoggerGroupTask<_TTaskPtr...>& ALoggerGroupTask<_TTaskPtr...>::addToLog(std::size_t level, const TLogData& data)
+    ALoggerGroupTask<_TTaskPtr...>& ALoggerGroupTask<_TTaskPtr...>::addToLog(std::size_t level, const TLogData& data) noexcept
     {
         std::apply([level,data](auto&... task) { (task->addToLog(level, data), ...); }, _task);
         return *this;
     }
 
     template< typename... _TTaskPtr >
-    ALoggerGroupTask<_TTaskPtr...>& ALoggerGroupTask<_TTaskPtr...>::addToLog(std::size_t level, const TLogData& data, std::chrono::system_clock::time_point time)
+    ALoggerGroupTask<_TTaskPtr...>& ALoggerGroupTask<_TTaskPtr...>::addToLog(std::size_t level, const TLogData& data, std::chrono::system_clock::time_point time) noexcept
     {
         std::apply([level,data,time](auto&... task) { (task->addToLog(level, data, time), ...); }, _task);
         return *this;

@@ -141,21 +141,21 @@ namespace ALogger {
         /** Threads map */
         using TThreads = std::map<std::thread::id, TTasks>;
 
-        ALoggerBase() = default;
-        ALoggerBase(const ALoggerBase&) = delete;
-        virtual ~ALoggerBase();
+        ALoggerBase() noexcept = default;
+        ALoggerBase(const ALoggerBase&) noexcept = delete;
+        virtual ~ALoggerBase() noexcept;
 
         /** Levels that are used by logger
          *
          * \return The list of currently both enabled and disabled levels
          */
-        const TLevels& levels() const override { return _outLevels; }
+        const TLevels& levels() const noexcept override { return _outLevels; }
 
         /** Tasks in thread map
          *
          * \return The list of currently active threads with tasks
          */
-        const TThreads& threadsTasks() const { return _threads; }
+        const TThreads& threadsTasks() const noexcept { return _threads; }
 
         /** Add task with initial state
          *
@@ -166,7 +166,7 @@ namespace ALogger {
          *
          * \return Created task object
          */
-        ALoggerTask<_TLogData> addTask(bool init_success_state);
+        ALoggerTask<_TLogData> addTask(bool init_success_state) noexcept;
 
         /** Add task with default initial state
          *
@@ -175,7 +175,7 @@ namespace ALogger {
          *
          * \return Created task object
          */
-        ALoggerTask<_TLogData> addTask() { return addTask(false); }
+        ALoggerTask<_TLogData> addTask() noexcept { return addTask(false); }
 
         /** Add task with initial state and specified levels
          *
@@ -187,7 +187,7 @@ namespace ALogger {
          *
          * \return Created task object
          */
-        ALoggerTask<_TLogData> addTask(TLevels levels, bool init_success_state);
+        ALoggerTask<_TLogData> addTask(TLevels levels, bool init_success_state) noexcept;
 
         /** Add task with default initial state and specified levels
          *
@@ -198,38 +198,38 @@ namespace ALogger {
          *
          * \return Created task object
          */
-        ALoggerTask<_TLogData> addTask(TLevels levels) { return addTask(levels, false); }
+        ALoggerTask<_TLogData> addTask(TLevels levels) noexcept { return addTask(levels, false); }
 
         /** Enable or disable specific level
          *
          * \param[in] level Level to be enabled or disabled.
          * \param[in] to_enable If true, \a level will be enabled. Otherwise it will be disabled.
          */
-        void initLevel(std::size_t level, bool to_enable = true);
+        void initLevel(std::size_t level, bool to_enable = true) noexcept;
 
         /** Enable level
          *
          * \param[in] level Level to be enabled.
          */
-        void enableLevel(std::size_t level) { initLevel(level, true); }
+        void enableLevel(std::size_t level) noexcept { initLevel(level, true); }
 
         /** Disable level
          *
          * \param[in] level Level to be disabled.
          */
-        void disableLevel(std::size_t level) { initLevel(level, false); }
+        void disableLevel(std::size_t level) noexcept { initLevel(level, false); }
 
         /** Disable tasks
          *
          * This call useful for debug mode whe you need to see all messages instantly
          */
-        void disableTasks() { _enableTasks = false; }
+        void disableTasks() noexcept { _enableTasks = false; }
 
         /** Set levels
          * 
          * \param[in] levels Levels to use
          */
-        void setlevels(TLevels levels) { _outLevels = levels; }
+        void setlevels(TLevels levels) noexcept { _outLevels = levels; }
 
         /** Check level to be output
          *
@@ -237,7 +237,7 @@ namespace ALogger {
          *
          * \return true if task is active or this level is enabled.
          */
-        bool taskOrToBeAdded(std::size_t level) const;
+        bool taskOrToBeAdded(std::size_t level) const noexcept;
 
         /** Force the message to be output
          *
@@ -250,7 +250,7 @@ namespace ALogger {
          *
          * \return true if message is output
          */
-        bool forceAddToLog(std::size_t level, _TLogData&& data) { return forceAddToLog(level, std::move(data), std::chrono::system_clock::now()); }
+        bool forceAddToLog(std::size_t level, _TLogData&& data) noexcept { return forceAddToLog(level, std::move(data), std::chrono::system_clock::now()); }
 
         /** Force the message to be output with specified timestamp
          *
@@ -262,7 +262,7 @@ namespace ALogger {
          *
          * \return true if message is output
          */
-        bool forceAddToLog(std::size_t level, _TLogData&& data, std::chrono::system_clock::time_point time) override;
+        bool forceAddToLog(std::size_t level, _TLogData&& data, std::chrono::system_clock::time_point time) noexcept override;
 
         /** Output the message
          *
@@ -276,7 +276,7 @@ namespace ALogger {
          *
          * \return true if message is output
          */
-        bool addToLog(std::size_t level, _TLogData&& data) { return addToLog(level, std::move(data), std::chrono::system_clock::now()); }
+        bool addToLog(std::size_t level, _TLogData&& data) noexcept { return addToLog(level, std::move(data), std::chrono::system_clock::now()); }
 
         /** Output the message with specified timestamp
          *
@@ -289,7 +289,7 @@ namespace ALogger {
          *
          * \return true if message is output
          */
-        bool addToLog(std::size_t level, _TLogData&& data, std::chrono::system_clock::time_point time);
+        bool addToLog(std::size_t level, _TLogData&& data, std::chrono::system_clock::time_point time) noexcept;
 
         /** Return ITaskLogger interface
          *
@@ -299,7 +299,7 @@ namespace ALogger {
          *
          * \return ITaskLogger interface
          */
-        auto getTaskLoggerInterface() { return static_cast<ITaskLogger<TLogData>*>(this); }
+        auto getTaskLoggerInterface() noexcept { return static_cast<ITaskLogger<TLogData>*>(this); }
 
         /** Return ILoggerGroup interface
          *
@@ -309,7 +309,7 @@ namespace ALogger {
          *
          * \return ILoggerGroup interface
          */
-         auto getLoggerGroupInterface() { return static_cast<ILoggerGroup<TLogData>*>(this); }
+         auto getLoggerGroupInterface() noexcept { return static_cast<ILoggerGroup<TLogData>*>(this); }
 
     private:
         using ITask = ITaskLogger<_TLogData>;
@@ -317,74 +317,74 @@ namespace ALogger {
 
         TLevels _outLevels;
         TThreads _threads;
-        bool _enableTasks = true;
+        bool _enableTasks{true};
 
-        void removeTask() override;
+        void removeTask() noexcept override;
 
-        ALoggerTask<_TLogData>*  addTaskForLoggerGroup(bool init_succeeded) override;
-        ALoggerTask<_TLogData>*  addTaskForLoggerGroup() override                   { return addTaskForLoggerGroup(false); }
-        ALoggerTask<_TLogData>*  addTaskForLoggerGroup(TLevels levels, bool init_succeeded) override;
-        ALoggerTask<_TLogData>*  addTaskForLoggerGroup(TLevels levels) override     { return addTaskForLoggerGroup(levels, false); }
+        ALoggerTask<_TLogData>*  addTaskForLoggerGroup(bool init_succeeded) noexcept override;
+        ALoggerTask<_TLogData>*  addTaskForLoggerGroup() noexcept override                   { return addTaskForLoggerGroup(false); }
+        ALoggerTask<_TLogData>*  addTaskForLoggerGroup(TLevels levels, bool init_succeeded) noexcept override;
+        ALoggerTask<_TLogData>*  addTaskForLoggerGroup(TLevels levels) noexcept override     { return addTaskForLoggerGroup(levels, false); }
 
     };
 
     template<bool _ThrSafe, typename _TLogData>
-    ALoggerBase<_ThrSafe, _TLogData>::~ALoggerBase()
+    ALoggerBase<_ThrSafe, _TLogData>::~ALoggerBase() noexcept
     {
         for (auto& [thread_id, tasks] : _threads)
             assert(tasks.empty());
     }
 
     template<bool _ThrSafe, typename _TLogData>
-    ALoggerTask<_TLogData> ALoggerBase<_ThrSafe, _TLogData>::addTask(bool init_success_state)
+    ALoggerTask<_TLogData> ALoggerBase<_ThrSafe, _TLogData>::addTask(bool init_success_state) noexcept
     {
-        auto task = ITask::createTask(init_success_state);
+        auto task{ ITask::createTask(init_success_state) };
         _threads[std::this_thread::get_id()].push(&task);
         return task;
     }
 
     template<bool _ThrSafe, typename _TLogData>
-    ALoggerTask<_TLogData>* ALoggerBase<_ThrSafe, _TLogData>::addTaskForLoggerGroup(bool init_succeeded)
+    ALoggerTask<_TLogData>* ALoggerBase<_ThrSafe, _TLogData>::addTaskForLoggerGroup(bool init_succeeded) noexcept
     {
-        auto task = IGroup::createTask(*this, init_succeeded);
+        auto task{ IGroup::createTask(*this, init_succeeded) };
         _threads[std::this_thread::get_id()].push(task);
         return task;
     }
 
     template<bool _ThrSafe, typename _TLogData>
-    ALoggerTask<_TLogData> ALoggerBase<_ThrSafe, _TLogData>::addTask(TLevels levels, bool init_success_state)
+    ALoggerTask<_TLogData> ALoggerBase<_ThrSafe, _TLogData>::addTask(TLevels levels, bool init_success_state) noexcept
     {
-        auto task = addTask(init_success_state);
+        auto task{ addTask(init_success_state) };
         task.setlevels(std::forward<TLevels>(levels));
         return task;
     }
 
     template<bool _ThrSafe, typename _TLogData>
-    ALoggerTask<_TLogData>* ALoggerBase<_ThrSafe, _TLogData>::addTaskForLoggerGroup(TLevels levels, bool init_success_state)
+    ALoggerTask<_TLogData>* ALoggerBase<_ThrSafe, _TLogData>::addTaskForLoggerGroup(TLevels levels, bool init_success_state) noexcept
     {
-        auto task = addTaskForLoggerGroup(init_success_state);
+        auto task{ addTaskForLoggerGroup(init_success_state) };
         task->setlevels(std::forward<TLevels>(levels));
         return task;
     }
 
     template<bool _ThrSafe, typename _TLogData>
-    void ALoggerBase<_ThrSafe, _TLogData>::removeTask()
+    void ALoggerBase<_ThrSafe, _TLogData>::removeTask() noexcept
     {
         assert(!_threads[std::this_thread::get_id()].empty());
         _threads[std::this_thread::get_id()].pop();
     }
 
     template<bool _ThrSafe, typename _TLogData>
-    void ALoggerBase<_ThrSafe, _TLogData>::initLevel(std::size_t level, bool to_enable)
+    void ALoggerBase<_ThrSafe, _TLogData>::initLevel(std::size_t level, bool to_enable) noexcept
     {
         if (to_enable)  _outLevels.emplace(level);
         else            _outLevels.erase(level);
     }
 
     template<bool _ThrSafe, typename _TLogData>
-    bool ALoggerBase<_ThrSafe, _TLogData>::taskOrToBeAdded(std::size_t level) const
+    bool ALoggerBase<_ThrSafe, _TLogData>::taskOrToBeAdded(std::size_t level) const noexcept
     {
-        const auto thread = _threads.find(std::this_thread::get_id());
+        const auto thread{ _threads.find(std::this_thread::get_id()) };
         if (thread != _threads.cend() && !thread->second.empty())
             return true;
         else if (_outLevels.count(level))
@@ -394,13 +394,13 @@ namespace ALogger {
     }
 
     template<bool _ThrSafe, typename _TLogData>
-    bool ALoggerBase<_ThrSafe, _TLogData>::addToLog(std::size_t level, _TLogData&& data, std::chrono::system_clock::time_point time)
+    bool ALoggerBase<_ThrSafe, _TLogData>::addToLog(std::size_t level, _TLogData&& data, std::chrono::system_clock::time_point time) noexcept
     {
-        auto thread = _threads.find(std::this_thread::get_id());
+        auto thread{ _threads.find(std::this_thread::get_id()) };
         auto& tasks = thread->second;
 
         if (_enableTasks && thread != _threads.end() && !tasks.empty()) {
-            auto& top = tasks.top();
+            auto& top{ tasks.top() };
             assert(top);
             top->addToLog(level, std::forward<_TLogData>(data), time);
             return true;
@@ -412,7 +412,7 @@ namespace ALogger {
     }
 
     template<bool _ThrSafe, typename _TLogData>
-    bool ALoggerBase<_ThrSafe, _TLogData>::forceAddToLog(std::size_t level, _TLogData&& data, std::chrono::system_clock::time_point time)
+    bool ALoggerBase<_ThrSafe, _TLogData>::forceAddToLog(std::size_t level, _TLogData&& data, std::chrono::system_clock::time_point time) noexcept
     {
         return ALoggerBaseThrSafety<_ThrSafe,_TLogData>::outDataThrSafe(level, time, std::move(data));
     }

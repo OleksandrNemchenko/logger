@@ -39,7 +39,7 @@ namespace ALogger {
      * \param[in] arg Argument
      */
     template<typename _TChar, typename T>
-    inline void toStrStream(std::basic_stringstream<_TChar> &stream, T &&arg) { stream << std::forward<T>(arg); }
+    inline void toStrStream(std::basic_stringstream<_TChar> &stream, T &&arg) noexcept { stream << std::forward<T>(arg); }
 
 // Qt Objects
 #ifdef QT_VERSION
@@ -109,7 +109,7 @@ namespace ALogger {
          *
          * \param[in] local_time Local time will be used for timestamp. By default it is true
          */
-        ALoggerTxtBase(bool local_time = true);
+        ALoggerTxtBase(bool local_time = true) noexcept;
 
         /** Add level descriptor
          *
@@ -118,10 +118,10 @@ namespace ALogger {
          *
          * \return Current instance reference
          */
-        ALoggerTxtBase& addLevelDescr(size_t level, TString name)     { _levelsMap[level] = std::forward<TString>(name); return *this; }
+        ALoggerTxtBase& addLevelDescr(size_t level, const TString& name) noexcept     { _levelsMap[level] = name; return *this; }
 
         /** Return levels map */
-        const TlevelsMap& levelsMap() const                           { return _levelsMap; }
+        const TlevelsMap& levelsMap() const noexcept                           { return _levelsMap; }
 
         /** Output the text message arguments
         *
@@ -140,7 +140,7 @@ namespace ALogger {
         * \return Current instance reference
         */
         template<typename... T>
-        ALoggerTxtBase& addString(std::size_t level, T&&... args);
+        ALoggerTxtBase& addString(std::size_t level, T&&... args) noexcept;
 
         /** Output the text message arguments
         *
@@ -158,7 +158,7 @@ namespace ALogger {
         * \return Current instance reference
         */
         template<typename... T>
-        ALoggerTxtBase& addString(std::chrono::system_clock::time_point time, std::size_t level, T&&... args);
+        ALoggerTxtBase& addString(std::chrono::system_clock::time_point time, std::size_t level, T&&... args) noexcept;
 
         /** Set timestamp to string format
          *
@@ -166,7 +166,7 @@ namespace ALogger {
          *
          * \return Current instance reference
          */
-        ALoggerTxtBase& setDateOutputFormat(TString&& output_format)  { _outputFormat = std::forward<TString>(output_format); return *this; }
+        ALoggerTxtBase& setDateOutputFormat(TString&& output_format) noexcept  { _outputFormat = std::forward<TString>(output_format); return *this; }
 
         /** Default text before level descriptor
          *
@@ -174,7 +174,7 @@ namespace ALogger {
          *
          * \return Current instance reference
          */
-        ALoggerTxtBase& setLevelPrefix(TString&& level_prefix)        { _levelPrefix  = std::forward<TString>(level_prefix);  return *this; }
+        ALoggerTxtBase& setLevelPrefix(TString&& level_prefix) noexcept        { _levelPrefix  = std::forward<TString>(level_prefix);  return *this; }
 
         /** Default text after level descriptor
          *
@@ -182,7 +182,7 @@ namespace ALogger {
          *
          * \return Current instance reference
          */
-        ALoggerTxtBase& setLevelPostfix(TString&& level_postfix)      { _levelPostfix = std::forward<TString>(level_postfix); return *this; }
+        ALoggerTxtBase& setLevelPostfix(TString&& level_postfix) noexcept      { _levelPostfix = std::forward<TString>(level_postfix); return *this; }
 
         /** Default space text
          *
@@ -190,7 +190,7 @@ namespace ALogger {
          *
          * \return Current instance reference
          */
-        ALoggerTxtBase& setSpace(TString&& space)                     { _space         = std::forward<TString>(space);         return *this; }
+        ALoggerTxtBase& setSpace(TString&& space) noexcept                     { _space         = std::forward<TString>(space);         return *this; }
 
         /** Output the text message arguments
         *
@@ -209,7 +209,7 @@ namespace ALogger {
         * \return Current instance reference
         */
         template<typename... T>
-        ALoggerTxtBase& operator() (std::size_t level, T&&... args)    { return addString(level, args...); }
+        ALoggerTxtBase& operator() (std::size_t level, T&&... args) noexcept    { return addString(level, args...); }
 
         /** Output the text message arguments
         *
@@ -227,13 +227,13 @@ namespace ALogger {
         * \return Current instance reference
         */
         template<typename... T>
-        ALoggerTxtBase& operator() (std::chrono::system_clock::time_point time, std::size_t level, T&&... args)    { return addString(time, level, args...); }
+        ALoggerTxtBase& operator() (std::chrono::system_clock::time_point time, std::size_t level, T&&... args) noexcept    { return addString(time, level, args...); }
 
         /** Set the associated locale of the stream to the given one
          *
          * \param[in] loc New locale to associate the stream to
          */
-        virtual void imbue(const std::locale& loc) { }
+        virtual void imbue(const std::locale& loc) noexcept { }
 
     protected:
         /** Decorate string
@@ -247,7 +247,7 @@ namespace ALogger {
          *
          * \return Prepared string
          */
-        TString prepareString(std::size_t level, std::chrono::system_clock::time_point time, const TString& data) const;
+        TString prepareString(std::size_t level, std::chrono::system_clock::time_point time, const TString& data) const noexcept;
 
     private:
         TlevelsMap _levelsMap;
@@ -260,7 +260,7 @@ namespace ALogger {
     };
 
     template<bool _ThrSafe, typename _TChar>
-    ALoggerTxtBase<_ThrSafe, _TChar>::ALoggerTxtBase(bool local_time):
+    ALoggerTxtBase<_ThrSafe, _TChar>::ALoggerTxtBase(bool local_time) noexcept:
         _timeConverter(local_time ? std::localtime : std::gmtime),
         _outputFormat{ TDef::_defaultOutputFormat },
         _levelPrefix{  TDef::_defaultLevelPrefix  },
@@ -270,7 +270,7 @@ namespace ALogger {
 
     template<bool _ThrSafe, typename _TChar>
     template<typename... T>
-    ALoggerTxtBase<_ThrSafe, _TChar>& ALoggerTxtBase<_ThrSafe, _TChar>::addString(std::chrono::system_clock::time_point time, std::size_t level, T&&... args)
+    ALoggerTxtBase<_ThrSafe, _TChar>& ALoggerTxtBase<_ThrSafe, _TChar>::addString(std::chrono::system_clock::time_point time, std::size_t level, T&&... args) noexcept
     {
         if (!TBase::taskOrToBeAdded(level))
             return *this;
@@ -282,20 +282,20 @@ namespace ALogger {
 
     template<bool _ThrSafe, typename _TChar>
     template<typename... T>
-    ALoggerTxtBase<_ThrSafe, _TChar>& ALoggerTxtBase<_ThrSafe, _TChar>::addString(std::size_t level, T&&... args)
+    ALoggerTxtBase<_ThrSafe, _TChar>& ALoggerTxtBase<_ThrSafe, _TChar>::addString(std::size_t level, T&&... args) noexcept
     {
         return addString(std::chrono::system_clock::now(), level, args...);
     }
 
     template<bool _ThrSafe, typename _TChar>
-    typename ALoggerTxtBase<_ThrSafe, _TChar>::TString ALoggerTxtBase<_ThrSafe, _TChar>::prepareString(std::size_t level, std::chrono::system_clock::time_point time, const TString& data) const
+    typename ALoggerTxtBase<_ThrSafe, _TChar>::TString ALoggerTxtBase<_ThrSafe, _TChar>::prepareString(std::size_t level, std::chrono::system_clock::time_point time, const TString& data) const noexcept
     {
-        const auto level_it = _levelsMap.find(level);
+        const auto level_it{ _levelsMap.find(level) };
         TString str;
 
         assert(level_it != _levelsMap.cend());
 
-        std::time_t time_moment = std::chrono::system_clock::to_time_t(time);
+        std::time_t time_moment{ std::chrono::system_clock::to_time_t(time) };
         std::basic_stringstream<_TChar> sstr;
         sstr << std::put_time(_timeConverter(&time_moment), _outputFormat.c_str());
         str = sstr.str() + _space + _levelPrefix + level_it->second + _levelPostfix + _space + data;
