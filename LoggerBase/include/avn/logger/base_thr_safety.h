@@ -19,6 +19,7 @@
 #define _AVN_LOGGER_BASE_THR_SAFETY_H_
 
 #include <chrono>
+#include <mutex>
 #include <thread>
 
 namespace ALogger {

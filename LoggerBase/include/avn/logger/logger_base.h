@@ -101,6 +101,7 @@ logger.enableLevel(ALogger::ERROR);
 #ifndef _AVN_LOGGER_BASE_H_
 #define _AVN_LOGGER_BASE_H_
 
+#include <cassert>
 #include <chrono>
 #include <map>
 #include <set>

@@ -102,7 +102,7 @@ namespace ALogger {
         {
             openFile(filename, mode);
         }
-#endif QT_VERSION
+#endif // QT_VERSION
 
         /** Open file
          *
@@ -168,7 +168,7 @@ namespace ALogger {
          *
          * \param[in] loc New locale to associate the stream to
          */
-        void imbue(const std::locale& loc) override               { _fstream.imbue(loc); return *this; }
+        void imbue(const std::locale& loc) override               { _fstream.imbue(loc); }
 
         /** Get output file stream
          *

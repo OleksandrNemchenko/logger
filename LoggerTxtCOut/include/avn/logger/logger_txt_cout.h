@@ -93,7 +93,7 @@ namespace ALogger {
          *
          * \param[in] loc New locale to associate the stream to
          */
-        void imbue(const std::locale& loc) override            { TStream::outStream().imbue(loc); return *this; }
+        void imbue(const std::locale& loc) override            { TStream::outStream().imbue(loc); }
 
     private:
         bool outData(std::size_t level, std::chrono::system_clock::time_point time, TString&& data) override final;
