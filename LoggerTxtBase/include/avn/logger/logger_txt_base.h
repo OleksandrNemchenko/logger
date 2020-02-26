@@ -291,14 +291,13 @@ namespace ALogger {
     typename ALoggerTxtBase<_ThrSafe, _TChar>::TString ALoggerTxtBase<_ThrSafe, _TChar>::prepareString(std::size_t level, std::chrono::system_clock::time_point time, const TString& data) const noexcept
     {
         const auto level_it{ _levelsMap.find(level) };
-        TString str;
 
         assert(level_it != _levelsMap.cend());
 
         std::time_t time_moment{ std::chrono::system_clock::to_time_t(time) };
         std::basic_stringstream<_TChar> sstr;
         sstr << std::put_time(_timeConverter(&time_moment), _outputFormat.c_str());
-        str = sstr.str() + _space + _levelPrefix + level_it->second + _levelPostfix + _space + data;
+        TString str = sstr.str() + _space + _levelPrefix + level_it->second + _levelPostfix + _space + data;
 
         return str;
     }

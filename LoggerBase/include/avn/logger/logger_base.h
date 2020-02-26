@@ -74,7 +74,7 @@ ALogger logger;
 logger.enableLevel(ALogger::ERROR);
 
 {
-  auto task = logger.addTask();    // Task is in unsuccessful state
+  auto task{ logger.addTask() };    // Task is in unsuccessful state
 
   logger.Output(ALogger::DEBUG, msg1);
   logger.Output(ALogger::WARNING, msg2);

@@ -203,33 +203,33 @@ namespace ALogger {
 
     template< typename... _TLogger >
     auto ALoggerGroup<_TLogger...>::addTask() noexcept {
-        auto tasks = std::apply([](auto&&... logger){
+        auto tasks{ std::apply([](auto&&... logger){
             return std::make_tuple((logger.getLoggerGroupInterface())->addTaskForLoggerGroup() ...);
-        }, _logger);
+        }, _logger) };
         return ALoggerGroupTask(std::move(tasks));
     }
 
     template< typename... _TLogger >
     auto ALoggerGroup<_TLogger...>::addTask(bool init_success_state) noexcept {
-        auto tasks = std::apply([init_success_state](auto&&... logger){
+        auto tasks{ std::apply([init_success_state](auto&&... logger){
             return std::make_tuple((logger.getLoggerGroupInterface())->addTaskForLoggerGroup(init_success_state) ...);
-        }, _logger);
+        }, _logger) };
         return ALoggerGroupTask(std::move(tasks));
     }
 
     template< typename... _TLogger >
     auto ALoggerGroup<_TLogger...>::addTask(TLevels levels) noexcept {
-        auto tasks = std::apply([&levels](auto&&... logger){
+        auto tasks{ std::apply([&levels](auto&&... logger){
             return std::make_tuple((logger.getLoggerGroupInterface())->addTaskForLoggerGroup(levels) ...);
-        }, _logger);
+        }, _logger) };
         return ALoggerGroupTask(std::move(tasks));
     }
 
     template< typename... _TLogger >
     auto ALoggerGroup<_TLogger...>::addTask(TLevels levels, bool init_success_state) noexcept {
-        auto tasks = std::apply([&levels,init_success_state](auto&&... logger){
+        auto tasks{ std::apply([&levels,init_success_state](auto&&... logger){
             return std::make_tuple((logger.getLoggerGroupInterface())->addTaskForLoggerGroup(levels, init_success_state) ...);
-        }, _logger);
+        }, _logger) };
         return ALoggerGroupTask(std::move(tasks));
     }
 
