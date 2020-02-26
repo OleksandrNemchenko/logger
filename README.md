@@ -134,6 +134,7 @@ You can make and start test_logger target to test all features. Visit this targe
     - move towards to to [C++ Code Guidelines](http://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines)
     - make all functions as noexcept
     - add QString support for loggers
+    - use string maker function for ALoggerBase class instead of spaces, time output format, prefixes and suffixes
 * [version 1.1](https://github.com/OleksandrNemchenko/logger/tree/release/v1.1) : [documentation](https://oleksandrnemchenko.github.io/logger/v1.1/index.html)
     - create Doxygen documentation for all entities
     - create gh-pages description
