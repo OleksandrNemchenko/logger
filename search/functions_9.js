@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['preparestring_147',['PrepareString',['../class_logger_1_1_c_logger_txt_base.html#af6acde1bd8b8dd87b6f6c811a353654c',1,'Logger::CLoggerTxtBase']]]
+  ['preparestring',['prepareString',['../class_a_logger_1_1_a_logger_txt_base.html#ad9afe05a7488d6a2f9e3d2e4feaffa66',1,'ALogger::ALoggerTxtBase']]]
 ];

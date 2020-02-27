@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['getloggergroupinterface_131',['GetLoggerGroupInterface',['../class_logger_1_1_c_logger_base.html#a4a94277eea1d56c993c7fc8bf98b8435',1,'Logger::CLoggerBase']]],
-  ['gettaskloggerinterface_132',['GetTaskLoggerInterface',['../class_logger_1_1_c_logger_base.html#a854d0dbec64eef6b3a4e4098bcce24da',1,'Logger::CLoggerBase']]]
+  ['getloggergroupinterface',['getLoggerGroupInterface',['../class_a_logger_1_1_a_logger_base.html#aabe6ee35b3a1f64862bdbb92bf10d0f4',1,'ALogger::ALoggerBase']]],
+  ['gettaskloggerinterface',['getTaskLoggerInterface',['../class_a_logger_1_1_a_logger_base.html#ae0f6741132b82829a0c4eca7a89ebbbe',1,'ALogger::ALoggerBase']]]
 ];

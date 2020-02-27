@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['enablelevel_127',['EnableLevel',['../class_logger_1_1_c_logger_base.html#ac714b9e8e24dff7a862ec0ed4d07d67a',1,'Logger::CLoggerBase::EnableLevel()'],['../class_logger_1_1_c_logger_group.html#a394f3c2137b7f56a34ab8765de202664',1,'Logger::CLoggerGroup::EnableLevel()'],['../class_logger_1_1_c_logger_group_task.html#af3f22eb1a9653547638bdc9d4976154c',1,'Logger::CLoggerGroupTask::EnableLevel()'],['../class_logger_1_1_c_logger_task.html#aa6178d26d812f27274cb1ddb0ba35dcb',1,'Logger::CLoggerTask::EnableLevel()']]]
+  ['enablelevel',['enableLevel',['../class_a_logger_1_1_a_logger_base.html#ae3295a33db433c5a044402c906e9db60',1,'ALogger::ALoggerBase::enableLevel()'],['../class_a_logger_1_1_a_logger_group.html#ac21ddbc68604232afffd42a02fd758db',1,'ALogger::ALoggerGroup::enableLevel()'],['../class_a_logger_1_1_a_logger_group_task.html#a4694f4422d1ae2dd4b0dd345a87c9590',1,'ALogger::ALoggerGroupTask::enableLevel()'],['../class_a_logger_1_1_a_logger_task.html#a98fbbf37838dbb40d993ba4da6005633',1,'ALogger::ALoggerTask::enableLevel()']]]
 ];
