@@ -96,13 +96,13 @@ namespace ALogger {
         void imbue(const std::locale& loc) noexcept override            { TStream::outStream().imbue(loc); }
 
     private:
-        bool outData(std::size_t level, std::chrono::system_clock::time_point time, TString&& data) noexcept override;
+        bool outData(std::size_t level, std::chrono::system_clock::time_point time, const TString& data) noexcept override;
     };
 
     template<bool _ThrSafe, typename _TChar>
-    bool ALoggerTxtCOut<_ThrSafe, _TChar>::outData(std::size_t level, std::chrono::system_clock::time_point time, TString&& data) noexcept
+    bool ALoggerTxtCOut<_ThrSafe, _TChar>::outData(std::size_t level, std::chrono::system_clock::time_point time, const TString& data) noexcept
     {
-        TStream::outStream() << ALoggerTxtBase<_ThrSafe, _TChar>::prepareString(level, time, std::move(data)) << std::endl;
+        TStream::outStream() << ALoggerTxtBase<_ThrSafe, _TChar>::prepareString(level, time, data) << std::endl;
         return true;
     }
 

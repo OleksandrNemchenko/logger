@@ -239,19 +239,6 @@ namespace ALogger {
          */
         bool taskOrToBeAdded(std::size_t level) const noexcept;
 
-        /** Force the message to be output
-         *
-         * Message will be output regardless level and task presence.
-         *
-         * Message will be output with the current timestamp.
-         *
-         * \param[in] level Message level
-         * \param[in] data Message to be output
-         *
-         * \return true if message is output
-         */
-        bool forceAddToLog(std::size_t level, _TLogData&& data) noexcept { return forceAddToLog(level, std::move(data), std::chrono::system_clock::now()); }
-
         /** Force the message to be output with specified timestamp
          *
          * Message will be output regardless level and task presence.
@@ -262,7 +249,7 @@ namespace ALogger {
          *
          * \return true if message is output
          */
-        bool forceAddToLog(std::size_t level, _TLogData&& data, std::chrono::system_clock::time_point time) noexcept override;
+        bool forceAddToLog(std::size_t level, const _TLogData& data, std::chrono::system_clock::time_point time = std::chrono::system_clock::now()) noexcept override;
 
         /** Output the message
          *
@@ -276,7 +263,7 @@ namespace ALogger {
          *
          * \return true if message is output
          */
-        bool addToLog(std::size_t level, _TLogData&& data) noexcept { return addToLog(level, std::move(data), std::chrono::system_clock::now()); }
+        bool addToLog(std::size_t level, const _TLogData& data) noexcept { return addToLog(level, data, std::chrono::system_clock::now()); }
 
         /** Output the message with specified timestamp
          *
@@ -289,7 +276,7 @@ namespace ALogger {
          *
          * \return true if message is output
          */
-        bool addToLog(std::size_t level, _TLogData&& data, std::chrono::system_clock::time_point time) noexcept;
+        bool addToLog(std::size_t level, const _TLogData& data, std::chrono::system_clock::time_point time) noexcept;
 
         /** Return ITaskLogger interface
          *
@@ -394,7 +381,7 @@ namespace ALogger {
     }
 
     template<bool _ThrSafe, typename _TLogData>
-    bool ALoggerBase<_ThrSafe, _TLogData>::addToLog(std::size_t level, _TLogData&& data, std::chrono::system_clock::time_point time) noexcept
+    bool ALoggerBase<_ThrSafe, _TLogData>::addToLog(std::size_t level, const _TLogData& data, std::chrono::system_clock::time_point time) noexcept
     {
         auto thread{ _threads.find(std::this_thread::get_id()) };
         auto& tasks = thread->second;
@@ -402,19 +389,19 @@ namespace ALogger {
         if (_enableTasks && thread != _threads.end() && !tasks.empty()) {
             auto& top{ tasks.top() };
             assert(top);
-            top->addToLog(level, std::forward<_TLogData>(data), time);
+            top->addToLog(level, data, time);
             return true;
         } else if (taskOrToBeAdded(level)) {
-            return ALoggerBaseThrSafety<_ThrSafe,_TLogData>::outDataThrSafe(level, time, move(data));
+            return ALoggerBaseThrSafety<_ThrSafe,_TLogData>::outDataThrSafe(level, time, data);
         } else {
             return false;
         }
     }
 
     template<bool _ThrSafe, typename _TLogData>
-    bool ALoggerBase<_ThrSafe, _TLogData>::forceAddToLog(std::size_t level, _TLogData&& data, std::chrono::system_clock::time_point time) noexcept
+    bool ALoggerBase<_ThrSafe, _TLogData>::forceAddToLog(std::size_t level, const _TLogData& data, std::chrono::system_clock::time_point time) noexcept
     {
-        return ALoggerBaseThrSafety<_ThrSafe,_TLogData>::outDataThrSafe(level, time, std::move(data));
+        return ALoggerBaseThrSafety<_ThrSafe,_TLogData>::outDataThrSafe(level, time, data);
     }
 
 } // namespace ALogger

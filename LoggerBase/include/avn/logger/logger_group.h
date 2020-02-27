@@ -127,7 +127,7 @@ namespace ALogger {
          *
          * \return true if message is output
          */
-        bool forceAddToLog(std::size_t level, TLogData&& data, std::chrono::system_clock::time_point time = std::chrono::system_clock::now()) noexcept;
+        bool forceAddToLog(std::size_t level, const TLogData& data, std::chrono::system_clock::time_point time = std::chrono::system_clock::now()) noexcept;
 
         /** Output the message for all loggers inside container
          *
@@ -137,7 +137,7 @@ namespace ALogger {
          *
          * \return true if message is output
          */
-        bool addToLog(std::size_t level, TLogData&& data, std::chrono::system_clock::time_point time = std::chrono::system_clock::now()) noexcept;
+        bool addToLog(std::size_t level, const TLogData& data, std::chrono::system_clock::time_point time = std::chrono::system_clock::now()) noexcept;
 
         /** Add task for all loggers inside container */
         auto addTask() noexcept;
@@ -183,9 +183,9 @@ namespace ALogger {
     }
 
     template< typename... _TLogger >
-    bool ALoggerGroup<_TLogger...>::forceAddToLog(std::size_t level, TLogData&& data, std::chrono::system_clock::time_point time) noexcept {
+    bool ALoggerGroup<_TLogger...>::forceAddToLog(std::size_t level, const TLogData& data, std::chrono::system_clock::time_point time) noexcept {
         bool res{true};
-        std::apply([&](auto&... logger) { (res &= ... &= logger.forceAddToLog(level, std::move(data), time)); }, _logger);
+        std::apply([&](auto&... logger) { (res &= ... &= logger.forceAddToLog(level, data, time)); }, _logger);
         return res;
     }
 
@@ -195,9 +195,9 @@ namespace ALogger {
     }
 
     template< typename... _TLogger >
-    bool ALoggerGroup<_TLogger...>::addToLog(std::size_t level, TLogData&& data, std::chrono::system_clock::time_point time) noexcept {
+    bool ALoggerGroup<_TLogger...>::addToLog(std::size_t level, const TLogData& data, std::chrono::system_clock::time_point time) noexcept {
         bool res{true};
-        std::apply([&](auto&... logger) { (res &= ... &= logger.addToLog(level, std::move(data), time)); }, _logger);
+        std::apply([&](auto&... logger) { (res &= ... &= logger.addToLog(level, data, time)); }, _logger);
         return res;
     }
 

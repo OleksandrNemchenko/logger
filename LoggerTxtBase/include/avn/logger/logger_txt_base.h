@@ -47,14 +47,14 @@ namespace ALogger {
      * \param stream String stream based on char type
      * \param arg QString argument
      */
-    inline void toStrStream(std::basic_stringstream<char> &stream, QString arg) { stream << arg.toStdString(); }
+    inline void toStrStream(std::basic_stringstream<char> &stream, const QString& arg) { stream << arg.toStdString(); }
 
     /** QString argument for wchar_t based text logger
      *
      * \param stream String stream based on wchar_t type
      * \param arg QString argument
      */
-    inline void toStrStream(std::basic_stringstream<wchar_t> &stream, QString arg) { stream << arg.toStdWString(); }
+    inline void toStrStream(std::basic_stringstream<wchar_t> &stream, const QString& arg) { stream << arg.toStdWString(); }
 #endif // QT_VERSION
 
     /** Base class for text loggers
@@ -123,24 +123,6 @@ namespace ALogger {
         * If a task is active, message will be logged. If no task is active, message will be output
         * only if logger level is enabled.
         *
-        * \tparam T Message elements types.
-        * \warning Each type must be able to to be used as argument for
-        * std::basic_stringstream<TChar>::operator<<(std::forward<T>(args)) call
-        *
-        * \param[in] time
-        * \param[in] level Level identifier
-        * \param[in] args Arguments
-        *
-        * \return Current instance reference
-        */
-        template<typename... T>
-        ALoggerTxtBase& addString(std::chrono::system_clock::time_point time, std::size_t level, T&&... args) noexcept;
-
-        /** Output the text message arguments
-        *
-        * If a task is active, message will be logged. If no task is active, message will be output
-        * only if logger level is enabled.
-        *
         * Message will be output with the current timestamp.
         *
         * \tparam T Message elements types.
@@ -153,25 +135,7 @@ namespace ALogger {
         * \return Current instance reference
         */
         template<typename... T>
-        ALoggerTxtBase& operator() (std::size_t level, T&&... args) noexcept    { return addString(level, args...); }
-
-        /** Output the text message arguments
-        *
-        * If a task is active, message will be logged. If no task is active, message will be output
-        * only if logger level is enabled.
-        *
-        * \tparam T Message elements types.
-        * \warning Each type must be able to to be used as argument for
-        * std::basic_stringstream<TChar>::operator<<(std::forward<T>(args)) call
-        *
-        * \param[in] time
-        * \param[in] level Level identifier
-        * \param[in] args Arguments
-        *
-        * \return Current instance reference
-        */
-        template<typename... T>
-        ALoggerTxtBase& operator() (std::chrono::system_clock::time_point time, std::size_t level, T&&... args) noexcept    { return addString(time, level, args...); }
+        ALoggerTxtBase& operator() (std::size_t level, T&&... args) noexcept    { return addString(level, std::forward<T...>(args...)); }
 
         /** Set the associated locale of the stream to the given one
          *
@@ -259,21 +223,15 @@ namespace ALogger {
 
     template<bool _ThrSafe, typename _TChar>
     template<typename... T>
-    ALoggerTxtBase<_ThrSafe, _TChar>& ALoggerTxtBase<_ThrSafe, _TChar>::addString(std::chrono::system_clock::time_point time, std::size_t level, T&&... args) noexcept
+    ALoggerTxtBase<_ThrSafe, _TChar>& ALoggerTxtBase<_ThrSafe, _TChar>::addString(std::size_t level, T&&... args) noexcept
     {
+        std::chrono::system_clock::time_point time = std::chrono::system_clock::now();
         if (!TBase::taskOrToBeAdded(level))
             return *this;
         std::basic_stringstream<_TChar> stream;
         (toStrStream(stream, std::forward<T>(args)), ...);
         TBase::addToLog(level, stream.str(), time);
         return *this;
-    }
-
-    template<bool _ThrSafe, typename _TChar>
-    template<typename... T>
-    ALoggerTxtBase<_ThrSafe, _TChar>& ALoggerTxtBase<_ThrSafe, _TChar>::addString(std::size_t level, T&&... args) noexcept
-    {
-        return addString(std::chrono::system_clock::now(), level, args...);
     }
 
     template<bool _ThrSafe, typename _TChar>

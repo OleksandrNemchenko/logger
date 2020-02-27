@@ -144,17 +144,7 @@ namespace ALogger {
          *
          * \return Current instance reference
          */
-        ALoggerTxtFile& setFlushlevels(const TLevels& levels) noexcept     { _flushLevels = levels; _flushAlways = false; return *this; }
-
-        /** Enable automatic flushing for specific message levels to the output file
-         *
-         * You can flush \a levels specified instantly hen you add such logger messages
-         *
-         * \param[in] levels levels list to be flushed instantly
-         *
-         * \return Current instance reference
-         */
-        ALoggerTxtFile& setFlushlevels(TLevels&& levels) noexcept          { _flushLevels = std::move(levels); _flushAlways = false; return *this; }
+        ALoggerTxtFile& setFlushLevels(const TLevels& levels) noexcept          { _flushLevels = levels; _flushAlways = false; return *this; }
 
         /** Enable or diable automatic flushing for all messages to the output file
          *
@@ -207,7 +197,7 @@ namespace ALogger {
         operator const TStream& () const noexcept                          { return stream(); }
 
     private:
-        bool outData(std::size_t level, std::chrono::system_clock::time_point time, TString&& data) noexcept override;
+        bool outData(std::size_t level, std::chrono::system_clock::time_point time, const TString& data) noexcept override;
 
         TStream _fstream;
         TLevels _flushLevels;
@@ -216,12 +206,12 @@ namespace ALogger {
     };
 
     template<bool _ThrSafe, typename _TChar>
-    bool ALoggerTxtFile<_ThrSafe, _TChar>::outData(std::size_t level, std::chrono::system_clock::time_point time, TString&& data) noexcept
+    bool ALoggerTxtFile<_ThrSafe, _TChar>::outData(std::size_t level, std::chrono::system_clock::time_point time, const TString& data) noexcept
     {
         assert(_fstream.is_open());
 
         if (_fstream.is_open()) {
-            _fstream << ALoggerTxtBase<_ThrSafe, _TChar>::prepareString(level, time, std::move(data)) << std::endl;
+            _fstream << ALoggerTxtBase<_ThrSafe, _TChar>::prepareString(level, time, data) << std::endl;
 
             if (_flushAlways || _flushLevels.find(level) != _flushLevels.cend())
                 _fstream.flush();

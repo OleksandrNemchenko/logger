@@ -71,7 +71,7 @@ namespace ALogger {
 
     protected:
         virtual const TLevels& levels() const noexcept = 0;
-        virtual bool forceAddToLog(std::size_t level, _TLogData&& data, std::chrono::system_clock::time_point time) noexcept = 0;
+        virtual bool forceAddToLog(std::size_t level, const _TLogData& data, std::chrono::system_clock::time_point time) noexcept = 0;
         virtual void removeTask() noexcept = 0;
 
         ALoggerTask<_TLogData> createTask(bool init_success_state) noexcept
@@ -103,6 +103,10 @@ namespace ALogger {
         ALoggerTask() = delete;
         ALoggerTask(const ALoggerTask&) = delete;
         ALoggerTask(ALoggerTask&&) noexcept = default;
+
+        ALoggerTask operator=(const ALoggerTask&) = delete;
+        ALoggerTask operator=(ALoggerTask&&) = delete;
+
         ~ALoggerTask() noexcept;
 
         /** Set task result - success or fail */
@@ -123,52 +127,14 @@ namespace ALogger {
          *
          * Message will be owned by logger.
          *
-         * Message will be output with the current timestamp.
-         *
          * \param[in] level Message level
          * \param[in] data Message to be output
+         * \param[in] time Message time. This is current timestamp by default
          *
          * \return Current task instance
          */
-        ALoggerTask& addToLog(std::size_t level, _TLogData&& data) noexcept;
-
-        /** Output the message
-         *
-         * Message could be output at the task end.
-         *
-         * Message will be owned by logger.
-         *
-         * \param[in] level Message level
-         * \param[in] data Message to be output
-         * \param[in] time Message time
-         *
-         * \return Current task instance
-         */
-        ALoggerTask& addToLog(std::size_t level, _TLogData&& data, std::chrono::system_clock::time_point time) noexcept;
-
-        /** Output the message
-         *
-         * Message could be output at the task end.
-         *
-         * Message will be output with the current timestamp.
-         *
-         * \param[in] level Message level
-         * \param[in] data Message to be output
-         *
-         * \return Current task instance
-         */
-        ALoggerTask& addToLog(std::size_t level, const _TLogData& data) noexcept;
-
-        /** Output the message
-         *
-         * Message could be output at the task end.
-         *
-         * \param[in] level Message level
-         * \param[in] data Message to be output
-         *
-         * \return Current task instance
-         */
-        ALoggerTask& addToLog(std::size_t level, const _TLogData& data, std::chrono::system_clock::time_point time) noexcept;
+        template<typename TData>
+        ALoggerTask& addToLog(std::size_t level, TData data, std::chrono::system_clock::time_point time = std::chrono::system_clock::now()) noexcept;
 
         /** Enable or disable specified level
          *
@@ -205,11 +171,9 @@ namespace ALogger {
 
     private:
         struct SLogEntry {
-            SLogEntry(std::size_t level, _TLogData&& data, std::chrono::system_clock::time_point time) noexcept :
-                    _time(time), _level(level), _data(std::move(data)) {}
-
-            SLogEntry(std::size_t level, const _TLogData& data, std::chrono::system_clock::time_point time) noexcept :
-                    _time(time), _level(level), _data(data) {}
+            template<typename TData>
+            SLogEntry(std::size_t level, TData data, std::chrono::system_clock::time_point time) noexcept :
+                    _time(time), _level(level), _data(std::forward<TData>(data)) {}
 
             std::chrono::system_clock::time_point _time;
             std::size_t _level;
@@ -231,30 +195,10 @@ namespace ALogger {
     }
 
     template<typename _TLogData>
-    ALoggerTask<_TLogData>& ALoggerTask<_TLogData>::addToLog(std::size_t level, _TLogData&& data) noexcept
+    template<typename TData>
+    ALoggerTask<_TLogData>& ALoggerTask<_TLogData>::addToLog(std::size_t level, TData data, std::chrono::system_clock::time_point time) noexcept
     {
-        _logEntries.emplace_back(level, std::move(data));
-        return *this;
-    }
-
-    template<typename _TLogData>
-    ALoggerTask<_TLogData>& ALoggerTask<_TLogData>::addToLog(std::size_t level, const _TLogData& data) noexcept
-    {
-        _logEntries.emplace_back(level, data, std::chrono::system_clock::now());
-        return *this;
-    }
-
-    template<typename _TLogData>
-    ALoggerTask<_TLogData>& ALoggerTask<_TLogData>::addToLog(std::size_t level, _TLogData&& data, std::chrono::system_clock::time_point time) noexcept
-    {
-        _logEntries.emplace_back(level, std::move(data), time);
-        return *this;
-    }
-
-    template<typename _TLogData>
-    ALoggerTask<_TLogData>& ALoggerTask<_TLogData>::addToLog(std::size_t level, const _TLogData& data, std::chrono::system_clock::time_point time) noexcept
-    {
-        _logEntries.emplace_back(level, data, time);
+        _logEntries.emplace_back(level, std::forward<TData>(data), time);
         return *this;
     }
 
