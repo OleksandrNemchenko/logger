@@ -28,7 +28,7 @@
 
 namespace ALogger {
 
-    /** Unspecialied template to use std::basic_stringstream<_TChar>::operator<< call
+    /** Unspecialized template to use std::basic_stringstream<_TChar>::operator<< call
      *
      * \note You can specialize this function for your type
      *
@@ -38,23 +38,23 @@ namespace ALogger {
      * \param[in] arg Argument
      */
     template<typename _TChar, typename T>
-    inline void toStrStream(std::basic_stringstream<_TChar> &stream, T &&arg) noexcept { stream << std::forward<T>(arg); }
+    inline void toStrStream(std::basic_stringstream<_TChar>& stream, T&& arg) noexcept { stream << std::forward<T>(arg); }
 
 // Qt Objects
 #ifdef QT_VERSION
     /** QString argument for char based text logger
      *
-     * \param stream String stream based on char type
-     * \param arg QString argument
+     * \param[in] stream String stream based on char type
+     * \param[in] arg QString argument
      */
-    inline void toStrStream(std::basic_stringstream<char> &stream, const QString& arg) { stream << arg.toStdString(); }
+    inline void toStrStream(std::basic_stringstream<char>& stream, const QString& arg) { stream << arg.toStdString(); }
 
     /** QString argument for wchar_t based text logger
      *
-     * \param stream String stream based on wchar_t type
-     * \param arg QString argument
+     * \param[in] stream String stream based on wchar_t type
+     * \param[in] arg QString argument
      */
-    inline void toStrStream(std::basic_stringstream<wchar_t> &stream, const QString& arg) { stream << arg.toStdWString(); }
+    inline void toStrStream(std::basic_stringstream<wchar_t>& stream, const QString& arg) { stream << arg.toStdWString(); }
 #endif // QT_VERSION
 
     /** Base class for text loggers
@@ -108,7 +108,8 @@ namespace ALogger {
         *
         * \tparam T Message elements types.
         * \warning Each type must be able to to be used as argument for
-        * std::basic_stringstream<TChar>::operator<<(std::forward<T>(args)) call
+        * std::basic_stringstream<TChar>::operator<<(std::forward<T>(args)) call. If not, specialize #ALogger::toStrStream
+        * function
         *
         * \param[in] level Level identifier
         * \param[in] args Arguments
@@ -127,7 +128,8 @@ namespace ALogger {
         *
         * \tparam T Message elements types.
         * \warning Each type must be able to to be used as argument for
-        * std::basic_stringstream<TChar>::operator<<(std::forward<T>(args)) call
+        * std::basic_stringstream<TChar>::operator<<(std::forward<T>(args)) call. If not, specialize #ALogger::toStrStream
+        * function
         *
         * \param[in] level Level identifier
         * \param[in] args Arguments
@@ -146,7 +148,7 @@ namespace ALogger {
     protected:
         /** Decorate string
          *
-         * This function decorates string by using prefixe, postfix, timestamp format and space string. It is intented
+         * This function decorates string by using prefix, postfix, timestamp format and space string. It is intentent
          * to be called by children classes.
          *
          * \param[in] level Level identifier
@@ -159,7 +161,8 @@ namespace ALogger {
 
         /** Function type to make string
          *
-         * This function type is used to make string by using level title, timestamp and data.
+         * This function type is used to make string by using level title, timestamp and data. It is used as
+         * #ALogger::ALoggerTxtBase::setStringMaker function parameter to set default string maker.
          *
          * \param[in] level Level descriptor
          * \param[in] time Message timestamp
@@ -173,7 +176,7 @@ namespace ALogger {
          *
          * Default string maker is initialized during class initialization. You can replace it in your child class.
          *
-         * \param stringMaker String maker implementation
+         * \param[in] stringMaker String maker implementation
          * \return Current instance reference
          */
         ALoggerTxtBase& setStringMaker(TStringMaker stringMaker) { _stringMaker = stringMaker; return *this; }

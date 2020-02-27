@@ -272,11 +272,11 @@ namespace ALogger {
          *
          * \param[in] level Message level
          * \param[in] data Message to be output
-         * \param[in] time Timestamp
+         * \param[in] time Timestamp. Current time by default
          *
          * \return true if message is output
          */
-        bool addToLog(std::size_t level, const _TLogData& data, std::chrono::system_clock::time_point time) noexcept;
+        bool addToLog(std::size_t level, const _TLogData& data, std::chrono::system_clock::time_point time = std::chrono::system_clock::now()) noexcept;
 
         /** Return ITaskLogger interface
          *

@@ -80,7 +80,8 @@ namespace ALogger {
         *
         * \tparam T Message elements types.
         * \warning Each type must be able to to be used as argument for
-        * std::basic_stringstream<TChar>::operator<<(std::forward<T>(args)) call
+        * std::basic_stringstream<TChar>::operator<<(std::forward<T>(args)) call. If not, specialize #ALogger::toStrStream
+        * function
         *
         * \param[in] level Level identifier
         * \param[in] args Arguments
@@ -97,7 +98,8 @@ namespace ALogger {
         *
         * \tparam T Message elements types.
         * \warning Each type must be able to to be used as argument for
-        * std::basic_stringstream<TChar>::operator<<(std::forward<T>(args)) call
+        * std::basic_stringstream<TChar>::operator<<(std::forward<T>(args)) call. If not, specialize #ALogger::toStrStream
+        * function
         *
         * \param[in] time Message timestamp
         * \param[in] level Level identifier
@@ -151,7 +153,8 @@ namespace ALogger {
         *
         * \tparam T Message elements types.
         * \warning Each type must be able to to be used as argument for
-        * std::basic_stringstream<TChar>::operator<<(std::forward<T>(args)) call
+        * std::basic_stringstream<TChar>::operator<<(std::forward<T>(args)) call. If not, specialize #ALogger::toStrStream
+        * function
         *
         * \param[in] level Level identifier
         * \param[in] args Arguments
@@ -168,7 +171,8 @@ namespace ALogger {
         *
         * \tparam T Message elements types.
         * \warning Each type must be able to to be used as argument for
-        * std::basic_stringstream<TChar>::operator<<(std::forward<T>(args)) call
+        * std::basic_stringstream<TChar>::operator<<(std::forward<T>(args)) call. If not, specialize #ALogger::toStrStream
+        * function
         *
         * \param[in] time Message timestamp
         * \param[in] level Level identifier

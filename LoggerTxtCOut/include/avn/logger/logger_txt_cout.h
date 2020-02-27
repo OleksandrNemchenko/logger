@@ -45,31 +45,13 @@
 
 namespace ALogger {
 
-    /** Output console stream class
-     *
-     * This class instantiates output stream for different _TChar type. If you use non-standart _TChar, you have to implement
-     * outStream for this type
-     *
-     * \tparam _TChar Character type
-     */
-    template<typename _TChar>
-    class ALoggerTxtCOutStream {
-    protected:
-
-        /** Output stream for given _TChar
-         *
-         * \return Output stream
-         */
-        std::basic_ostream<_TChar>& outStream() noexcept;
-    };
-
     /** Text stream logger message
      *
      * \tparam _ThrSafe Thread security mode. If true, multithread mode will be used. Otherwise single ther will be activated.
      * @tparam _TChar Character type. Can be char, wchar_t etc.
      */
     template<bool _ThrSafe, typename _TChar>
-    class ALoggerTxtCOut : public ALoggerTxtBase<_ThrSafe, _TChar>, public ALoggerTxtCOutStream<_TChar> {
+    class ALoggerTxtCOut : public ALoggerTxtBase<_ThrSafe, _TChar> {
     public:
         /** Current thread security mode. If true, multithread mode will be used. Otherwise single ther will be activated */
         constexpr static bool ThrSafe{ _ThrSafe };
@@ -79,9 +61,6 @@ namespace ALogger {
 
         /** String type for text logger messages */
         using TString = std::basic_string<_TChar>;
-
-        /** String stream base class */
-        using TStream = ALoggerTxtCOutStream<_TChar>;
 
         /** Default constructor with time zone selector
          *
@@ -93,21 +72,33 @@ namespace ALogger {
          *
          * \param[in] loc New locale to associate the stream to
          */
-        void imbue(const std::locale& loc) noexcept override            { TStream::outStream().imbue(loc); }
+        void imbue(const std::locale& loc) noexcept override            { outStream().imbue(loc); }
 
     private:
         bool outData(std::size_t level, std::chrono::system_clock::time_point time, const TString& data) noexcept override;
+        static std::basic_ostream<_TChar>& outStream() noexcept;
     };
 
     template<bool _ThrSafe, typename _TChar>
     bool ALoggerTxtCOut<_ThrSafe, _TChar>::outData(std::size_t level, std::chrono::system_clock::time_point time, const TString& data) noexcept
     {
-        TStream::outStream() << ALoggerTxtBase<_ThrSafe, _TChar>::prepareString(level, time, data) << std::endl;
+        outStream() << ALoggerTxtBase<_ThrSafe, _TChar>::prepareString(level, time, data) << std::endl;
         return true;
     }
 
-    template<> inline std::ostream&  ALoggerTxtCOutStream<char>::outStream() noexcept    { return std::cout;  }
-    template<> inline std::wostream& ALoggerTxtCOutStream<wchar_t>::outStream() noexcept { return std::wcout; }
+    template<bool _ThrSafe, typename _TChar>
+    /* static */ std::basic_ostream<_TChar>& ALoggerTxtCOut<_ThrSafe, _TChar>::outStream() noexcept
+    {
+        static_assert(std::is_same_v<_TChar, char> || std::is_same_v<_TChar, wchar_t>, "Unsupported stream");
+
+        if constexpr (std::is_same_v<_TChar, char>)
+            return std::cout;
+        else if constexpr (std::is_same_v<_TChar, wchar_t>)
+            return std::wcout;
+        else {
+            assert(false && "unsupported");
+        }
+    }
 
 } // namespace ALogger
 

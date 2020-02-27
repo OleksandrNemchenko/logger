@@ -107,17 +107,16 @@ namespace ALogger {
          *
          * \param[in] level Message level
          * \param[in] data Message to be output
-         * \param[in] time Message timestamp
+         * \param[in] time Message timestamp. Current time by default
          *
          * \return Current task group instance
          */
-        ALoggerGroupTask& addToLog(std::size_t level, const TLogData& data, std::chrono::system_clock::time_point time) noexcept;
+        ALoggerGroupTask& addToLog(std::size_t level, const TLogData& data, std::chrono::system_clock::time_point time = std::chrono::system_clock::now()) noexcept;
 
         /** Enable or disable specified logger level
          *
          * \param[in] level Message level to be disabled or enabled
          * \param[in] to_enable Enables or disabled logger level
-         * \param[in] time Message timestamp
          *
          * \return Current task group instance
          */

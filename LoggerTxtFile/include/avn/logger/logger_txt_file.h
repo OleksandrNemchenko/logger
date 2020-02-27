@@ -82,7 +82,7 @@ namespace ALogger {
          * \param[in] mode File mode as std::ios_base::openmode mask. std::ios_base::out by default
          * \param[in] local_time  Use local time instead of GMT one. True by default
          */
-        ALoggerTxtFile(const std::filesystem::path &filename, std::ios_base::openmode mode = std::ios_base::out, bool local_time = true) noexcept :
+        ALoggerTxtFile(const std::filesystem::path& filename, std::ios_base::openmode mode = std::ios_base::out, bool local_time = true) noexcept :
                 ALoggerTxtFile(local_time)
         {
             openFile(filename, mode);
@@ -97,7 +97,7 @@ namespace ALogger {
          * \param[in] mode File mode as std::ios_base::openmode mask. std::ios_base::out by default
          * \param[in] local_time  Use local time instead of GMT one. True by default
          */
-        ALoggerTxtFile(const QString &filename, std::ios_base::openmode mode = std::ios_base::out, bool local_time = true) noexcept :
+        ALoggerTxtFile(const QString& filename, std::ios_base::openmode mode = std::ios_base::out, bool local_time = true) noexcept :
                 ALoggerTxtFile(local_time)
         {
             openFile(filename, mode);
@@ -111,7 +111,7 @@ namespace ALogger {
          *
          * \return Current instance reference
          */
-        ALoggerTxtFile& openFile(const std::filesystem::path &filename, std::ios_base::openmode mode = std::ios_base::out) noexcept    { _fstream.open(filename, mode); return *this; }
+        ALoggerTxtFile& openFile(const std::filesystem::path& filename, std::ios_base::openmode mode = std::ios_base::out) noexcept    { _fstream.open(filename, mode); return *this; }
 
 #ifdef QT_VERSION
         /** Open file
@@ -121,7 +121,7 @@ namespace ALogger {
          *
          * \return Current instance reference
          */
-        ALoggerTxtFile& openFile(const QString &filename, std::ios_base::openmode mode = std::ios_base::out)    { return openFile(filename.toStdWString(), mode); }
+        ALoggerTxtFile& openFile(const QString& filename, std::ios_base::openmode mode = std::ios_base::out)    { return openFile(filename.toStdWString(), mode); }
 #endif // QT_VERSION
 
         /** Close currently opened file

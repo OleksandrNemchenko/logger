@@ -49,21 +49,22 @@ namespace ALogger {
         friend class ALoggerGroup;
 
     protected:
-        virtual ALoggerTask<_TLogData>* addTaskForLoggerGroup(bool init_succeeded) noexcept = 0;
-        virtual ALoggerTask<_TLogData>* addTaskForLoggerGroup() noexcept = 0;
-        virtual ALoggerTask<_TLogData>* addTaskForLoggerGroup(TLevels levels, bool init_succeeded) noexcept = 0;
-        virtual ALoggerTask<_TLogData>* addTaskForLoggerGroup(TLevels levels) noexcept = 0;
-
         ALoggerTask<_TLogData>* createTask(ITaskLogger<_TLogData>& logger, bool init_success_state) noexcept
         {
             return new ALoggerTask<_TLogData>(logger, init_success_state);
         };
 
-    };  // class ALoggerGroup
+    private:
+        virtual ALoggerTask<_TLogData>* addTaskForLoggerGroup(bool init_succeeded) noexcept = 0;
+        virtual ALoggerTask<_TLogData>* addTaskForLoggerGroup() noexcept = 0;
+        virtual ALoggerTask<_TLogData>* addTaskForLoggerGroup(TLevels levels, bool init_succeeded) noexcept = 0;
+        virtual ALoggerTask<_TLogData>* addTaskForLoggerGroup(TLevels levels) noexcept = 0;
+
+    };  // class ILoggerGroup
 
     /** Loggers group container
      *
-     * This containter allows to manage different loggers ans send message by one call.
+     * This container allows to manage different loggers ans send message by one call.
      *
      * \warning All loggers inside container must have the same \a TLogData logger message data type.
      *
@@ -78,44 +79,71 @@ namespace ALogger {
         /** ALogger data type */
         using TLogData = typename std::tuple_element_t<0, TArray>::TLogData;
 
-        /** Return logger reference to the \a num element */
+        /** Return logger reference to the \a num element
+         *
+         * \tparam num Logger number.
+         * \warning Must be less than TArray arguments amount
+         *
+         * \return Specified logger reference
+         */
         template< size_t num > auto& logger() noexcept
         {
             static_assert(num < sizeof...(_TLogger), "Requested element's number is out of this logger group size");
             return std::get<num>(_logger);
         }
 
-        /** Return logger reference to the \a num element */
+        /** Return logger reference to the \a num element
+         *
+         * \tparam num Logger number.
+         * \warning Must be less than TArray arguments amount
+         *
+         * \return Specified logger reference
+         */
         template< size_t num > const auto& logger() const noexcept
         {
             static_assert(num < sizeof...(_TLogger), "Requested element's number is out of this logger group size");
             return std::get<num>(_logger);
         }
 
-        /** Return loggers amount */
+        /** Return loggers amount
+         *
+         * \return Loggers amount.
+         */
         constexpr auto sizeOf() const noexcept
         {
             return sizeof...(_TLogger);
         }
 
-        /** Enable or disable specified level for all loggers inside container */
+        /** Enable or disable specified level for all loggers inside container
+         *
+         * \param[in] level Level to be enabled or disabled
+         * \param[in] to_enable If true, \a level will be enabled. Otherwise it will be disabled
+         */
         void initLevel(std::size_t level, bool to_enable) noexcept;
 
-        /** Enable specified level for all loggers inside container */
+        /** Enable specified level for all loggers inside container
+         *
+         * \param[in] level Level to be enabled
+         */
         void enableLevel(std::size_t level) noexcept;
 
-        /** Disable specified level for all loggers inside container */
+        /** Disable specified level for all loggers inside container
+         *
+         * \param[in] level Level to be disabled
+         */
         void disableLevel(std::size_t level) noexcept;
 
         /** Disable tasks
          *
          * This call is useful for debug mode whe you need to see all messages instantly
-         *
          */
         void disableTasks() noexcept;
 
-        /** Set levels for all loggers inside container */
-        void setlevels(TLevels levels) noexcept;
+        /** Set levels for all loggers inside container
+         *
+         * \param[in] levels Levels container
+         */
+        void setLevels(TLevels levels) noexcept;
 
         /** Force the message to be output for all loggers inside container
          *
@@ -139,16 +167,35 @@ namespace ALogger {
          */
         bool addToLog(std::size_t level, const TLogData& data, std::chrono::system_clock::time_point time = std::chrono::system_clock::now()) noexcept;
 
-        /** Add task for all loggers inside container */
+        /** Add task for all loggers inside container
+         *
+         * \return Task object
+         */
         auto addTask() noexcept;
 
-        /** Add task with \a init_success_state for all loggers inside container */
+        /** Add task with \a init_success_state for all loggers inside container
+         *
+         * \param[in] init_success_state Initial task state
+         *
+         * \return Task object
+         */
         auto addTask(bool init_success_state) noexcept;
 
-        /** Add task with \a levels enabled for all loggers inside container */
+        /** Add task with \a levels enabled for all loggers inside container
+         *
+         * \param[in] levels Levels container
+         *
+         * \return Task object
+         */
         auto addTask(TLevels levels) noexcept;
 
-        /** Add task with \a init_success_state and \a levels enabled for all loggers inside container */
+        /** Add task with \a init_success_state and \a levels enabled for all loggers inside container
+         *
+         * \param[in] levels Levels container
+         * \param[in] init_success_state Initial task state
+         *
+         * \return Tasks object
+         */
         auto addTask(TLevels levels, bool init_success_state) noexcept;
 
     protected:

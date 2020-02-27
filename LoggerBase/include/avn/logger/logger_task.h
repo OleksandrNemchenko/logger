@@ -70,14 +70,15 @@ namespace ALogger {
         friend class ALoggerTask<_TLogData>;
 
     protected:
-        virtual const TLevels& levels() const noexcept = 0;
-        virtual bool forceAddToLog(std::size_t level, const _TLogData& data, std::chrono::system_clock::time_point time) noexcept = 0;
-        virtual void removeTask() noexcept = 0;
-
         ALoggerTask<_TLogData> createTask(bool init_success_state) noexcept
         {
             return ALoggerTask<_TLogData>(*this, init_success_state);
         };
+
+    private:
+        virtual const TLevels& levels() const noexcept = 0;
+        virtual bool forceAddToLog(std::size_t level, const _TLogData& data, std::chrono::system_clock::time_point time) noexcept = 0;
+        virtual void removeTask() noexcept = 0;
     };
 
     /** ALogger task
@@ -129,7 +130,7 @@ namespace ALogger {
          *
          * \param[in] level Message level
          * \param[in] data Message to be output
-         * \param[in] time Message time. This is current timestamp by default
+         * \param[in] time Message time. Current timestamp by default
          *
          * \return Current task instance
          */
