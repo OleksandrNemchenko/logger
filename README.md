@@ -120,21 +120,17 @@ Logger library contains interface library only except UUT target, so you can dir
 You can make and start test_logger target to test all features. Visit this target source files to see library usage.
 
 ## Roadmap
-* version 1.3+ :
-    - add library detailed description
-    - add library usage examples
+* version 1.2+ :
     - make full test coverage
-    - add additional asserts and checks
     - add std::experimental::source_location usage for current file name and line number usage
-    - CLoggerTxtBase : deprecate SetDateOutputFormat, SetLevelPrefix, SetLevelPostfix, SetSpace functions and introduce
-      functional object that will be called for log message decorating
 
 ## History
 * [version 1.2](https://github.com/OleksandrNemchenko/logger/tree/release/v1.2) : [documentation](https://oleksandrnemchenko.github.io/logger/v1.2/index.html)
-    - move towards to to [C++ Code Guidelines](http://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines)
+    - move towards to the [C++ Code Guidelines](http://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines)
     - make all functions as noexcept
     - add QString support for loggers
     - use string maker function for ALoggerBase class instead of spaces, time output format, prefixes and suffixes
+    - add static_asserts
 * [version 1.1](https://github.com/OleksandrNemchenko/logger/tree/release/v1.1) : [documentation](https://oleksandrnemchenko.github.io/logger/v1.1/index.html)
     - create Doxygen documentation for all entities
     - create gh-pages description

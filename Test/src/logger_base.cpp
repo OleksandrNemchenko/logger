@@ -10,6 +10,8 @@
 #include <avn/logger/logger_base.h>
 #include <avn/logger/logger_group.h>
 
+using namespace std::string_literals;
+
 namespace {
 
     bool _firstError;
@@ -30,7 +32,7 @@ namespace {
         using ALoggerBase::enableLevel;
         using ALoggerBase::disableLevel;
         using ALoggerBase::addToLog;
-        using ALoggerBase::setlevels;
+        using ALoggerBase::setLevels;
 
         void ClearFlags() { _calls._allFlags = 0; }
 
@@ -63,7 +65,7 @@ namespace {
         using ALoggerBase::enableLevel;
         using ALoggerBase::disableLevel;
         using ALoggerBase::addToLog;
-        using ALoggerBase::setlevels;
+        using ALoggerBase::setLevels;
 
         void ClearFlags() { _calls._allFlags = 0; }
 
@@ -79,6 +81,11 @@ namespace {
     };
 
     ALoggerTest2::TCalls ALoggerTest2::_calls;
+
+#ifdef TEST_ERROR_1
+    class ALoggerTest_ERROR1 : public ALogger::ALoggerBase<true, std::wstring>{ bool outData(std::size_t level, std::chrono::system_clock::time_point time, const std::wstring& data) noexcept override { return true; } };
+    ALogger::ALoggerGroup<ALoggerTest, ALoggerTest2, ALoggerTest_ERROR1> err_grp;
+#endif
 
     ALoggerTest _testLog;
     ALogger::ALoggerGroup<ALoggerTest, ALoggerTest2> _logGrp;
@@ -102,83 +109,6 @@ namespace {
 
 }   // namespace
 
-/*
-size_t _testLogger_task_group_base(void){
-    ALogger::ALoggerGroup<ALoggerTest, ALoggerTest2> _logGrp;
-    bool res = true;
-
-    _errors = 0;
-
-    _logGrp.initLevel(1, true);
-    _logGrp.initLevel(2, false);
-    _logGrp.ALogger<0>().enableLevel(3);
-    _logGrp.ALogger<1>().disableLevel(3);
-
-    {
-        auto log_tasks = _logGrp.addTask(true);
-
-        _logGrp.addToLog(1, 'a');
-        _logGrp.addToLog(2, 'a');
-        _logGrp.addToLog(3, 'a');
-
-    }
-
-    if (_logGrp.ALogger<0>()._calls._outStrings != 2 || _logGrp.ALogger<1>()._calls._outStrings != 1){
-        ++_errors;
-        std::cout << "[ERROR] Test 9 : Incorrect logging level initialization for ALoggerGroupTask" << std::endl;
-
-    }
-
-    _logGrp.ALogger<0>().ClearFlags();
-    _logGrp.ALogger<1>().ClearFlags();
-
-    {
-        auto log_tasks = _logGrp.addTask(false);
-        log_tasks.failed();
-
-        _logGrp.addToLog(1, 'a');
-        _logGrp.addToLog(2, 'a');
-        _logGrp.addToLog(3, 'a');
-
-    }
-
-    if (_logGrp.ALogger<0>()._calls._outStrings != 3 || _logGrp.ALogger<1>()._calls._outStrings != 3){
-        ++_errors;
-        std::cout << "[ERROR] Test 10 : Incorrect logging level for failed ALoggerGroupTask" << std::endl;
-
-    }
-
-    return _errors;
-}
-
-size_t _testLogger_group_base(void){
-    ALogger::ALoggerGroup<ALoggerTest, ALoggerTest2> _logGrp;
-    bool res = true;
-
-    _logGrp.initLevel(1, true);
-    _logGrp.initLevel(2, false);
-    _logGrp.ALogger<0>().enableLevel(3);
-    _logGrp.ALogger<1>().disableLevel(3);
-
-    auto levels_0 = _logGrp.ALogger<0>().Getlevels();
-    auto levels_1 = _logGrp.ALogger<1>().Getlevels();
-
-    if (!levels_0.count(1) || levels_0.count(2) || !levels_0.count(3) ||
-        !levels_1.count(1) || levels_1.count(2) || levels_1.count(3)) {
-        std::cout << "[ERROR] Test 7 : Incorrect logging level initialization for ALoggerGroup" << std::endl;
-        ++_errors;
-    }
-
-    if (!_logGrp.addToLog(1, 'a') || _logGrp.addToLog(2, 'a') || _logGrp.addToLog(3, 'a') ||
-        _logGrp.ALogger<0>()._calls._outStrings != 2 || _logGrp.ALogger<1>()._calls._outStrings != 1){
-        std::cout << "[ERROR] Test 8 : Incorrect addToLog processing for ALoggerGroup" << std::endl;
-        ++_errors;
-    }
-
-    return _errors;
-}
-*/
-
 size_t _testLogger_group_task(void)
 {
     _errors = 0;
@@ -190,7 +120,7 @@ size_t _testLogger_group_task(void)
         task.task<0>().succeeded();
         task.task<1>().failed();
 
-        task.addToLog(1, "+");
+        task.addToLog(1, "+"s);
         if (ALoggerTest::_calls._outStrings != 0 && ALoggerTest2::_calls._outStrings != 1)
             return false;
 
@@ -208,16 +138,16 @@ size_t _testLogger_task(void)
 
     makeStep([]()
     {
-        _testLog.setlevels({1, 3});
+        _testLog.setLevels({1, 3});
         if (_testLog.taskOrToBeAdded(2))
             return false;
 
         {
             _testLog.ClearFlags();
             auto task = _testLog.addTask();
-            _testLog.addToLog(1, "+");
-            _testLog.addToLog(2, "-");
-            _testLog.addToLog(3, "+");
+            _testLog.addToLog(1, "+"s);
+            _testLog.addToLog(2, "-"s);
+            _testLog.addToLog(3, "+"s);
             task.setTaskResult(true);
             if (!_testLog.taskOrToBeAdded(2))
                 return false;
@@ -258,7 +188,7 @@ size_t _testLogger_task(void)
             return false;
 
         return true;
-    }, "Test test_task.1 : Incorrect taskOrToBeAdded, addTask, setlevels, initLevel and addToLog calls inside task");
+    }, "Test test_task.1 : Incorrect taskOrToBeAdded, addTask, setLevels, initLevel and addToLog calls inside task");
 
     makeStep([]()
     {
@@ -270,7 +200,7 @@ size_t _testLogger_task(void)
             _testLog.addToLog(3, "-");
         };
 
-        _testLog.setlevels({1, 2, 3});
+        _testLog.setLevels({1, 2, 3});
         auto task_step2 = [&local_res](){
             if (!_testLog.taskOrToBeAdded(1) || _testLog.taskOrToBeAdded(4))
                 local_res = false;
@@ -287,7 +217,7 @@ size_t _testLogger_task(void)
 
     makeStep([]()
     {
-        _testLog.setlevels({1});
+        _testLog.setLevels({1});
         {
             auto task1 = _testLog.addTask(true);
             _testLog.addToLog(1, "+");
@@ -306,7 +236,7 @@ size_t _testLogger_task(void)
 
     makeStep([]()
     {
-        _testLog.setlevels({1});
+        _testLog.setLevels({1});
         auto task_step = [](){
             auto task1 = _testLog.addTask(true);
             _testLog.addToLog(1, "+");
@@ -352,11 +282,11 @@ size_t _testLogger_group()
         _logGrp.logger<0>().ClearFlags();   _logGrp.logger<1>().ClearFlags();
         if (_logGrp.sizeOf() != 2)  return false;
 
-        _logGrp.logger<0>().setlevels({1}); _logGrp.logger<1>().setlevels({2});
+        _logGrp.logger<0>().setLevels({1}); _logGrp.logger<1>().setLevels({2});
         if (_logGrp.logger<0>().levels() != ALogger::TLevels{1} || _logGrp.logger<1>().levels() != ALogger::TLevels{2})
             return false;
 
-        _logGrp.setlevels({3});
+        _logGrp.setLevels({3});
         if (_logGrp.logger<0>().levels() != ALogger::TLevels{3} || _logGrp.logger<1>().levels() != ALogger::TLevels{3})
             return false;
 
@@ -378,7 +308,7 @@ size_t _testLogger_group()
     makeStep([]()
     {
         _logGrp.logger<0>().ClearFlags();   _logGrp.logger<1>().ClearFlags();
-        _logGrp.setlevels({1});
+        _logGrp.setLevels({1});
 
         if (!_logGrp.forceAddToLog(1, "+") || !ALoggerTest::_calls._outStrings || !ALoggerTest2::_calls._outStrings)
             return false;
@@ -412,7 +342,7 @@ size_t _testLogger_base()
     makeStep([]()
     {
         _testLog.ClearFlags();
-        _testLog.setlevels({ 1 });
+        _testLog.setLevels({ 1 });
         if (!_testLog.addToLog(1, "+")      || !ALoggerTest::_calls._outStrings)
             return false;
 
@@ -436,7 +366,7 @@ size_t _testLogger_base()
     {
         _testLog.ClearFlags();
 
-        _testLog.setlevels({ 1, 2, 4 });
+        _testLog.setLevels({ 1, 2, 4 });
         if (_testLog.levels() != ALogger::TLevels {1, 2, 4})
             return false;
 
@@ -464,7 +394,7 @@ size_t _testLogger_base()
             return false;
 
         return true;
-    }, "Test _testLogger_base.2 : Incorrect setlevels, initLevel, enableLevel, disableLevel, taskOrToBeAdded calls without task");
+    }, "Test _testLogger_base.2 : Incorrect setLevels, initLevel, enableLevel, disableLevel, taskOrToBeAdded calls without task");
 
     makeStep([](){
         return _loggerTest1Instances == 0;

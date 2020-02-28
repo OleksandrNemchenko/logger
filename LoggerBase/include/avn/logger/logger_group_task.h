@@ -111,7 +111,7 @@ namespace ALogger {
          *
          * \return Current task group instance
          */
-        ALoggerGroupTask& addToLog(std::size_t level, const TLogData& data, std::chrono::system_clock::time_point time = std::chrono::system_clock::now()) noexcept;
+        ALoggerGroupTask& addToLog(std::size_t level, const TLogData& data, std::chrono::system_clock::time_point time) noexcept;
 
         /** Enable or disable specified logger level
          *
@@ -128,7 +128,7 @@ namespace ALogger {
          *
          * \return Current task group instance
          */
-        ALoggerGroupTask& setlevels(TLevels levels) noexcept;
+        ALoggerGroupTask& setLevels(TLevels levels) noexcept;
 
         /** Enable specified logger level
          *
@@ -180,9 +180,9 @@ namespace ALogger {
     }
 
     template< typename... _TTaskPtr >
-    ALoggerGroupTask<_TTaskPtr...>& ALoggerGroupTask<_TTaskPtr...>::setlevels(TLevels levels) noexcept
+    ALoggerGroupTask<_TTaskPtr...>& ALoggerGroupTask<_TTaskPtr...>::setLevels(TLevels levels) noexcept
     {
-            std::apply([&levels](auto&... task) { (task->setlevels(levels), ...); }, _task);
+            std::apply([&levels](auto&... task) { (task->setLevels(levels), ...); }, _task);
             return *this;
     }
 

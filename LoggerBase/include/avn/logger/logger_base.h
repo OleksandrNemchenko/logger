@@ -229,7 +229,7 @@ namespace ALogger {
          * 
          * \param[in] levels Levels to use
          */
-        void setlevels(TLevels levels) noexcept { _outLevels = levels; }
+        void setLevels(TLevels levels) noexcept { _outLevels = levels; }
 
         /** Check level to be output
          *
@@ -276,7 +276,7 @@ namespace ALogger {
          *
          * \return true if message is output
          */
-        bool addToLog(std::size_t level, const _TLogData& data, std::chrono::system_clock::time_point time = std::chrono::system_clock::now()) noexcept;
+        bool addToLog(std::size_t level, const _TLogData& data, std::chrono::system_clock::time_point time) noexcept;
 
         /** Return ITaskLogger interface
          *
@@ -342,7 +342,7 @@ namespace ALogger {
     ALoggerTask<_TLogData> ALoggerBase<_ThrSafe, _TLogData>::addTask(TLevels levels, bool init_success_state) noexcept
     {
         auto task{ addTask(init_success_state) };
-        task.setlevels(std::forward<TLevels>(levels));
+        task.setLevels(std::forward<TLevels>(levels));
         return task;
     }
 
@@ -350,7 +350,7 @@ namespace ALogger {
     ALoggerTask<_TLogData>* ALoggerBase<_ThrSafe, _TLogData>::addTaskForLoggerGroup(TLevels levels, bool init_success_state) noexcept
     {
         auto task{ addTaskForLoggerGroup(init_success_state) };
-        task->setlevels(std::forward<TLevels>(levels));
+        task->setLevels(std::forward<TLevels>(levels));
         return task;
     }
 

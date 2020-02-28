@@ -79,6 +79,8 @@ namespace ALogger {
         /** ALogger data type */
         using TLogData = typename std::tuple_element_t<0, TArray>::TLogData;
 
+        static_assert((std::is_same_v<TLogData, typename _TLogger::TLogData> && ...), "All loggers in the logger group must have the same TLogData type");
+
         /** Return logger reference to the \a num element
          *
          * \tparam num Logger number.
@@ -225,8 +227,8 @@ namespace ALogger {
     }
 
     template< typename... _TLogger >
-    void ALoggerGroup<_TLogger...>::setlevels(TLevels levels) noexcept {
-        std::apply([&](auto&... logger) { (logger.setlevels(levels), ...); }, _logger);
+    void ALoggerGroup<_TLogger...>::setLevels(TLevels levels) noexcept {
+        std::apply([&](auto&... logger) { (logger.setLevels(levels), ...); }, _logger);
     }
 
     template< typename... _TLogger >

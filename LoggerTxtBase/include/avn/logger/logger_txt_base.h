@@ -71,6 +71,8 @@ namespace ALogger {
         /** Character type for text logger messages */
         using TChar = _TChar;
 
+        static_assert(std::is_same_v<TChar,char> || std::is_same_v<TChar,wchar_t>, "Only char and wchar_t are currently supported");
+
         /** String type for text logger messages */
         using TString = std::basic_string<TChar>;
 

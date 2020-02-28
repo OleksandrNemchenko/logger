@@ -9,8 +9,10 @@
 #include <filesystem>
 #include <tests.h>
 #include <avn/logger/logger_txt_file.h>
+#include <avn/logger/logger_txt_cout.h>
+#include <avn/logger/logger_txt_group.h>
 
-size_t test_txt_file()
+size_t test_txt_group()
 {
     using namespace std;
     namespace fs = std::filesystem;
@@ -26,12 +28,21 @@ size_t test_txt_file()
     }
     while(true);
 
-    std::wcout << L"START test_txt_file "s << tmpFile << std::endl;
+    std::wcout << L"START test_txt_group with file "s << tmpFile << std::endl;
 
-    ALogger::ALoggerTxtFile<true, wchar_t> log(tmpFile);
+#ifdef TEST_ERROR_2
+    class ALoggerTest_ERROR1 : public ALogger::ALoggerBase<true, std::wstring>{ bool outData(std::size_t level, std::chrono::system_clock::time_point time, const std::wstring& data) noexcept override { return true; } };
+#endif
+    ALogger::ALoggerTxtGroup<ALogger::ALoggerTxtFile<true, wchar_t>, ALogger::ALoggerTxtCOut<false, wchar_t>
+#ifdef TEST_ERROR_2
+                    , ALoggerTest_ERROR1
+#endif
+                    > log;
+
     const std::locale utf8_locale = locale(locale(), new codecvt_utf8<wchar_t>());
 
     log.imbue(utf8_locale);
+    log.logger<0>().openFile(tmpFile);
     log.addLevelDescr(0, L"TEST-0");
     log.enableLevel(0);
     log.addString(0, L"This is test string : integer = ", 10);

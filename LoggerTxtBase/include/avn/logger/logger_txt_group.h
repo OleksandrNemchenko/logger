@@ -35,6 +35,7 @@ _log.addString(WARNING, L"Warning message!");         // Outputs message
 #ifndef _AVN_LOGGER_LOGGER_TXT_GROUP_H
 #define _AVN_LOGGER_LOGGER_TXT_GROUP_H
 
+#include <avn/logger/logger_txt_base.h>
 #include <avn/logger/logger_group.h>
 
 namespace ALogger {
@@ -56,6 +57,8 @@ namespace ALogger {
 
         /** String type */
         using TString = typename std::tuple_element_t<0, TArray>::TString;
+
+        static_assert((std::is_base_of_v<ALoggerTxtBase<_TLogger::ThrSafe, TChar>, _TLogger> && ...), "Template parameter must be the ALoggerTxtBase child class");
 
         /** Levels map */
         using TlevelsMap = std::map<size_t, TString>;

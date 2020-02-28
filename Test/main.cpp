@@ -14,6 +14,7 @@ int main(int argc, char *argv[])
     ret_code += test_base();
     ret_code += test_txt_file();
     ret_code += test_txt_cout();
+    ret_code += test_txt_group();
 
     return ret_code;
 }
