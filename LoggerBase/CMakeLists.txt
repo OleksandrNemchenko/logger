@@ -21,6 +21,11 @@ target_include_directories(avn_logger_base
         $<INSTALL_INTERFACE:include>
         )
 
+target_link_libraries(avn_logger_base
+        INTERFACE
+        pthread
+        )
+
 include(GNUInstallDirs)
 
 install(TARGETS avn_logger_base

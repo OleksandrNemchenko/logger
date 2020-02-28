@@ -2,21 +2,19 @@
 // PVS-Studio Static Code Analyzer for C, C++, C#, and Java: http://www.viva64.com
 
 /*! \file logger_txt_base.h
- * \brief CLoggerTxtBase class implements base text messages logging functionality.
+ * \brief ALoggerTxtBase class implements base text messages logging functionality.
  *
- * #Logger::CLoggerTxtBase class is the #Logger::CLoggerBase child that implements text messages logging. It introduces logger level
+ * #ALogger::ALoggerTxtBase class is the #ALogger::ALoggerBase child that implements text messages logging. It introduces logger level
  * description map that will be used for logger message prefix. You have to specify multithreading security mode (see
- * #Logger::CLoggerBase class description) and character type. It could be char, wchar_t etc.
+ * #ALogger::ALoggerBase class description) and character type. It could be char, wchar_t etc.
  *
- * You can tune output format by specifying logger message prefixes. Output string is composed by prefixes :
+ * You can tune output format by specifying logger message maker by #ALogger::ALoggerBase::setStringMaker call. This function
+ * sets #ALogger::ALoggerBase::TStringMaker message maker function. By default #ALogger::defaultStringMakerChar,
+ * #ALogger::defaultStringMakerWChar etc. implementations are used.
  *
- * `str = date (_output_format) + _space + _level_prefix + level_text + _level_postfix + _space + log_message;`
+ * \warning If you implement not supported character type, no text decoration will be used. Set string maker in your child
+ * class by #ALogger::ALoggerBase::setStringMaker call.
  *
- * Here _output_format is used for timestamp to string conversion as std::put_time second argument. _level_prefix and
- * _level_postfix are level name surrounds. _space is the space between different elements. You can change those texts
- * by calling #Logger::CLoggerTxtBase::SetDateOutputFormat, #Logger::CLoggerTxtBase::SetLevelPrefix, #Logger::CLoggerTxtBase::SetLevelPostfix and
- * #Logger::CLoggerTxtBase::SetSpace calls. Also you can change default values that are used for new logger instance by changing
- * #Logger::CLoggerTxtBaseDefaults members. This class has default instantion for char and wchar_t character symbol types.
  */
 
 #ifndef _AVN_LOGGER_TXT_BASE_H_
@@ -24,257 +22,234 @@
 
 #include <iomanip>
 #include <sstream>
+#include <type_traits>
 
 #include <avn/logger/logger_base.h>
 
-namespace Logger {
+namespace ALogger {
 
-/** Default values for logger msssage decorating
- *
- * \tparam _TChar Logger message symbol type
- */
-template<typename _TChar>
-class CLoggerTxtBaseDefaults {
-public:
-    using TString = std::basic_string<_TChar>;
-
-    /** Default timestamp to string format */
-    static TString _default_output_format;
-
-    /** Default text before level descriptor */
-    static TString _default_level_prefix;
-
-    /** Default text after level descriptor */
-    static TString _default_level_postfix;
-
-    /** Default space text */
-    static TString _default_space;
-};
-
-/** Base class for text loggers
- * 
- * \tparam _ThrSafe Thread security mode. If true, multithread mode will be used. Otherwise single ther will be activated.
- * \tparam _TChar Character data type. Can be char, wchar_t etc.
- */
-template<bool _ThrSafe, typename _TChar>
-class CLoggerTxtBase : public CLoggerBase<_ThrSafe, std::basic_string<_TChar>>, public CLoggerTxtBaseDefaults<_TChar> {
-public :
-    /** Current thread security mode. If true, multithread mode will be used. Otherwise single ther will be activated */
-    constexpr static bool ThrSafe{ _ThrSafe };
-
-    /** Character type for text logger messages */
-    using TChar = _TChar;
-
-    /** String type for text logger messages */
-    using TString = std::basic_string<TChar>;
-
-    /** Levels mapping type */
-    using TLevelsMap = std::map<size_t, TString>;
-
-private :
-    using TBase = CLoggerBase<_ThrSafe, TString>;
-    using TDef = CLoggerTxtBaseDefaults<_TChar>;
-
-public :
-    /** Default constructor
+    /** Unspecialized template to use std::basic_stringstream<_TChar>::operator<< call
      *
-     * \param local_time Local time will be used for timestamp. By default it is true
+     * \note You can specialize this function for your type
+     *
+     * \tparam _TChar String stream std::basic_stringstream::char_type type
+     * \tparam T Argument type
+     * \param[in] stream String stream
+     * \param[in] arg Argument
      */
-    CLoggerTxtBase( bool local_time = true );
+    template<typename _TChar, typename T>
+    inline void toStrStream(std::basic_stringstream<_TChar>& stream, T&& arg) noexcept { stream << std::forward<T>(arg); }
 
-    /** Add level descriptor
+// Qt Objects
+#ifdef QT_VERSION
+    /** QString argument for char based text logger
      *
-     * \param level Level identifier
-     * \param name Level descriptor
-     *
-     * \return Current instance reference
+     * \param[in] stream String stream based on char type
+     * \param[in] arg QString argument
      */
-    CLoggerTxtBase& AddLevelDescr( size_t level, TString name )     { _levels_map[level] = std::forward<TString>( name ); return *this; }
+    inline void toStrStream(std::basic_stringstream<char>& stream, const QString& arg) { stream << arg.toStdString(); }
 
-    /** Return levels map */
-    const TLevelsMap& LevelsMap() const                             { return _levels_map; }
-
-    /** Output the text message arguments
-    *
-    * If a task is active, message will be logged. If no task is active, message will be output
-    * only if logger level is enabled.
-    *
-    * Message will be output with the current timestamp.
-    *
-    * \tparam T Message elements types.
-    * \warning Each type must be able to to be used as argument for
-    * std::basic_stringstream<TChar>::operator<<( std::forward<T>(args) ) call
-    *
-    * \param level Level identifier
-    * \param args Arguments
-    *
-    * \return Current instance reference
-    */
-    template<typename... T>
-    CLoggerTxtBase& AddString( std::size_t level, T&&... args );
-
-    /** Output the text message arguments
-    *
-    * If a task is active, message will be logged. If no task is active, message will be output
-    * only if logger level is enabled.
-    *
-    * \tparam T Message elements types.
-    * \warning Each type must be able to to be used as argument for
-    * std::basic_stringstream<TChar>::operator<<( std::forward<T>(args) ) call
-    *
-    * \param time
-    * \param level Level identifier
-    * \param args Arguments
-    *
-    * \return Current instance reference
-    */
-    template<typename... T>
-    CLoggerTxtBase& AddString( std::chrono::system_clock::time_point time, std::size_t level, T&&... args );
-
-    /** Set timestamp to string format
+    /** QString argument for wchar_t based text logger
      *
-     * \param output_format std::put_time timestamp format
-     *
-     * \return Current instance reference
+     * \param[in] stream String stream based on wchar_t type
+     * \param[in] arg QString argument
      */
-    CLoggerTxtBase& SetDateOutputFormat( TString &&output_format )  { _output_format = std::forward<TString>( output_format ); return *this; }
+    inline void toStrStream(std::basic_stringstream<wchar_t>& stream, const QString& arg) { stream << arg.toStdWString(); }
+#endif // QT_VERSION
 
-    /** Default text before level descriptor
+    /** Base class for text loggers
      *
-     * \param level_prefix Level prefix
-     *
-     * \return Current instance reference
+     * \tparam _ThrSafe Thread security mode. If true, multithread mode will be used. Otherwise single ther will be activated.
+     * \tparam _TChar Character data type. Can be char, wchar_t etc.
      */
-    CLoggerTxtBase& SetLevelPrefix( TString &&level_prefix )        { _level_prefix  = std::forward<TString>( level_prefix );  return *this; }
+    template<bool _ThrSafe, typename _TChar>
+    class ALoggerTxtBase : public ALoggerBase<_ThrSafe, std::basic_string<_TChar>> {
+    public :
+        /** Current thread security mode. If true, multithread mode will be used. Otherwise single ther will be activated */
+        constexpr static bool ThrSafe{ _ThrSafe };
 
-    /** Default text after level descriptor
-     *
-     * \param level_postfix Level postfix
-     *
-     * \return Current instance reference
-     */
-    CLoggerTxtBase& SetLevelPostfix( TString &&level_postfix )      { _level_postfix = std::forward<TString>( level_postfix ); return *this; }
+        /** Character type for text logger messages */
+        using TChar = _TChar;
 
-    /** Default space text
-     *
-     * \param space Space between different elements
-     *
-     * \return Current instance reference
-     */
-    CLoggerTxtBase& SetSpace( TString &&space )                     { _space         = std::forward<TString>( space );         return *this; }
+        static_assert(std::is_same_v<TChar,char> || std::is_same_v<TChar,wchar_t>, "Only char and wchar_t are currently supported");
 
-    /** Output the text message arguments
-    *
-    * If a task is active, message will be logged. If no task is active, message will be output
-    * only if logger level is enabled.
-    *
-    * Message will be output with the current timestamp.
-    *
-    * \tparam T Message elements types.
-    * \warning Each type must be able to to be used as argument for
-    * std::basic_stringstream<TChar>::operator<<( std::forward<T>(args) ) call
-    *
-    * \param level Level identifier
-    * \param args Arguments
-    *
-    * \return Current instance reference
-    */
-    template<typename... T>
-    CLoggerTxtBase& operator() ( std::size_t level, T&&... args )    { return AddString( level, args... ); }
+        /** String type for text logger messages */
+        using TString = std::basic_string<TChar>;
 
-    /** Output the text message arguments
-    *
-    * If a task is active, message will be logged. If no task is active, message will be output
-    * only if logger level is enabled.
-    *
-    * \tparam T Message elements types.
-    * \warning Each type must be able to to be used as argument for
-    * std::basic_stringstream<TChar>::operator<<( std::forward<T>(args) ) call
-    *
-    * \param time
-    * \param level Level identifier
-    * \param args Arguments
-    *
-    * \return Current instance reference
-    */
-    template<typename... T>
-    CLoggerTxtBase& operator() ( std::chrono::system_clock::time_point time, std::size_t level, T&&... args )    { return AddString( time, level, args... ); }
+        /** Levels mapping type */
+        using TlevelsMap = std::map<size_t, TString>;
 
-protected:
-    /** Decorate string
-     *
-     * This function decorates string by using prefixe, postfix, timestamp format and space string. It is intented
-     * to be called by children classes.
-     *
-     * \param level Level identifier
-     * \param time Message timestamp
-     * \param data Message string
-     *
-     * \return
-     */
-    TString PrepareString( std::size_t level, std::chrono::system_clock::time_point time, const TString &data ) const;
+    private :
+        using TBase = ALoggerBase<_ThrSafe, TString>;
 
-private:
-    TLevelsMap _levels_map;
-    std::function<std::tm* ( const std::time_t* )> _time_converter;
-    TString _output_format;
-    TString _level_prefix;
-    TString _level_postfix;
-    TString _space;
+    public :
+        /** Default constructor
+         *
+         * \param[in] local_time Local time will be used for timestamp. By default it is true
+         */
+        ALoggerTxtBase(bool local_time = true) noexcept;
 
-};
+        /** Add level descriptor
+         *
+         * \param[in] level Level identifier
+         * \param[in] name Level descriptor
+         *
+         * \return Current instance reference
+         */
+        ALoggerTxtBase& addLevelDescr(size_t level, const TString& name) noexcept     { _levelsMap[level] = name; return *this; }
 
-template<bool _ThrSafe, typename _TChar>
-CLoggerTxtBase<_ThrSafe, _TChar>::CLoggerTxtBase( bool local_time ):
-    _time_converter( local_time ? std::localtime : std::gmtime ),
-    _output_format{ TDef::_default_output_format },
-    _level_prefix{  TDef::_default_level_prefix  },
-    _level_postfix{ TDef::_default_level_postfix },
-    _space{         TDef::_default_space         }
+        /** Return levels map */
+        const TlevelsMap& levelsMap() const noexcept                           { return _levelsMap; }
+
+        /** Output the text message arguments
+        *
+        * If a task is active, message will be logged. If no task is active, message will be output
+        * only if logger level is enabled.
+        *
+        * Message will be output with the current timestamp.
+        *
+        * \tparam T Message elements types.
+        * \warning Each type must be able to to be used as argument for
+        * std::basic_stringstream<TChar>::operator<<(std::forward<T>(args)) call. If not, specialize #ALogger::toStrStream
+        * function
+        *
+        * \param[in] level Level identifier
+        * \param[in] args Arguments
+        *
+        * \return Current instance reference
+        */
+        template<typename... T>
+        ALoggerTxtBase& addString(std::size_t level, T&&... args) noexcept;
+
+        /** Output the text message arguments
+        *
+        * If a task is active, message will be logged. If no task is active, message will be output
+        * only if logger level is enabled.
+        *
+        * Message will be output with the current timestamp.
+        *
+        * \tparam T Message elements types.
+        * \warning Each type must be able to to be used as argument for
+        * std::basic_stringstream<TChar>::operator<<(std::forward<T>(args)) call. If not, specialize #ALogger::toStrStream
+        * function
+        *
+        * \param[in] level Level identifier
+        * \param[in] args Arguments
+        *
+        * \return Current instance reference
+        */
+        template<typename... T>
+        ALoggerTxtBase& operator() (std::size_t level, T&&... args) noexcept    { return addString(level, std::forward<T...>(args...)); }
+
+        /** Set the associated locale of the stream to the given one
+         *
+         * \param[in] loc New locale to associate the stream to
+         */
+        virtual void imbue(const std::locale& loc) noexcept { }
+
+    protected:
+        /** Decorate string
+         *
+         * This function decorates string by using prefix, postfix, timestamp format and space string. It is intentent
+         * to be called by children classes.
+         *
+         * \param[in] level Level identifier
+         * \param[in] time Message timestamp
+         * \param[in] data Message string
+         *
+         * \return Prepared string
+         */
+        TString prepareString(std::size_t level, std::chrono::system_clock::time_point time, const TString& data) const noexcept;
+
+        /** Function type to make string
+         *
+         * This function type is used to make string by using level title, timestamp and data. It is used as
+         * #ALogger::ALoggerTxtBase::setStringMaker function parameter to set default string maker.
+         *
+         * \param[in] level Level descriptor
+         * \param[in] time Message timestamp
+         * \param[in] data Message string
+         *
+         * \return Prepared string
+         */
+        using TStringMaker = std::function<TString (const TString& level, const std::tm* time, const TString& data)>;
+
+        /** Set child implementation for string maker
+         *
+         * Default string maker is initialized during class initialization. You can replace it in your child class.
+         *
+         * \param[in] stringMaker String maker implementation
+         * \return Current instance reference
+         */
+        ALoggerTxtBase& setStringMaker(TStringMaker stringMaker) { _stringMaker = stringMaker; return *this; }
+
+    private:
+        TlevelsMap _levelsMap;
+        std::function<std::tm* (const std::time_t*)> _timeConverter;
+        TStringMaker _stringMaker;
+
+        TStringMaker selectDefaultStringMaker() noexcept;
+    };
+
+    template<bool _ThrSafe, typename _TChar>
+    ALoggerTxtBase<_ThrSafe, _TChar>::ALoggerTxtBase(bool local_time) noexcept:
+            _timeConverter{local_time ? std::localtime : std::gmtime},
+            _stringMaker(selectDefaultStringMaker())
     { }
 
-template<bool _ThrSafe, typename _TChar>
-template<typename... T>
-CLoggerTxtBase<_ThrSafe, _TChar>& CLoggerTxtBase<_ThrSafe, _TChar>::AddString( std::chrono::system_clock::time_point time, std::size_t level, T&&... args ) {
-    if( !TBase::TaskOrToBeAdded(level) )
+    inline std::string defaultStringMakerChar(const std::string& level, const std::tm* time, const std::string& data) noexcept
+    {
+        using namespace std;
+        basic_stringstream<char> sstr;
+        sstr << put_time(time, "%F %T") << " ["s << level << "] "s << data;
+        return sstr.str();
+    }
+
+    inline std::wstring defaultStringMakerWChar(const std::wstring& level, const std::tm* time, const std::wstring& data) noexcept
+    {
+        using namespace std;
+        basic_stringstream<wchar_t> sstr;
+        sstr << put_time(time, L"%F %T") << L" ["s << level << L"] "s << data;
+        return sstr.str();
+    }
+
+    template<bool _ThrSafe, typename _TChar>
+    typename ALoggerTxtBase<_ThrSafe, _TChar>::TStringMaker ALoggerTxtBase<_ThrSafe, _TChar>::selectDefaultStringMaker() noexcept
+    {
+        if constexpr (std::is_same_v<_TChar, char>)
+            return defaultStringMakerChar;
+        else if constexpr (std::is_same_v<_TChar, wchar_t>)
+            return defaultStringMakerWChar;
+        else {
+            assert(false && "unsupported character type");
+            return [](auto level, auto time, auto data) { return data; };
+        }
+    }
+
+    template<bool _ThrSafe, typename _TChar>
+    template<typename... T>
+    ALoggerTxtBase<_ThrSafe, _TChar>& ALoggerTxtBase<_ThrSafe, _TChar>::addString(std::size_t level, T&&... args) noexcept
+    {
+        std::chrono::system_clock::time_point time = std::chrono::system_clock::now();
+        if (!TBase::taskOrToBeAdded(level))
+            return *this;
+        std::basic_stringstream<_TChar> stream;
+        (toStrStream(stream, std::forward<T>(args)), ...);
+        TBase::addToLog(level, stream.str(), time);
         return *this;
-    std::basic_stringstream<_TChar> stream;
-    ( stream << ... << std::forward<T>(args) );
-    TBase::AddToLog( level, stream.str(), time );
-    return *this;
-}
+    }
 
-template<bool _ThrSafe, typename _TChar>
-template<typename... T>
-CLoggerTxtBase<_ThrSafe, _TChar>& CLoggerTxtBase<_ThrSafe, _TChar>::AddString( std::size_t level, T&&... args ) {
-    return AddString( std::chrono::system_clock::now(), level, args... );
-}
+    template<bool _ThrSafe, typename _TChar>
+    typename ALoggerTxtBase<_ThrSafe, _TChar>::TString ALoggerTxtBase<_ThrSafe, _TChar>::prepareString(std::size_t level, std::chrono::system_clock::time_point time, const TString& data) const noexcept
+    {
+        const auto level_it{ _levelsMap.find(level) };
+        assert(level_it != _levelsMap.cend());
 
-template<bool _ThrSafe, typename _TChar>
-typename CLoggerTxtBase<_ThrSafe, _TChar>::TString CLoggerTxtBase<_ThrSafe, _TChar>::PrepareString( std::size_t level, std::chrono::system_clock::time_point time, const TString &data ) const {
-    const auto level_it = _levels_map.find(level);
-    TString str;
+        std::time_t time_moment{ std::chrono::system_clock::to_time_t(time) };
 
-    assert( level_it != _levels_map.cend() );
+        return _stringMaker(level_it->second, _timeConverter(&time_moment), data);
+    }
 
-    std::time_t time_moment = std::chrono::system_clock::to_time_t( time );
-    std::basic_stringstream<_TChar> sstr;
-    sstr << std::put_time(_time_converter( &time_moment ), _output_format.c_str() );
-    str = sstr.str() + _space + _level_prefix + level_it->second + _level_postfix + _space + data;
-
-    return str;
-}
-
-template<> inline std::string CLoggerTxtBaseDefaults<char>::_default_output_format{ "%F %T" };
-template<> inline std::string CLoggerTxtBaseDefaults<char>::_default_level_prefix { "[" };
-template<> inline std::string CLoggerTxtBaseDefaults<char>::_default_level_postfix{ "]" };
-template<> inline std::string CLoggerTxtBaseDefaults<char>::_default_space        { " " };
-
-template<> inline std::wstring CLoggerTxtBaseDefaults<wchar_t>::_default_output_format{ L"%F %T" };
-template<> inline std::wstring CLoggerTxtBaseDefaults<wchar_t>::_default_level_prefix { L"[" };
-template<> inline std::wstring CLoggerTxtBaseDefaults<wchar_t>::_default_level_postfix{ L"]" };
-template<> inline std::wstring CLoggerTxtBaseDefaults<wchar_t>::_default_space        { L" " };
-
-} // namespace Logger
+} // namespace ALogger
 
 #endif  // _AVN_LOGGER_TXT_BASE_H_
