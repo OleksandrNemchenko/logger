@@ -129,22 +129,19 @@ $(function() {
 <div class="fragment"><div class="line">git clone https://github.com/OleksandrNemchenko/logger</div></div><!-- fragment --><p>Logger library contains interface library only except UUT target, so you can directly include headers and use them.</p>
 <p>You can make and start test_logger target to test all features. Visit this target source files to see library usage.</p>
 <ul>
-<li>version 1.3+ :<ul>
-<li>add library detailed description</li>
-<li>add library usage examples</li>
+<li>version 1.2+ :<ul>
 <li>make full test coverage</li>
-<li>add additional asserts and checks</li>
 <li>add std::experimental::source_location usage for current file name and line number usage</li>
-<li>CLoggerTxtBase : deprecate SetDateOutputFormat, SetLevelPrefix, SetLevelPostfix, SetSpace functions and introduce functional object that will be called for log message decorating</li>
 </ul>
 </li>
 </ul>
 <ul>
 <li><a href="https://github.com/OleksandrNemchenko/logger/tree/release/v1.2">version 1.2</a> : <a href="https://oleksandrnemchenko.github.io/logger/v1.2/index.html">documentation</a><ul>
-<li>move towards to to <a href="http://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines">C++ Code Guidelines</a></li>
+<li>move towards to the <a href="http://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines">C++ Code Guidelines</a></li>
 <li>make all functions as noexcept</li>
 <li>add QString support for loggers</li>
 <li>use string maker function for ALoggerBase class instead of spaces, time output format, prefixes and suffixes</li>
+<li>add static_asserts</li>
 </ul>
 </li>
 <li><a href="https://github.com/OleksandrNemchenko/logger/tree/release/v1.1">version 1.1</a> : <a href="https://oleksandrnemchenko.github.io/logger/v1.1/index.html">documentation</a><ul>
