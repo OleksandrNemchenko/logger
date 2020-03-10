@@ -21,6 +21,7 @@
 #define _AVN_LOGGER_TXT_BASE_H_
 
 #include <iomanip>
+#include <functional>
 #include <sstream>
 #include <type_traits>
 
@@ -139,7 +140,7 @@ namespace ALogger {
         * \return Current instance reference
         */
         template<typename... T>
-        ALoggerTxtBase& operator() (std::size_t level, T&&... args) noexcept    { return addString(level, std::forward<T...>(args...)); }
+        ALoggerTxtBase& operator() (std::size_t level, T&&... args) noexcept    { return addString(level, std::forward<T>(args)...); }
 
         /** Set the associated locale of the stream to the given one
          *
