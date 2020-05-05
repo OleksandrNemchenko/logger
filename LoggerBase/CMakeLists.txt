@@ -23,7 +23,7 @@ target_include_directories(avn_logger_base
 
 target_link_libraries(avn_logger_base
         INTERFACE
-        pthread
+#        pthread
         )
 
 include(GNUInstallDirs)

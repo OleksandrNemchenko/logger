@@ -149,7 +149,7 @@ size_t _testLogger_task(void)
             _testLog.addToLog(2, "-"s);
             _testLog.addToLog(3, "+"s);
             task.setTaskResult(true);
-            if (!_testLog.taskOrToBeAdded(2))
+            if (_testLog.taskOrToBeAdded(2))
                 return false;
         }
         if (ALoggerTest::_calls._outStrings != 2)

@@ -141,7 +141,7 @@ namespace ALogger {
         /** Threads map */
         using TThreads = std::map<std::thread::id, TTasks>;
 
-        ALoggerBase() noexcept = default;
+        ALoggerBase() = default;
         ALoggerBase(const ALoggerBase&) noexcept = delete;
         virtual ~ALoggerBase() noexcept;
 
@@ -384,10 +384,9 @@ namespace ALogger {
     bool ALoggerBase<_ThrSafe, _TLogData>::addToLog(std::size_t level, const _TLogData& data, std::chrono::system_clock::time_point time) noexcept
     {
         auto thread{ _threads.find(std::this_thread::get_id()) };
-        auto& tasks = thread->second;
 
-        if (_enableTasks && thread != _threads.end() && !tasks.empty()) {
-            auto& top{ tasks.top() };
+        if (_enableTasks && thread != _threads.end() && !thread->second.empty()) {
+            auto& top{ thread->second.top() };
             assert(top);
             top->addToLog(level, data, time);
             return true;

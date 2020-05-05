@@ -103,7 +103,7 @@ namespace ALogger {
 
         ALoggerTask() = delete;
         ALoggerTask(const ALoggerTask&) = delete;
-        ALoggerTask(ALoggerTask&&) noexcept = default;
+        ALoggerTask(ALoggerTask&&) = default;
 
         ALoggerTask operator=(const ALoggerTask&) = delete;
         ALoggerTask operator=(ALoggerTask&&) = delete;
