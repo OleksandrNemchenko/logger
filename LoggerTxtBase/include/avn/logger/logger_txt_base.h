@@ -146,7 +146,7 @@ namespace ALogger {
          *
          * \param[in] loc New locale to associate the stream to
          */
-        virtual void imbue(const std::locale& loc) noexcept { }
+        virtual void imbue(const std::locale& loc) noexcept { (void) loc; }
 
     protected:
         /** Decorate string
