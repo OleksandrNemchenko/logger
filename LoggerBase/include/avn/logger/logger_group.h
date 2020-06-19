@@ -42,6 +42,26 @@ _log.addString(WARNING, L"Warning message!");         // Outputs message
 
 namespace ALogger {
 
+    /** Interface for internal usage */
+    template< typename _TLogData >
+    class ILoggerGroup {
+        template< typename... _TLogger >
+        friend class ALoggerGroup;
+
+    protected:
+        ALoggerTask<_TLogData>* createTask(ITaskLogger<_TLogData>& logger, bool init_success_state)
+        {
+            return new ALoggerTask<_TLogData>(logger, init_success_state);
+        };
+
+    private:
+        virtual ALoggerTask<_TLogData>* addTaskForLoggerGroup(bool init_succeeded) noexcept = 0;
+        virtual ALoggerTask<_TLogData>* addTaskForLoggerGroup() noexcept = 0;
+        virtual ALoggerTask<_TLogData>* addTaskForLoggerGroup(TLevels levels, bool init_succeeded) noexcept = 0;
+        virtual ALoggerTask<_TLogData>* addTaskForLoggerGroup(TLevels levels) noexcept = 0;
+
+    };  // class ILoggerGroup
+
     /** Loggers group container
      *
      * This container allows to manage different loggers ans send message by one call.
@@ -232,8 +252,8 @@ namespace ALogger {
 
     template< typename... _TLogger >
     auto ALoggerGroup<_TLogger...>::addTask() noexcept {
-        auto tasks{ std::apply([](auto&... logger){
-            return std::make_tuple(logger.addTask(false) ...);
+        auto tasks{ std::apply([](auto&&... logger){
+            return std::make_tuple((logger.getLoggerGroupInterface())->addTaskForLoggerGroup() ...);
         }, _logger) };
         return ALoggerGroupTask(std::move(tasks));
     }
@@ -241,7 +261,7 @@ namespace ALogger {
     template< typename... _TLogger >
     auto ALoggerGroup<_TLogger...>::addTask(bool init_success_state) noexcept {
         auto tasks{ std::apply([init_success_state](auto&&... logger){
-            return std::make_tuple(logger.addTask(init_success_state) ...);
+            return std::make_tuple((logger.getLoggerGroupInterface())->addTaskForLoggerGroup(init_success_state) ...);
         }, _logger) };
         return ALoggerGroupTask(std::move(tasks));
     }
@@ -249,7 +269,7 @@ namespace ALogger {
     template< typename... _TLogger >
     auto ALoggerGroup<_TLogger...>::addTask(TLevels levels) noexcept {
         auto tasks{ std::apply([&levels](auto&&... logger){
-            return std::make_tuple(logger.addTask(levels) ...);
+            return std::make_tuple((logger.getLoggerGroupInterface())->addTaskForLoggerGroup(levels) ...);
         }, _logger) };
         return ALoggerGroupTask(std::move(tasks));
     }
@@ -257,7 +277,7 @@ namespace ALogger {
     template< typename... _TLogger >
     auto ALoggerGroup<_TLogger...>::addTask(TLevels levels, bool init_success_state) noexcept {
         auto tasks{ std::apply([&levels,init_success_state](auto&&... logger){
-            return std::make_tuple(logger.addTask(levels, init_success_state) ...);
+            return std::make_tuple((logger.getLoggerGroupInterface())->addTaskForLoggerGroup(levels, init_success_state) ...);
         }, _logger) };
         return ALoggerGroupTask(std::move(tasks));
     }

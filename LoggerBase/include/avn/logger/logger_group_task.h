@@ -61,6 +61,8 @@ namespace ALogger {
         ALoggerGroupTask(const TArrayPtr&) = delete;
         ALoggerGroupTask(TArrayPtr&& task) noexcept : _task(std::move(task )) { }
 
+        ~ALoggerGroupTask() noexcept { std::apply([](auto&&... task){ (delete task, ...); }, _task); }
+
         /** Return task reference to the \a num element */
         template< size_t num > auto& task() noexcept                { static_assert(num < sizeof...(_TTaskPtr), "Requested element's number is out of this task group size"); return *std::get<num>(_task); }
 
@@ -159,56 +161,56 @@ namespace ALogger {
     template< typename... _TTaskPtr >
     ALoggerGroupTask<_TTaskPtr...>& ALoggerGroupTask<_TTaskPtr...>::succeeded() noexcept
     {
-        std::apply([](auto&... task) { (task.succeeded(), ...); }, _task);
+        std::apply([](auto&... task) { (task->succeeded(), ...); }, _task);
         return *this;
     }
 
     template< typename... _TTaskPtr >
     ALoggerGroupTask<_TTaskPtr...>& ALoggerGroupTask<_TTaskPtr...>::failed() noexcept
     {
-        std::apply([](auto&... task) { (task.failed(), ...); }, _task);
+        std::apply([](auto&... task) { (task->failed(), ...); }, _task);
         return *this;
     }
 
     template< typename... _TTaskPtr >
     ALoggerGroupTask<_TTaskPtr...>& ALoggerGroupTask<_TTaskPtr...>::initLevel(std::size_t level, bool to_enable) noexcept
     {
-            std::apply([level,to_enable](auto&... task) { (task.initLevel(level, to_enable), ...); }, _task);
+            std::apply([level,to_enable](auto&... task) { (task->initLevel(level, to_enable), ...); }, _task);
             return *this;
     }
 
     template< typename... _TTaskPtr >
     ALoggerGroupTask<_TTaskPtr...>& ALoggerGroupTask<_TTaskPtr...>::setLevels(TLevels levels) noexcept
     {
-            std::apply([&levels](auto&... task) { (task.setLevels(levels), ...); }, _task);
+            std::apply([&levels](auto&... task) { (task->setLevels(levels), ...); }, _task);
             return *this;
     }
 
     template< typename... _TTaskPtr >
     ALoggerGroupTask<_TTaskPtr...>& ALoggerGroupTask<_TTaskPtr...>::enableLevel(std::size_t level) noexcept
     {
-            std::apply([level](auto&... task) { (task.enableLevel(level), ...); }, _task);
+            std::apply([level](auto&... task) { (task->enableLevel(level), ...); }, _task);
             return *this;
     }
 
     template< typename... _TTaskPtr >
     ALoggerGroupTask<_TTaskPtr...>& ALoggerGroupTask<_TTaskPtr...>::disableLevel(std::size_t level) noexcept
     {
-            std::apply([level](auto&... task) { (task.disableLevel(level), ...); }, _task);
+            std::apply([level](auto&... task) { (task->disableLevel(level), ...); }, _task);
             return *this;
     }
 
     template< typename... _TTaskPtr >
     ALoggerGroupTask<_TTaskPtr...>& ALoggerGroupTask<_TTaskPtr...>::addToLog(std::size_t level, const TLogData& data) noexcept
     {
-        std::apply([level,data](auto&... task) { (task.addToLog(level, data), ...); }, _task);
+        std::apply([level,data](auto&... task) { (task->addToLog(level, data), ...); }, _task);
         return *this;
     }
 
     template< typename... _TTaskPtr >
     ALoggerGroupTask<_TTaskPtr...>& ALoggerGroupTask<_TTaskPtr...>::addToLog(std::size_t level, const TLogData& data, std::chrono::system_clock::time_point time) noexcept
     {
-        std::apply([level,data,time](auto&... task) { (task.addToLog(level, data, time), ...); }, _task);
+        std::apply([level,data,time](auto&... task) { (task->addToLog(level, data, time), ...); }, _task);
         return *this;
     }
 

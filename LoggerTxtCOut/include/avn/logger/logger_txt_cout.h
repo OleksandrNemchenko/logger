@@ -48,7 +48,7 @@ namespace ALogger {
     /** Text stream logger message
      *
      * \tparam _ThrSafe Thread security mode. If true, multithread mode will be used. Otherwise single ther will be activated.
-     * \tparam _TChar Character type. Can be char, wchar_t etc.
+     * @tparam _TChar Character type. Can be char, wchar_t etc.
      */
     template<bool _ThrSafe, typename _TChar>
     class ALoggerTxtCOut : public ALoggerTxtBase<_ThrSafe, _TChar> {
@@ -97,7 +97,6 @@ namespace ALogger {
             return std::wcout;
         else {
             assert(false && "unsupported");
-            return std::cout;
         }
     }
 
