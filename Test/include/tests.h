@@ -4,9 +4,19 @@
 #ifndef _AVN_LOGGER_TESTS_H_
 #define _AVN_LOGGER_TESTS_H_
 
-size_t test_base();
-size_t test_txt_file();
-size_t test_txt_cout();
-size_t test_txt_group();
+#include <functional>
+
+namespace ALogger {
+    size_t tests();
+
+    size_t test_base();
+    size_t test_txt_base();
+//    size_t test_txt_file();
+//    size_t test_txt_cout();
+//    size_t test_txt_group();
+
+    size_t UnitTesting(std::string_view uutTitle, std::string_view errorDescription, std::function<bool()> testAction);
+
+}
 
 #endif  // _AVN_LOGGER_TESTS_H_

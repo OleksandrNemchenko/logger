@@ -5,16 +5,30 @@
 
 #include <tests.h>
 
-int main(int argc, char *argv[])
-{
-    int ret_code = 0;
+namespace ALogger{
 
-    std::cout << "Start ALogger library tests" << std::endl;
+    size_t UnitTesting(std::string_view uutTitle, std::string_view errorDescription, std::function<bool()> testAction)
+    {
+        using namespace std::string_literals;
 
-    ret_code += test_base();
-    ret_code += test_txt_file();
-    ret_code += test_txt_cout();
-    ret_code += test_txt_group();
+        if (testAction())
+            return 0;
 
-    return ret_code;
+        std::cout << "[ERROR] "s << uutTitle << " : "s << errorDescription << std::endl;
+
+        return 1;
+    }
+
+    size_t tests()
+    {
+        size_t ret_code = 0;
+   
+        ret_code += test_base();
+        ret_code += test_txt_base();
+//        ret_code += test_txt_file();
+//        ret_code += test_txt_cout();
+//        ret_code += test_txt_group();
+    
+        return ret_code;
+    }
 }

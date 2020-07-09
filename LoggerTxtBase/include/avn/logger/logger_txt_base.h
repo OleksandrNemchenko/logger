@@ -2,9 +2,9 @@
 // PVS-Studio Static Code Analyzer for C, C++, C#, and Java: http://www.viva64.com
 
 /*! \file logger_txt_base.h
- * \brief ALoggerTxtBase class implements base text messages logging functionality.
+ * \brief LoggerTxtBase class implements base text messages logging functionality.
  *
- * #ALogger::ALoggerTxtBase class is the #ALogger::ALoggerBase child that implements text messages logging. It introduces logger level
+ * #ALogger::LoggerTxtBase class is the #ALogger::ALoggerBase child that implements text messages logging. It introduces logger level
  * description map that will be used for logger message prefix. You have to specify multithreading security mode (see
  * #ALogger::ALoggerBase class description) and character type. It could be char, wchar_t etc.
  *
@@ -20,6 +20,7 @@
 #ifndef _AVN_LOGGER_TXT_BASE_H_
 #define _AVN_LOGGER_TXT_BASE_H_
 
+#include <ctime>
 #include <iomanip>
 #include <functional>
 #include <sstream>
@@ -39,36 +40,30 @@ namespace ALogger {
      * \param[in] arg Argument
      */
     template<typename _TChar, typename T>
-    inline void toStrStream(std::basic_stringstream<_TChar>& stream, T&& arg) noexcept { stream << std::forward<T>(arg); }
+    inline void ToStrStream(std::basic_stringstream<_TChar>& stream, T&& arg) noexcept
+    {
+        using TRaw = std::remove_cvref_t<T>;
 
-// Qt Objects
-#ifdef QT_VERSION
-    /** QString argument for char based text logger
-     *
-     * \param[in] stream String stream based on char type
-     * \param[in] arg QString argument
-     */
-    inline void toStrStream(std::basic_stringstream<char>& stream, const QString& arg) { stream << arg.toStdString(); }
-
-    /** QString argument for wchar_t based text logger
-     *
-     * \param[in] stream String stream based on wchar_t type
-     * \param[in] arg QString argument
-     */
-    inline void toStrStream(std::basic_stringstream<wchar_t>& stream, const QString& arg) { stream << arg.toStdWString(); }
-#endif // QT_VERSION
+#ifdef ALOGGER_SUPPORT_QT
+        if constexpr (std::is_same_v<TRaw, QString> || std::is_base_of_v<QString, TRaw>)
+        {
+            if constexpr (std::is_same_v<_TChar, char>)
+                stream << arg.toStdString();
+            else
+                stream << arg.toStdWString();
+        }
+        else
+#endif
+            stream << std::forward<T>(arg);
+    }
 
     /** Base class for text loggers
      *
-     * \tparam _ThrSafe Thread security mode. If true, multithread mode will be used. Otherwise single ther will be activated.
      * \tparam _TChar Character data type. Can be char, wchar_t etc.
      */
-    template<bool _ThrSafe, typename _TChar>
-    class ALoggerTxtBase : public ALoggerBase<_ThrSafe, std::basic_string<_TChar>> {
+    template<typename _TChar>
+    class LoggerTxtBase : public LoggerBase<std::basic_string<_TChar>> {
     public :
-        /** Current thread security mode. If true, multithread mode will be used. Otherwise single ther will be activated */
-        constexpr static bool ThrSafe{ _ThrSafe };
-
         /** Character type for text logger messages */
         using TChar = _TChar;
 
@@ -77,18 +72,22 @@ namespace ALogger {
         /** String type for text logger messages */
         using TString = std::basic_string<TChar>;
 
+        /** String view type for text logger messages */
+        using TStringView = std::basic_string_view<TChar>;
+
         /** Levels mapping type */
         using TlevelsMap = std::map<size_t, TString>;
 
     private :
-        using TBase = ALoggerBase<_ThrSafe, TString>;
+        using TBase = LoggerBase<TString>;
 
     public :
         /** Default constructor
          *
-         * \param[in] local_time Local time will be used for timestamp. By default it is true
+         * \param[in] thrSafe Boolean flag that has to be true if thread security must be on. By default it is true
+         * \param[in] localTime Local time will be used for timestamp. By default it is true
          */
-        ALoggerTxtBase(bool local_time = true) noexcept;
+        LoggerTxtBase(bool thSafe = true, bool localTime = true) noexcept;
 
         /** Add level descriptor
          *
@@ -97,10 +96,10 @@ namespace ALogger {
          *
          * \return Current instance reference
          */
-        ALoggerTxtBase& addLevelDescr(size_t level, const TString& name) noexcept     { _levelsMap[level] = name; return *this; }
+        LoggerTxtBase& AddLevelDescr(size_t level, TStringView name) noexcept  { _levelsMap[level] = name; return *this; }
 
         /** Return levels map */
-        const TlevelsMap& levelsMap() const noexcept                           { return _levelsMap; }
+        const TlevelsMap& LevelsMap() const noexcept                            { return _levelsMap; }
 
         /** Output the text message arguments
         *
@@ -111,7 +110,7 @@ namespace ALogger {
         *
         * \tparam T Message elements types.
         * \warning Each type must be able to to be used as argument for
-        * std::basic_stringstream<TChar>::operator<<(std::forward<T>(args)) call. If not, specialize #ALogger::toStrStream
+        * std::basic_stringstream<TChar>::operator<<(std::forward<T>(args)) call. If not, specialize #ALogger::ToStrStream
         * function
         *
         * \param[in] level Level identifier
@@ -120,7 +119,7 @@ namespace ALogger {
         * \return Current instance reference
         */
         template<typename... T>
-        ALoggerTxtBase& addString(std::size_t level, T&&... args) noexcept;
+        LoggerTxtBase& AddString(std::size_t level, T&&... args) noexcept;
 
         /** Output the text message arguments
         *
@@ -131,7 +130,7 @@ namespace ALogger {
         *
         * \tparam T Message elements types.
         * \warning Each type must be able to to be used as argument for
-        * std::basic_stringstream<TChar>::operator<<(std::forward<T>(args)) call. If not, specialize #ALogger::toStrStream
+        * std::basic_stringstream<TChar>::operator<<(std::forward<T>(args)) call. If not, specialize #ALogger::ToStrStream
         * function
         *
         * \param[in] level Level identifier
@@ -140,32 +139,30 @@ namespace ALogger {
         * \return Current instance reference
         */
         template<typename... T>
-        ALoggerTxtBase& operator() (std::size_t level, T&&... args) noexcept    { return addString(level, std::forward<T>(args)...); }
+        LoggerTxtBase& operator() (std::size_t level, T&&... args) noexcept    { return AddString(level, std::forward<T>(args)...); }
 
         /** Set the associated locale of the stream to the given one
          *
          * \param[in] loc New locale to associate the stream to
          */
-        virtual void imbue(const std::locale& loc) noexcept { (void) loc;}
+        virtual void Imbue(const std::locale& loc) noexcept { (void) loc;}
+
+        /** Output timestamp
+         *
+         * This function outputs current time. It is intentent to be called by children classes.
+         *
+         * \param[in] time Timestamp
+         *
+         * \return String with timestamp
+         */
+        TString OutputTime(std::chrono::system_clock::time_point time) const noexcept;
 
     protected:
-        /** Decorate string
-         *
-         * This function decorates string by using prefix, postfix, timestamp format and space string. It is intentent
-         * to be called by children classes.
-         *
-         * \param[in] level Level identifier
-         * \param[in] time Message timestamp
-         * \param[in] data Message string
-         *
-         * \return Prepared string
-         */
-        TString prepareString(std::size_t level, std::chrono::system_clock::time_point time, const TString& data) const noexcept;
 
         /** Function type to make string
          *
          * This function type is used to make string by using level title, timestamp and data. It is used as
-         * #ALogger::ALoggerTxtBase::setStringMaker function parameter to set default string maker.
+         * #ALogger::LoggerTxtBase::setStringMaker function parameter to set default string maker.
          *
          * \param[in] level Level descriptor
          * \param[in] time Message timestamp
@@ -173,7 +170,7 @@ namespace ALogger {
          *
          * \return Prepared string
          */
-        using TStringMaker = std::function<TString (const TString& level, const std::tm* time, const TString& data)>;
+        using TStringMaker = std::function<TString (const LoggerTxtBase& instance, const TString& level, std::chrono::system_clock::time_point time, TString&& data)>;
 
         /** Set child implementation for string maker
          *
@@ -182,73 +179,114 @@ namespace ALogger {
          * \param[in] stringMaker String maker implementation
          * \return Current instance reference
          */
-        ALoggerTxtBase& setStringMaker(TStringMaker stringMaker) { _stringMaker = stringMaker; return *this; }
+        LoggerTxtBase& SetStringMaker(TStringMaker stringMaker) noexcept { _stringMaker = stringMaker; return *this; }
 
     private:
         TlevelsMap _levelsMap;
-        std::function<std::tm* (const std::time_t*)> _timeConverter;
+
+#ifdef _MSC_VER
+        std::function<errno_t (tm*, const std::time_t*)> _timeConverter;
+#else
+        std::function<std::tm* (const std::time_t*, tm*)> _timeConverter;
+#endif // _MSC_VER
         TStringMaker _stringMaker;
 
-        TStringMaker selectDefaultStringMaker() noexcept;
+        void ChronoTimeToTm(std::chrono::system_clock::time_point time, tm& timeBuffer) const noexcept
+        {
+            time_t timeMoment{ std::chrono::system_clock::to_time_t(time) };
+
+#ifdef _MSC_VER
+            _timeConverter(&timeBuffer, &timeMoment);
+#else
+            _timeConverter(&timeMoment, &timeBuffer);
+#endif // _MSC_VER
+        }
     };
 
-    template<bool _ThrSafe, typename _TChar>
-    ALoggerTxtBase<_ThrSafe, _TChar>::ALoggerTxtBase(bool local_time) noexcept:
-            _timeConverter{local_time ? std::localtime : std::gmtime},
-            _stringMaker(selectDefaultStringMaker())
-    { }
-
-    inline std::string defaultStringMakerChar(const std::string& level, const std::tm* time, const std::string& data) noexcept
+    inline std::string DefaultStringMakerChar(const LoggerTxtBase<char>& instance, const std::string& level, std::chrono::system_clock::time_point time, const std::string& data) noexcept
     {
         using namespace std;
         basic_stringstream<char> sstr;
-        sstr << put_time(time, "%F %T") << " ["s << level << "] "s << data;
+
+        sstr << instance.OutputTime(time) << " ["s << level << "] "s << data;
+
         return sstr.str();
     }
 
-    inline std::wstring defaultStringMakerWChar(const std::wstring& level, const std::tm* time, const std::wstring& data) noexcept
+    inline std::wstring DefaultStringMakerWChar(const LoggerTxtBase<wchar_t>& instance, const std::wstring& level, std::chrono::system_clock::time_point time, const std::wstring& data) noexcept
     {
         using namespace std;
         basic_stringstream<wchar_t> sstr;
-        sstr << put_time(time, L"%F %T") << L" ["s << level << L"] "s << data;
+
+        sstr << instance.OutputTime(time) << L" ["s << level << L"] "s << data;
+
         return sstr.str();
     }
 
-    template<bool _ThrSafe, typename _TChar>
-    typename ALoggerTxtBase<_ThrSafe, _TChar>::TStringMaker ALoggerTxtBase<_ThrSafe, _TChar>::selectDefaultStringMaker() noexcept
+    template<typename _TChar>
+    LoggerTxtBase<_TChar>::LoggerTxtBase(bool thrSafe, bool localTime) noexcept:
+        TBase(thrSafe),
+        _timeConverter(localTime ? localtime_s : gmtime_s)
     {
-        if constexpr (std::is_same_v<_TChar, char>)
-            return defaultStringMakerChar;
-        else if constexpr (std::is_same_v<_TChar, wchar_t>)
-            return defaultStringMakerWChar;
-        else {
-            assert(false && "unsupported character type");
-            return [](auto level, auto time, auto data) { return data; };
+        (void)localTime;
+        using namespace std;
+        if constexpr (is_same_v<_TChar, char>)
+            _stringMaker = DefaultStringMakerChar;
+        else if constexpr (is_same_v<_TChar, wchar_t>)
+            _stringMaker = DefaultStringMakerChar;
+        else
+        {
+            assert(false && "unsupported type");
         }
     }
 
-    template<bool _ThrSafe, typename _TChar>
-    template<typename... T>
-    ALoggerTxtBase<_ThrSafe, _TChar>& ALoggerTxtBase<_ThrSafe, _TChar>::addString(std::size_t level, T&&... args) noexcept
+    template<typename _TChar>
+    typename LoggerTxtBase<_TChar>::TString LoggerTxtBase<_TChar>::OutputTime(std::chrono::system_clock::time_point time) const noexcept
     {
-        std::chrono::system_clock::time_point time = std::chrono::system_clock::now();
-        if (!TBase::taskOrToBeAdded(level))
-            return *this;
-        std::basic_stringstream<_TChar> stream;
-        (toStrStream(stream, std::forward<T>(args)), ...);
-        TBase::addToLog(level, stream.str(), time);
-        return *this;
+        using namespace std;
+        tm timeBuf;
+
+        ChronoTimeToTm(time, timeBuf);
+
+        if constexpr (is_same_v<_TChar, char>)
+        {
+            basic_stringstream<char> sstr;
+            sstr << put_time(&timeBuf, "%F %T");
+            return sstr.str();
+        }
+        else if constexpr (is_same_v<_TChar, wchar_t>)
+        {
+            basic_stringstream<wchar_t> sstr;
+            sstr << put_time(&timeBuf, L"%F %T");
+            return sstr.str();
+        }
+        else
+        {
+            assert(false && "unsupported character type");
+            return TString{};
+        }
     }
 
-    template<bool _ThrSafe, typename _TChar>
-    typename ALoggerTxtBase<_ThrSafe, _TChar>::TString ALoggerTxtBase<_ThrSafe, _TChar>::prepareString(std::size_t level, std::chrono::system_clock::time_point time, const TString& data) const noexcept
+    template<typename _TChar>
+    template<typename... T>
+    LoggerTxtBase<_TChar>& LoggerTxtBase<_TChar>::AddString(std::size_t level, T&&... args) noexcept
     {
         const auto level_it{ _levelsMap.find(level) };
         assert(level_it != _levelsMap.cend());
 
-        std::time_t time_moment{ std::chrono::system_clock::to_time_t(time) };
+        if (!TBase::CanBeAddedToLog(level))
+            return *this;
 
-        return _stringMaker(level_it->second, _timeConverter(&time_moment), data);
+        std::chrono::system_clock::time_point time = std::chrono::system_clock::now();
+
+        std::basic_stringstream<_TChar> stream;
+        (ToStrStream(stream, std::forward<T>(args)), ...);
+
+        TString str = _stringMaker(*this, level_it->second, time, stream.str());
+        
+        TBase::AddToLog(level, str);
+
+        return *this;
     }
 
 } // namespace ALogger

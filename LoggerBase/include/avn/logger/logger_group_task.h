@@ -1,219 +1,134 @@
-//
-// Created by Oleksandr Nemchenko on 11/5/19.
-//
-
-/*! \file logger_group_task.h
- * \brief ALoggerGroupTask class implements loggers task grouping.
- *
- * #ALogger::ALoggerGroupTask class is the templated container for different loggers that can be used simultaneously as one task.
- * This is some kind of #ALogger::ALoggerGroup and #ALogger::ALoggerTask superposition from features point of view.
- *
- * \warning All loggers inside one #ALogger::ALoggerGroup must have the same \a TLogData logger message data type.
- *
- * Here is an example of #ALogger::ALoggerTxtGroup that is #ALogger::ALoggerGroup child for text messages :
- *
- * \code
-constexpr auto WARNING;                                 // ALogger level
-
-ALogger::ALoggerTxtGroup<                                // Loggers group
-        ALogger::ALoggerTxtCOut<true, wchar_t>,          // std::cout target
-        ALogger::ALoggerTxtFile<true, wchar_t>> _log;    // Text file target
-
-const std::locale utf8_locale = locale(locale(), new codecvt_utf8<wchar_t>());
-
-_log.ALogger<1>().imbue(utf8_locale);                  // Sets locale for text file
-
-_log.enableLevel(WARNING);                            // Enable WARNING level
-_log.addTask();                                         // Add tasks
-_log.addString(WARNING, L"Warning message!");         // Outputs message at the task end
-
- * \endcode
- *
- * In this example WARNING level is enabled and some warning message is sent simultaneously to the file and std::cout at
- * the task end.
- *
- */
-
-#ifndef _AVN_LOGGER_LOGGER_GROUP_TASK_H
-#define _AVN_LOGGER_LOGGER_GROUP_TASK_H
+#ifndef _AVN_LOGGER_GROUP_TASK
+#define _AVN_LOGGER_GROUP_TASK
 
 #include <tuple>
+#include <type_traits>
 
-namespace ALogger {
+#include <avn/logger/logger_base.h>
 
-    /** ALogger group task
-     *
-     * You have to call #ALogger::ALoggerGroup::addTask to create new instance and don't need to do it manually.
-     *
-     * \warning All loggers inside one task must have the same \a TLogData logger message data type.
-     *
-     * \tparam _TTaskPtr Task pointers
-     */
-    template< typename... _TTaskPtr >
-    class ALoggerGroupTask {
+namespace ALogger
+{
+    template<typename... _TLogger>
+    class LoggerGroupTaskHolder
+    {
+        template<typename... _TLogger>
+        class LoggerGroupTask
+        {
+        public:
+            using TLoggerGroupTaskHolder = LoggerGroupTaskHolder<_TLogger...>;
+            LoggerGroupTask(TLoggerGroupTaskHolder* ptr) noexcept: _ptr(ptr) {}
+
+            void SetLevels(TLevelsInitList levels) noexcept     { _ptr->SetLevels(levels); }
+            void EnableLevels(TLevelsInitList levels) noexcept  { _ptr->EnableLevels(levels); }
+            void DisableLevels(TLevelsInitList levels) noexcept { _ptr->DisableLevels(levels); }
+            void EnableLevel(TLevel level) noexcept             { _ptr->EnableLevel(level); }
+            void DisableLevel(TLevel level) noexcept            { _ptr->DisableLevel(level); }
+        
+            void Success(bool success = true) noexcept          { _ptr->Success(success); }
+            void Fail(bool fail = true) noexcept                { _ptr->Fail(fail); }
+
+        private:
+            TLoggerGroupTaskHolder* _ptr;
+        };
+
     public:
-        /** Task pointers arraу type */
-        using TArrayPtr = std::tuple< _TTaskPtr... >;
+        using TArrayPtr = std::tuple<_TLogger...>;
+        using TLoggerGroupTask = LoggerGroupTask<_TLogger...>;
 
-        /** ALogger data type */
-        using TLogData = typename std::remove_pointer_t<std::tuple_element_t<0, TArrayPtr>>::TLogData;
+        using TLogData = typename std::tuple_element_t<0, TArrayPtr>::element_type::TLogData;
 
-        ALoggerGroupTask(const TArrayPtr&) = delete;
-        ALoggerGroupTask(TArrayPtr&& task) noexcept : _task(std::move(task )) { }
+        static_assert((std::is_same_v<TLogData, typename _TLogger::element_type::TLogData> && ...), "All loggers in the logger group must have the same TLogData type");
 
-        ~ALoggerGroupTask() noexcept { std::apply([](auto&&... task){ (delete task, ...); }, _task); }
+        LoggerGroupTaskHolder(TArrayPtr&& tasks) noexcept;
+        virtual ~LoggerGroupTaskHolder() = default;
 
-        /** Return task reference to the \a num element */
-        template< size_t num > auto& task() noexcept                { static_assert(num < sizeof...(_TTaskPtr), "Requested element's number is out of this task group size"); return *std::get<num>(_task); }
+        TLoggerGroupTask* operator->() noexcept             { return &_tasksInterface; }
+        const TLoggerGroupTask* operator->() const noexcept { return &_tasksInterface; }
 
-        /** Return task reference to the \a num element */
-        template< size_t num > const auto& task() const noexcept    { static_assert(num < sizeof...(_TTaskPtr), "Requested element's number is out of this task group size"); return *std::get<num>(_task); }
+        constexpr auto SizeOf() const noexcept              { return sizeof...(_TLogger); }
 
-        /** Return loggers amount */
-        constexpr auto sizeOf() const noexcept                      { return sizeof...(_TTaskPtr); }
-
-        /** Set task result for all tasks inside container
-         *
-         * \param[in] success Task result as succeeded or failed
-         *
-         * \return Current task group instance
-         */
-        ALoggerGroupTask& setTaskResult(bool success) noexcept;
-
-        /** Set succeeded task result for all tasks inside container
-         *
-         * \return Current task group instance
-         */
-        ALoggerGroupTask& succeeded() noexcept;
-
-        /** Set failed task result for all tasks inside container
-         *
-         * \return Current task group instance
-         */
-        ALoggerGroupTask& failed() noexcept;
-
-        /** Add the message for all tasks inside container
-         *
-         * Current timestamp will be used
-         *
-         * \param[in] level Message level
-         * \param[in] data Message to be output
-         *
-         * \return Current task group instance
-         */
-        ALoggerGroupTask& addToLog(std::size_t level, const TLogData& data) noexcept;
-
-        /** Add the message for all tasks inside container
-         *
-         * \param[in] level Message level
-         * \param[in] data Message to be output
-         * \param[in] time Message timestamp. Current time by default
-         *
-         * \return Current task group instance
-         */
-        ALoggerGroupTask& addToLog(std::size_t level, const TLogData& data, std::chrono::system_clock::time_point time) noexcept;
-
-        /** Enable or disable specified logger level
-         *
-         * \param[in] level Message level to be disabled or enabled
-         * \param[in] to_enable Enables or disabled logger level
-         *
-         * \return Current task group instance
-         */
-        ALoggerGroupTask& initLevel(std::size_t level, bool to_enable) noexcept;
-
-        /** Enable specified logger levels
-         *
-         * \param[in] levels Message levels to be enabled
-         *
-         * \return Current task group instance
-         */
-        ALoggerGroupTask& setLevels(TLevels levels) noexcept;
-
-        /** Enable specified logger level
-         *
-         * \param[in] levels Message level to be enabled
-         *
-         * \return Current task group instance
-         */
-        ALoggerGroupTask& enableLevel(std::size_t level) noexcept;
-
-        /** Disable specified logger level
-         *
-         * \param[in] levels Message level to be disabled
-         *
-         * \return Current task group instance
-         */
-        ALoggerGroupTask& disableLevel(std::size_t level) noexcept;
+        void SetLevels(TLevelsInitList levels) noexcept;
+        void EnableLevels(TLevelsInitList levels) noexcept;
+        void DisableLevels(TLevelsInitList levels) noexcept;
+        void EnableLevel(TLevel level) noexcept;
+        void DisableLevel(TLevel level) noexcept;
+        
+        void Success(bool success = true) noexcept;
+        void Fail(bool fail = true) noexcept;
 
     private:
-        TArrayPtr _task;
+        TArrayPtr _tasksPtr;
+        TLoggerGroupTask _tasksInterface;
+    };
+}
 
-    };  // class ALoggerGroup
+template<typename... _TLogger>
+ALogger::LoggerGroupTaskHolder<_TLogger...>::LoggerGroupTaskHolder(TArrayPtr&& tasks) noexcept :
+    _tasksPtr(std::move(tasks)), _tasksInterface(this)
+{
+}
 
-    template< typename... _TTaskPtr >
-    ALoggerGroupTask<_TTaskPtr...>& ALoggerGroupTask<_TTaskPtr...>::setTaskResult(bool success) noexcept
+template<typename... _TLogger>
+void ALogger::LoggerGroupTaskHolder<_TLogger...>::SetLevels(TLevelsInitList levels) noexcept
+{
+    std::apply([&levels] (auto&... task)
+    { 
+        (task->SetLevels(levels), ...);
+    }, _tasksPtr);
+}
+
+template<typename... _TLogger>
+void ALogger::LoggerGroupTaskHolder<_TLogger...>::EnableLevels(TLevelsInitList levels) noexcept
+{
+    std::apply([&levels] (auto&... task)
     {
-        std::apply([success](auto&... task) { (task->setTaskResult(success), ...); }, _task);
-        return *this;
-    }
+        (task->EnableLevels(levels), ...);
+    }, _tasksPtr);
+}
 
-    template< typename... _TTaskPtr >
-    ALoggerGroupTask<_TTaskPtr...>& ALoggerGroupTask<_TTaskPtr...>::succeeded() noexcept
+template<typename... _TLogger>
+void ALogger::LoggerGroupTaskHolder<_TLogger...>::DisableLevels(TLevelsInitList levels) noexcept
+{
+    std::apply([&levels] (auto&... task)
     {
-        std::apply([](auto&... task) { (task->succeeded(), ...); }, _task);
-        return *this;
-    }
+        (task->DisableLevels(levels), ...);
+    }, _tasksPtr);
+}
 
-    template< typename... _TTaskPtr >
-    ALoggerGroupTask<_TTaskPtr...>& ALoggerGroupTask<_TTaskPtr...>::failed() noexcept
+template<typename... _TLogger>
+void ALogger::LoggerGroupTaskHolder<_TLogger...>::EnableLevel(TLevel level) noexcept
+{
+    std::apply([level] (auto&... task)
     {
-        std::apply([](auto&... task) { (task->failed(), ...); }, _task);
-        return *this;
-    }
+        (task->EnableLevel(level), ...);
+    }, _tasksPtr);
+}
 
-    template< typename... _TTaskPtr >
-    ALoggerGroupTask<_TTaskPtr...>& ALoggerGroupTask<_TTaskPtr...>::initLevel(std::size_t level, bool to_enable) noexcept
+template<typename... _TLogger>
+void ALogger::LoggerGroupTaskHolder<_TLogger...>::DisableLevel(TLevel level) noexcept
+{
+    std::apply([level] (auto&... task)
     {
-            std::apply([level,to_enable](auto&... task) { (task->initLevel(level, to_enable), ...); }, _task);
-            return *this;
-    }
+        (task->DisableLevel(level), ...);
+    }, _tasksPtr);
+}
 
-    template< typename... _TTaskPtr >
-    ALoggerGroupTask<_TTaskPtr...>& ALoggerGroupTask<_TTaskPtr...>::setLevels(TLevels levels) noexcept
+template<typename... _TLogger>
+void ALogger::LoggerGroupTaskHolder<_TLogger...>::Success(bool success) noexcept
+{
+    std::apply([success] (auto&... task)
     {
-            std::apply([&levels](auto&... task) { (task->setLevels(levels), ...); }, _task);
-            return *this;
-    }
+        (task->Success(success), ...);
+    }, _tasksPtr);
+}
 
-    template< typename... _TTaskPtr >
-    ALoggerGroupTask<_TTaskPtr...>& ALoggerGroupTask<_TTaskPtr...>::enableLevel(std::size_t level) noexcept
+template<typename... _TLogger>
+void ALogger::LoggerGroupTaskHolder<_TLogger...>::Fail(bool fail) noexcept
+{
+    std::apply([fail] (auto&... task)
     {
-            std::apply([level](auto&... task) { (task->enableLevel(level), ...); }, _task);
-            return *this;
-    }
+        (task->Fail(fail), ...);
+    }, _tasksPtr);
+}
 
-    template< typename... _TTaskPtr >
-    ALoggerGroupTask<_TTaskPtr...>& ALoggerGroupTask<_TTaskPtr...>::disableLevel(std::size_t level) noexcept
-    {
-            std::apply([level](auto&... task) { (task->disableLevel(level), ...); }, _task);
-            return *this;
-    }
-
-    template< typename... _TTaskPtr >
-    ALoggerGroupTask<_TTaskPtr...>& ALoggerGroupTask<_TTaskPtr...>::addToLog(std::size_t level, const TLogData& data) noexcept
-    {
-        std::apply([level,data](auto&... task) { (task->addToLog(level, data), ...); }, _task);
-        return *this;
-    }
-
-    template< typename... _TTaskPtr >
-    ALoggerGroupTask<_TTaskPtr...>& ALoggerGroupTask<_TTaskPtr...>::addToLog(std::size_t level, const TLogData& data, std::chrono::system_clock::time_point time) noexcept
-    {
-        std::apply([level,data,time](auto&... task) { (task->addToLog(level, data, time), ...); }, _task);
-        return *this;
-    }
-
-}   // namespace ALogger
-
-#endif // _AVN_LOGGER_LOGGER_GROUP_TASK_H
+#endif // _AVN_LOGGER_GROUP_TASK

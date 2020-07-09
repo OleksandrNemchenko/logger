@@ -1,5 +1,3 @@
-// This is an independent project of an individual developer. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++, C#, and Java: http://www.viva64.com
 
 #include <functional>
 #include <iostream>
@@ -8,416 +6,342 @@
 
 #include <tests.h>
 #include <avn/logger/logger_base.h>
+#include <avn/logger/logger_task.h>
 #include <avn/logger/logger_group.h>
 
 using namespace std::string_literals;
 
-namespace {
-
-    bool _firstError;
-    size_t _loggerTest1Instances;
-
-    class ALoggerTest : public ALogger::ALoggerBase<false, std::string> {
-    public:
-        ALoggerTest()   { ++_loggerTest1Instances; }
-        ~ALoggerTest()  { --_loggerTest1Instances; }
-
-        bool outData(std::size_t level, std::chrono::system_clock::time_point time, const std::string& data) noexcept override
-        {
-            ++_calls._outStrings;
-            return true;
-        }
-
-        using ALoggerBase::addTask;
-        using ALoggerBase::enableLevel;
-        using ALoggerBase::disableLevel;
-        using ALoggerBase::addToLog;
-        using ALoggerBase::setLevels;
-
-        void ClearFlags() { _calls._allFlags = 0; }
-
-        using TCalls = union {
-            size_t _allFlags = 0;
-            struct {
-                unsigned _outStrings : 3;
-            };
-        };
-
-        static TCalls _calls;
-
-    };
-
-    ALoggerTest::TCalls ALoggerTest::_calls;
-    size_t logger_test_2_instances;
-
-    class ALoggerTest2 : public ALogger::ALoggerBase<true, std::string> {
-    public:
-        ALoggerTest2()  { ++logger_test_2_instances; }
-        ~ALoggerTest2() { --logger_test_2_instances; }
-
-        bool outData(std::size_t level, std::chrono::system_clock::time_point time, const std::string& data) noexcept override
-        {
-            ++_calls._outStrings;
-            return true;
-        }
-
-        using ALoggerBase::addTask;
-        using ALoggerBase::enableLevel;
-        using ALoggerBase::disableLevel;
-        using ALoggerBase::addToLog;
-        using ALoggerBase::setLevels;
-
-        void ClearFlags() { _calls._allFlags = 0; }
-
-        using TCalls = union {
-            size_t _allFlags = 0;
-            struct {
-                unsigned _outStrings : 3;
-            };
-        };
-
-        static TCalls _calls;
-
-    };
-
-    ALoggerTest2::TCalls ALoggerTest2::_calls;
-
-#ifdef TEST_ERROR_1
-    class ALoggerTest_ERROR1 : public ALogger::ALoggerBase<true, std::wstring>{ bool outData(std::size_t level, std::chrono::system_clock::time_point time, const std::wstring& data) noexcept override { return true; } };
-    ALogger::ALoggerGroup<ALoggerTest, ALoggerTest2, ALoggerTest_ERROR1> err_grp;
-#endif
-
-    ALoggerTest _testLog;
-    ALogger::ALoggerGroup<ALoggerTest, ALoggerTest2> _logGrp;
-    size_t _errors;
-
-    template<typename... T>
-    void makeStep(std::function<bool()> test, T&&... descr)
-    {
-        _testLog.ClearFlags();
-        if (!test()) {
-            if (_firstError) {
-                std::cout << "ERROR" << std::endl;
-                _firstError = false;
-            }
-            std::cout << "[ERROR] ";
-            (std::cout << ... << std::forward<T>(descr));
-            std::cout << std::endl;
-            ++_errors;
-        }
-    };
-
-}   // namespace
-
-size_t _testLogger_group_task(void)
+namespace
 {
-    _errors = 0;
 
-    makeStep([]()
-    {
-        auto task = _logGrp.addTask(ALogger::TLevels{3});
-
-        task.task<0>().succeeded();
-        task.task<1>().failed();
-
-        task.addToLog(1, "+"s);
-        if (ALoggerTest::_calls._outStrings != 0 && ALoggerTest2::_calls._outStrings != 1)
-            return false;
-
-        return true;
-    }, "Test _testLogger_group_task.1 : Incorrect succeeded / failed");
-
-    return _errors;
-}
-
-size_t _testLogger_task(void)
+class Logger : public ALogger::LoggerBase<std::string>
 {
-    _errors = 0;
+public:
+    Logger() : LoggerBase(true)    {}
+    size_t cntr = 0;
 
-    _loggerTest1Instances = 0;
+    void SetLogLevel(ALogger::TLevel level) noexcept    { _level = level; }
+    bool operator<<(const std::string& str) noexcept    { return AddToLog(_level, str); }
 
-    makeStep([]()
+private:
+    ALogger::TLevel _level;
+    bool OutputImpl(const TLogData& logData) noexcept override
     {
-        _testLog.setLevels({1, 3});
-        if (_testLog.taskOrToBeAdded(2))
-            return false;
-
-        {
-            _testLog.ClearFlags();
-            auto task = _testLog.addTask();
-            _testLog.addToLog(1, "+"s);
-            _testLog.addToLog(2, "-"s);
-            _testLog.addToLog(3, "+"s);
-            task.setTaskResult(true);
-            if (!_testLog.taskOrToBeAdded(2))
-                return false;
-        }
-        if (ALoggerTest::_calls._outStrings != 2)
-            return false;
-
-        {
-            _testLog.ClearFlags();
-            auto task = _testLog.addTask(ALogger::TLevels{ 2 });
-            _testLog.addToLog(1, "-");
-            _testLog.addToLog(2, "+");
-            _testLog.addToLog(3, "-");
-            task.setTaskResult(true);
-        }
-        if (ALoggerTest::_calls._outStrings != 1)
-            return false;
-
-        {
-            _testLog.ClearFlags();
-            auto task = _testLog.addTask(false);
-            _testLog.addToLog(1, "+");
-            _testLog.addToLog(2, "+");
-            _testLog.addToLog(3, "+");
-        }
-        if (ALoggerTest::_calls._outStrings != 3)
-            return false;
-
-        {
-            _testLog.ClearFlags();
-            auto task = _testLog.addTask(true);
-            task.disableLevel(2);
-            _testLog.addToLog(1, "+");
-            _testLog.addToLog(2, "-");
-            _testLog.addToLog(3, "+");
-       }
-        if (ALoggerTest::_calls._outStrings != 2)
-            return false;
-
+        (void) logData;
+        ++cntr;
         return true;
-    }, "Test test_task.1 : Incorrect taskOrToBeAdded, addTask, setLevels, initLevel and addToLog calls inside task");
+    }
+};
 
-    makeStep([]()
-    {
-        bool local_res = true;
-        auto task_step1 = [](){
-            auto task = _testLog.addTask({2}, true);
-            _testLog.addToLog(1, "-");
-            _testLog.addToLog(2, "+");
-            _testLog.addToLog(3, "-");
-        };
-
-        _testLog.setLevels({1, 2, 3});
-        auto task_step2 = [&local_res](){
-            if (!_testLog.taskOrToBeAdded(1) || _testLog.taskOrToBeAdded(4))
-                local_res = false;
-        };
-
-        std::thread another1(task_step1);
-        _testLog.addToLog(4, "-");
-        another1.join();
-        std::thread another2(task_step2);
-        another2.join();
-        return ALoggerTest::_calls._outStrings == 1 && local_res;
-
-    }, "Test test_task.2 : Unable to process different logging level for different threads with successful finish");
-
-    makeStep([]()
-    {
-        _testLog.setLevels({1});
-        {
-            auto task1 = _testLog.addTask(true);
-            _testLog.addToLog(1, "+");
-            {
-                auto task2 = _testLog.addTask(true);
-                _testLog.addToLog(2, "+");
-                _testLog.addToLog(1, "+");
-                task2.failed();
-            }
-            _testLog.addToLog(4, "-");
-        }
-        _testLog.addToLog(1, "+");
-        _testLog.addToLog(4, "-");
-        return ALoggerTest::_calls._outStrings == 4;
-    }, "Test test_task.3 : Unable to process nested tasks");
-
-    makeStep([]()
-    {
-        _testLog.setLevels({1});
-        auto task_step = [](){
-            auto task1 = _testLog.addTask(true);
-            _testLog.addToLog(1, "+");
-            _testLog.addToLog(2, "-");
-        };
-        std::thread another(task_step);
-        {
-            auto task1 = _testLog.addTask(true);
-            _testLog.addToLog(1, "+");
-            {
-                auto task2 = _testLog.addTask(true);
-                _testLog.addToLog(2, "+");
-                _testLog.addToLog(1, "+");
-                task2.failed();
-            }
-            _testLog.addToLog(4, "-");
-        }
-        _testLog.addToLog(1, "+");
-        _testLog.addToLog(4, "-");
-        another.join();
-        return ALoggerTest::_calls._outStrings == 5;
-
-    }, "Test test_task.4 : Unable to process nested tasks in different threads");
-
-    makeStep([]()
-    {
-        return _loggerTest1Instances == 0;
-    }, "Test test_task.last : Incorrect _loggerTest1Instances");
-
-    return _errors;
-
-}
-
-size_t _testLogger_group()
+class Logger2 : public ALogger::LoggerBase<std::string>
 {
-    _errors = 0;
+public:
+    Logger2() : LoggerBase(false)    {}
+    size_t cntr = 0;
 
-    _loggerTest1Instances = 0;
-    logger_test_2_instances = 0;
+    void SetLogLevel(ALogger::TLevel level) noexcept    { _level = level; }
+    bool operator<<(const std::string& str) noexcept    { return AddToLog(_level, str); }
 
-    makeStep([]()
+private:
+    ALogger::TLevel _level;
+    bool OutputImpl(const TLogData& logData) noexcept override
     {
-        _logGrp.logger<0>().ClearFlags();   _logGrp.logger<1>().ClearFlags();
-        if (_logGrp.sizeOf() != 2)  return false;
-
-        _logGrp.logger<0>().setLevels({1}); _logGrp.logger<1>().setLevels({2});
-        if (_logGrp.logger<0>().levels() != ALogger::TLevels{1} || _logGrp.logger<1>().levels() != ALogger::TLevels{2})
-            return false;
-
-        _logGrp.setLevels({3});
-        if (_logGrp.logger<0>().levels() != ALogger::TLevels{3} || _logGrp.logger<1>().levels() != ALogger::TLevels{3})
-            return false;
-
-        _logGrp.initLevel(1, true);
-        if (_logGrp.logger<0>().levels() != ALogger::TLevels{1,3} || _logGrp.logger<1>().levels() != ALogger::TLevels{1,3})
-            return false;
-
-        _logGrp.enableLevel(2);
-        if (_logGrp.logger<0>().levels() != ALogger::TLevels{1,2,3} || _logGrp.logger<1>().levels() != ALogger::TLevels{1,2,3})
-            return false;
-
-        _logGrp.disableLevel(2);
-        if (_logGrp.logger<0>().levels() != ALogger::TLevels{1,3} || _logGrp.logger<1>().levels() != ALogger::TLevels{1,3})
-            return false;
-
+        (void) logData;
+        ++cntr;
         return true;
-    }, "Test _testLogger_group.1 : Incorrect logging levels initialization");
-
-    makeStep([]()
-    {
-        _logGrp.logger<0>().ClearFlags();   _logGrp.logger<1>().ClearFlags();
-        _logGrp.setLevels({1});
-
-        if (!_logGrp.forceAddToLog(1, "+") || !ALoggerTest::_calls._outStrings || !ALoggerTest2::_calls._outStrings)
-            return false;
-
-        _logGrp.logger<0>().ClearFlags(); _logGrp.logger<1>().ClearFlags();
-        if (!_logGrp.addToLog(1, "+") || !ALoggerTest::_calls._outStrings || !ALoggerTest2::_calls._outStrings)
-            return false;
-
-        if (_logGrp.addToLog(2, "-") || ALoggerTest::_calls._outStrings != 1 || ALoggerTest2::_calls._outStrings != 1)
-            return false;
-
-        _logGrp.logger<0>().ClearFlags(); _logGrp.logger<1>().ClearFlags();
-
-        return true;
-    }, "Test _testLogger_group.2 : Incorrect addToLog, forceAddToLog output");
-
-    makeStep([]()
-    {
-        return _loggerTest1Instances == 0 && logger_test_2_instances == 0;
-    }, "Test _testLogger_group.last : Incorrect logger_test_x_instances");
-
-    return _errors;
-}
+    }
+};
 
 size_t _testLogger_base()
 {
-    _errors = 0;
+    size_t errors = 0;
+    
+    Logger base;
 
-    _loggerTest1Instances = 0;
-
-    makeStep([]()
+    base.SetLevels({1, 2, 4});
+    base.DisableLevel(4);
+    base.DisableLevel(3);
+    base.DisableLevels({1, 3});
+    base.EnableLevel(2);
+    base.EnableLevels({1, 5});
+    
+    errors += ALogger::UnitTesting("base", "Invalid SetLevels/DisableLevel(s)/EnableLevel(s) calls", [&base]()
     {
-        _testLog.ClearFlags();
-        _testLog.setLevels({ 1 });
-        if (!_testLog.addToLog(1, "+")      || !ALoggerTest::_calls._outStrings)
-            return false;
+        return base.Levels().count(1) && base.Levels().count(2) && !base.Levels().count(3) && !base.Levels().count(4) && base.Levels().count(5);
+    } );
 
-        _testLog.ClearFlags();
-        if (  _testLog.addToLog(2, "-")      ||  ALoggerTest::_calls._outStrings)
-            return false;
-
-        _testLog.ClearFlags();
-        if (!_testLog.forceAddToLog(1, "+") || !ALoggerTest::_calls._outStrings)
-            return false;
-
-        _testLog.ClearFlags();
-        if (!_testLog.forceAddToLog(2, "+") || !ALoggerTest::_calls._outStrings)
-            return false;
-        _testLog.ClearFlags();
-
-        return true;
-    }, "Test _testLogger_base.1 : Incorrect addToLog, forceAddToLog calls without task");
-
-    makeStep([]()
+    base.cntr = 0;
+    base.SetLogLevel(0);    base << "test"s;
+    base.SetLogLevel(1);    base << "test"s;
+    errors += ALogger::UnitTesting("base", "Invalid output log levels usage", [&base]()
     {
-        _testLog.ClearFlags();
+        return base.cntr == 1;
+    } );
 
-        _testLog.setLevels({ 1, 2, 4 });
-        if (_testLog.levels() != ALogger::TLevels {1, 2, 4})
-            return false;
+    base.cntr = 0;
+    base.ForceOutput();
+    base.SetLogLevel(1);    base << "test"s;
+    base.SetLogLevel(10);   base << "test"s;
+    base.UnforceOutput();
+    base.SetLogLevel(10);   base << "test"s;
+    errors += ALogger::UnitTesting("base", "Invalid ForceOutput/UnforceOutput calls processing", [&base]()
+    {
+        return base.cntr == 2;
+    } );
 
-        _testLog.initLevel(3);
-        if (_testLog.levels() != ALogger::TLevels {1, 2, 3, 4})
-            return false;
-
-        _testLog.initLevel(3, false);
-        if (_testLog.levels() != ALogger::TLevels {1, 2, 4})
-            return false;
-
-        _testLog.enableLevel(3);
-        if (_testLog.levels() != ALogger::TLevels {1, 2, 3, 4})
-            return false;
-
-        _testLog.disableLevel(3);
-        if (_testLog.levels() != ALogger::TLevels {1, 2, 4})
-            return false;
-
-        if (!_testLog.addToLog(1, "+") || _testLog.addToLog(3, "-") || ALoggerTest::_calls._outStrings != 1)
-            return false;
-        _testLog.ClearFlags();
-
-        if (!_testLog.taskOrToBeAdded(1) || _testLog.taskOrToBeAdded(3))
-            return false;
-
-        return true;
-    }, "Test _testLogger_base.2 : Incorrect setLevels, initLevel, enableLevel, disableLevel, taskOrToBeAdded calls without task");
-
-    makeStep([](){
-        return _loggerTest1Instances == 0;
-    }, "Test _testLogger_base.last : Incorrect _loggerTest1Instances");
-
-    return _errors;
+    return errors;
 }
 
+size_t _testLogger_task_base()
+{
+    size_t errors = 0;
+    
+    Logger base;
+    
+    base.SetLevels({1, 2, 4});
+    base.DisableLevel(4);
+    base.DisableLevel(3);
+    base.DisableLevels({1, 3});
+    base.EnableLevel(2);
+    base.EnableLevels({1, 5});
+
+    {
+        auto task = base.StartTask();
+        base.SetLevels({});
+        errors += ALogger::UnitTesting("task_base", "Invalid task level processing: clear logger levels after task initialization", [&base, &task]()
+        {
+            return !base.Levels().count(1) && !base.Levels().count(2) && !base.Levels().count(3) && !base.Levels().count(4) && !base.Levels().count(5) &&
+                   task->Levels().count(1) && task->Levels().count(2) && !task->Levels().count(3) && !task->Levels().count(4) && task->Levels().count(5);
+        } );
+
+        task->SetLevels({});
+        errors += ALogger::UnitTesting("task_base", "Invalid task level processing: clear task levels", [&base, &task]()
+        {
+            return !task->Levels().count(1) && !task->Levels().count(2) && !task->Levels().count(3) && !task->Levels().count(4) && !task->Levels().count(5);
+        } );
+
+        task->DisableLevel(4);
+        task->DisableLevel(3);
+        task->DisableLevels({1, 3});
+        task->EnableLevel(2);
+        task->EnableLevels({1, 5});
+        errors += ALogger::UnitTesting("task_base", "Invalid task level processing: DisableLevel(s)/EnableLevel(s)", [&base, &task]()
+        {
+            return task->Levels().count(1) && task->Levels().count(2) && !task->Levels().count(3) && !task->Levels().count(4) && task->Levels().count(5);
+        } );
+
+        base.cntr = 0;
+        base.SetLogLevel(0);    base << "test"s;
+        base.SetLogLevel(1);    base << "test"s;
+        task->Success();
+
+        base.UnforceOutput(false);
+        base.SetLogLevel(15);    base << "test"s;
+        errors += ALogger::UnitTesting("task_base", "Invalid task outputs while task is not closed", [&base, &task]()
+        {
+            return base.cntr == 1;
+        } );
+
+        base.UnforceOutput();
+        base.cntr = 0;
+    }
+    errors += ALogger::UnitTesting("task_base", "Invalid task outputs after task closing", [&base]()
+    {
+        return base.cntr == 1;
+    } );
+
+    {
+        auto task = base.StartTask();
+
+        base.DisableTasks();
+        base.SetLogLevel(1);    base << "test"s;
+        errors += ALogger::UnitTesting("task_base", "Invalid DisableTasks call processing", [&base]()
+        {
+            return base.cntr == 1;
+        } );
+        base.EnableTasks();
+    }
+
+    {
+        auto task = base.StartTask();
+        task->SetLevels({1});
+
+        base.cntr = 0;
+        base.SetLogLevel(0);    base << "test"s;
+        base.SetLogLevel(1);    base << "test"s;
+
+        task->Fail();
+    }
+    errors += ALogger::UnitTesting("task_base", "Invalid Fail call processing", [&base]()
+    {
+        return base.cntr == 2;
+    } );
+
+    return errors;
+}
+
+size_t _testLogger_group_base()
+{
+    size_t errors = 0;
+    
+    ALogger::LoggerGroup<Logger, Logger2> grp;
+    errors += ALogger::UnitTesting("group_base", "Invalid SizeOf call processing ", [&grp]()
+    {
+        return grp.SizeOf() == 2;
+    } );
+
+    grp.SetLevels({1});
+    grp.Logger<0>().SetLogLevel(1); grp.Logger<1>().SetLogLevel(1);    grp.Logger<0>() << "test"s;  grp.Logger<1>() << "test"s;
+    errors += ALogger::UnitTesting("group_base", "Invalid SetLevels call processing ", [&grp]()
+    {
+        return grp.Logger<0>().cntr == 1 && grp.Logger<1>().cntr == 1;
+    } );
+
+    grp.SetLevels({1, 2, 3, 4});
+    grp.EnableLevels({5, 6});
+    grp.EnableLevel(7);
+    grp.DisableLevels({2, 3});
+    grp.DisableLevel(1);
+
+    grp.Logger<0>().cntr = 0;   grp.Logger<1>().cntr = 0;
+    grp.Logger<0>().SetLogLevel(1); grp.Logger<1>().SetLogLevel(1);    grp.Logger<0>() << "test"s;  grp.Logger<1>() << "test"s;
+    grp.Logger<0>().SetLogLevel(2); grp.Logger<1>().SetLogLevel(2);    grp.Logger<0>() << "test"s;  grp.Logger<1>() << "test"s;
+    grp.Logger<0>().SetLogLevel(3); grp.Logger<1>().SetLogLevel(3);    grp.Logger<0>() << "test"s;  grp.Logger<1>() << "test"s;
+    grp.Logger<0>().SetLogLevel(4); grp.Logger<1>().SetLogLevel(4);    grp.Logger<0>() << "test"s;  grp.Logger<1>() << "test"s;
+    grp.Logger<0>().SetLogLevel(5); grp.Logger<1>().SetLogLevel(5);    grp.Logger<0>() << "test"s;  grp.Logger<1>() << "test"s;
+    grp.Logger<0>().SetLogLevel(6); grp.Logger<1>().SetLogLevel(6);    grp.Logger<0>() << "test"s;  grp.Logger<1>() << "test"s;
+    grp.Logger<0>().SetLogLevel(7); grp.Logger<1>().SetLogLevel(7);    grp.Logger<0>() << "test"s;  grp.Logger<1>() << "test"s;
+    errors += ALogger::UnitTesting("group_base", "Invalid SetLevels/EnableLevel(s)/DisableLevel(s) calls processing ", [&grp]()
+    {
+        return grp.Logger<0>().cntr == 4 && grp.Logger<1>().cntr == 4;
+    } );
+
+    grp.Logger<0>().cntr = 0;   grp.Logger<1>().cntr = 0;
+    grp.ForceOutput();
+    grp.Logger<0>().SetLogLevel(1); grp.Logger<1>().SetLogLevel(1);    grp.Logger<0>() << "test"s;  grp.Logger<1>() << "test"s;
+    grp.Logger<0>().SetLogLevel(2); grp.Logger<1>().SetLogLevel(2);    grp.Logger<0>() << "test"s;  grp.Logger<1>() << "test"s;
+    grp.Logger<0>().SetLogLevel(3); grp.Logger<1>().SetLogLevel(3);    grp.Logger<0>() << "test"s;  grp.Logger<1>() << "test"s;
+    grp.Logger<0>().SetLogLevel(4); grp.Logger<1>().SetLogLevel(4);    grp.Logger<0>() << "test"s;  grp.Logger<1>() << "test"s;
+    grp.Logger<0>().SetLogLevel(5); grp.Logger<1>().SetLogLevel(5);    grp.Logger<0>() << "test"s;  grp.Logger<1>() << "test"s;
+    grp.Logger<0>().SetLogLevel(6); grp.Logger<1>().SetLogLevel(6);    grp.Logger<0>() << "test"s;  grp.Logger<1>() << "test"s;
+    grp.Logger<0>().SetLogLevel(7); grp.Logger<1>().SetLogLevel(7);    grp.Logger<0>() << "test"s;  grp.Logger<1>() << "test"s;
+    errors += ALogger::UnitTesting("group_base", "Invalid ForceOutput call processing ", [&grp]()
+    {
+        return grp.Logger<0>().cntr == 7 && grp.Logger<1>().cntr == 7;
+    } );
+
+    grp.Logger<0>().cntr = 0;   grp.Logger<1>().cntr = 0;
+    grp.UnforceOutput();
+    grp.Logger<0>().SetLogLevel(1); grp.Logger<1>().SetLogLevel(1);    grp.Logger<0>() << "test"s;  grp.Logger<1>() << "test"s;
+    grp.Logger<0>().SetLogLevel(2); grp.Logger<1>().SetLogLevel(2);    grp.Logger<0>() << "test"s;  grp.Logger<1>() << "test"s;
+    grp.Logger<0>().SetLogLevel(3); grp.Logger<1>().SetLogLevel(3);    grp.Logger<0>() << "test"s;  grp.Logger<1>() << "test"s;
+    grp.Logger<0>().SetLogLevel(4); grp.Logger<1>().SetLogLevel(4);    grp.Logger<0>() << "test"s;  grp.Logger<1>() << "test"s;
+    grp.Logger<0>().SetLogLevel(5); grp.Logger<1>().SetLogLevel(5);    grp.Logger<0>() << "test"s;  grp.Logger<1>() << "test"s;
+    grp.Logger<0>().SetLogLevel(6); grp.Logger<1>().SetLogLevel(6);    grp.Logger<0>() << "test"s;  grp.Logger<1>() << "test"s;
+    grp.Logger<0>().SetLogLevel(7); grp.Logger<1>().SetLogLevel(7);    grp.Logger<0>() << "test"s;  grp.Logger<1>() << "test"s;
+    errors += ALogger::UnitTesting("group_base", "Invalid UnforceOutput call processing ", [&grp]()
+    {
+        return grp.Logger<0>().cntr == 4 && grp.Logger<1>().cntr == 4;
+    } );
+
+    return errors;
+}
+
+size_t _testLogger_group_task_base()
+{
+    size_t errors = 0;
+    
+    ALogger::LoggerGroup<Logger, Logger2> grp;
+    grp.SetLevels({1, 2, 3, 4});
+
+    {
+        auto task = grp.StartTask();
+
+        grp.Logger<0>().cntr = 0;       grp.Logger<1>().cntr = 0;
+        grp.Logger<0>().SetLogLevel(0); grp.Logger<1>().SetLogLevel(0);
+        grp.Logger<0>() << "test"s;     grp.Logger<1>() << "test"s;
+
+        task->Success();
+    }
+    errors += ALogger::UnitTesting("group_task_base", "Invalid SetLogLevel call processing for disabled levels", [&grp]()
+    {
+        return grp.Logger<0>().cntr == 0 && grp.Logger<1>().cntr == 0;
+    } );
+
+    {
+        auto task = grp.StartTask();
+
+        grp.Logger<0>().cntr = 0;       grp.Logger<1>().cntr = 0;
+        grp.Logger<0>().SetLogLevel(1); grp.Logger<1>().SetLogLevel(1);
+        grp.Logger<0>() << "test"s;     grp.Logger<1>() << "test"s;
+
+        task->Fail();
+    }
+    errors += ALogger::UnitTesting("group_task_base", "Invalid SetLogLevel call processing for enabled levels", [&grp]()
+    {
+        return grp.Logger<0>().cntr == 1 && grp.Logger<1>().cntr == 1;
+    } );
+
+    {
+        auto task = grp.StartTask();
+        task->SetLevels({1, 2, 3, 4});
+        task->EnableLevels({5, 6});
+        task->EnableLevel(7);
+        task->DisableLevels({2, 3});
+        task->DisableLevel(1);
+
+        grp.Logger<0>().cntr = 0;   grp.Logger<1>().cntr = 0;
+        grp.Logger<0>().SetLogLevel(1); grp.Logger<1>().SetLogLevel(1);    grp.Logger<0>() << "test"s;  grp.Logger<1>() << "test"s;
+        grp.Logger<0>().SetLogLevel(2); grp.Logger<1>().SetLogLevel(2);    grp.Logger<0>() << "test"s;  grp.Logger<1>() << "test"s;
+        grp.Logger<0>().SetLogLevel(3); grp.Logger<1>().SetLogLevel(3);    grp.Logger<0>() << "test"s;  grp.Logger<1>() << "test"s;
+        grp.Logger<0>().SetLogLevel(4); grp.Logger<1>().SetLogLevel(4);    grp.Logger<0>() << "test"s;  grp.Logger<1>() << "test"s;
+        grp.Logger<0>().SetLogLevel(5); grp.Logger<1>().SetLogLevel(5);    grp.Logger<0>() << "test"s;  grp.Logger<1>() << "test"s;
+        grp.Logger<0>().SetLogLevel(6); grp.Logger<1>().SetLogLevel(6);    grp.Logger<0>() << "test"s;  grp.Logger<1>() << "test"s;
+        grp.Logger<0>().SetLogLevel(7); grp.Logger<1>().SetLogLevel(7);    grp.Logger<0>() << "test"s;  grp.Logger<1>() << "test"s;
+
+        task->Success();
+    }
+    errors += ALogger::UnitTesting("group_task_base", "Invalid SetLevels/EnableLevel(s)/DisableLevel(s) calls processing for succeeded task", [&grp]()
+    {
+        return grp.Logger<0>().cntr == 4 && grp.Logger<1>().cntr == 4;
+    } );
+
+    {
+        auto task = grp.StartTask();
+        task->SetLevels({1, 2, 3, 4});
+
+        grp.Logger<0>().cntr = 0;   grp.Logger<1>().cntr = 0;
+        grp.Logger<0>().SetLogLevel(1); grp.Logger<1>().SetLogLevel(1);    grp.Logger<0>() << "test"s;  grp.Logger<1>() << "test"s;
+        grp.Logger<0>().SetLogLevel(2); grp.Logger<1>().SetLogLevel(2);    grp.Logger<0>() << "test"s;  grp.Logger<1>() << "test"s;
+        grp.Logger<0>().SetLogLevel(3); grp.Logger<1>().SetLogLevel(3);    grp.Logger<0>() << "test"s;  grp.Logger<1>() << "test"s;
+        grp.Logger<0>().SetLogLevel(4); grp.Logger<1>().SetLogLevel(4);    grp.Logger<0>() << "test"s;  grp.Logger<1>() << "test"s;
+        grp.Logger<0>().SetLogLevel(5); grp.Logger<1>().SetLogLevel(5);    grp.Logger<0>() << "test"s;  grp.Logger<1>() << "test"s;
+        grp.Logger<0>().SetLogLevel(6); grp.Logger<1>().SetLogLevel(6);    grp.Logger<0>() << "test"s;  grp.Logger<1>() << "test"s;
+        grp.Logger<0>().SetLogLevel(7); grp.Logger<1>().SetLogLevel(7);    grp.Logger<0>() << "test"s;  grp.Logger<1>() << "test"s;
+
+        task->Fail();
+    }
+    errors += ALogger::UnitTesting("group_task_base", "Invalid SetLevels/EnableLevel(s)/DisableLevel(s) calls processing for failed task", [&grp]()
+    {
+        return grp.Logger<0>().cntr == 7 && grp.Logger<1>().cntr == 7;
+    } );
+
+    return errors;
+}
+}
+
+namespace ALogger{
 size_t test_base()
 {
     size_t res = 0;
 
-    std::cout << "START test_base... ";
-
-    _firstError = true;
+    std::cout << "[LOGGER] Base test cases" << std::endl;
 
     res += _testLogger_base();
-    res += _testLogger_group();
-    res += _testLogger_task();
-    res += _testLogger_group_task();
-
-    if (!res)
-        std::cout << "OK" << std::endl;
+    res += _testLogger_task_base();
+    res += _testLogger_group_base();
+    res += _testLogger_group_task_base();
 
     return res;
+}
 }

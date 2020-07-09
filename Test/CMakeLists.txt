@@ -15,6 +15,7 @@ target_sources(test_logger
         PRIVATE
         main.cpp
         src/logger_base.cpp
+        src/logger_txt_base.cpp
         src/logger_txt_file.cpp
         src/logger_txt_cout.cpp
         src/logger_txt_group.cpp

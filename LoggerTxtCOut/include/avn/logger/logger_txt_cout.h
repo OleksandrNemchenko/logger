@@ -50,44 +50,45 @@ namespace ALogger {
      * \tparam _ThrSafe Thread security mode. If true, multithread mode will be used. Otherwise single ther will be activated.
      * @tparam _TChar Character type. Can be char, wchar_t etc.
      */
-    template<bool _ThrSafe, typename _TChar>
-    class ALoggerTxtCOut : public ALoggerTxtBase<_ThrSafe, _TChar> {
+    template<typename _TChar>
+    class LoggerTxtCOut : public LoggerTxtBase<_TChar> {
     public:
-        /** Current thread security mode. If true, multithread mode will be used. Otherwise single ther will be activated */
-        constexpr static bool ThrSafe{ _ThrSafe };
-
         /** Character type for text logger messages */
-        using TChar = _TChar;
+        using TChar = LoggerTxtBase<_TChar>::TChar;
 
         /** String type for text logger messages */
-        using TString = std::basic_string<_TChar>;
+        using TString = LoggerTxtBase<_TChar>::TString;
+        
+        /** String view type for text logger messages */
+        using TStringView = LoggerTxtBase<_TChar>::TStringView;
 
         /** Default constructor with time zone selector
          *
+         * \param[in] thrSafe Boolean flag that has to be true if thread security must be on. By default it is true
          * \param[in] local_time Local time or GMT will be used as time zone. Loca time is selected by default
          */
-        ALoggerTxtCOut(bool local_time = true) noexcept : ALoggerTxtBase<_ThrSafe, _TChar>(local_time)    {}
+        LoggerTxtCOut(bool thrSafe = true, bool local_time = true) noexcept : LoggerTxtBase<_TChar>(thrSafe, local_time)    {}
 
         /** Set the associated locale of the stream to the given one
          *
          * \param[in] loc New locale to associate the stream to
          */
-        void imbue(const std::locale& loc) noexcept override            { outStream().imbue(loc); }
+        void Imbue(const std::locale& loc) noexcept override            { OutStream().imbue(loc); }
 
     private:
-        bool outData(std::size_t level, std::chrono::system_clock::time_point time, const TString& data) noexcept override;
-        static std::basic_ostream<_TChar>& outStream() noexcept;
+        bool OutputImpl(const TString& data) noexcept override;
+        static std::basic_ostream<_TChar>& OutStream() noexcept;
     };
 
-    template<bool _ThrSafe, typename _TChar>
-    bool ALoggerTxtCOut<_ThrSafe, _TChar>::outData(std::size_t level, std::chrono::system_clock::time_point time, const TString& data) noexcept
+    template<typename _TChar>
+    bool LoggerTxtCOut<_TChar>::OutputImpl(const TString& data) noexcept
     {
-        outStream() << ALoggerTxtBase<_ThrSafe, _TChar>::prepareString(level, time, data) << std::endl;
+        OutStream() << data << std::endl;
         return true;
     }
 
-    template<bool _ThrSafe, typename _TChar>
-    /* static */ std::basic_ostream<_TChar>& ALoggerTxtCOut<_ThrSafe, _TChar>::outStream() noexcept
+    template<typename _TChar>
+    /* static */ std::basic_ostream<_TChar>& LoggerTxtCOut<_TChar>::OutStream() noexcept
     {
         static_assert(std::is_same_v<_TChar, char> || std::is_same_v<_TChar, wchar_t>, "Unsupported stream");
 
@@ -97,6 +98,7 @@ namespace ALogger {
             return std::wcout;
         else {
             assert(false && "unsupported");
+            return std::cout;
         }
     }
 
