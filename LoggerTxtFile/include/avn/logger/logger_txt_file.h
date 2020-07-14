@@ -85,13 +85,13 @@ namespace ALogger {
         LoggerTxtFile(const std::filesystem::path& filename, std::ios_base::openmode mode = std::ios_base::out, bool local_time = true) noexcept :
                 LoggerTxtFile(local_time)
         {
-            openFile(filename, mode);
+            OpenFile(filename, mode);
         }
 
-#ifdef QT_VERSION
+#ifdef ALOGGER_SUPPORT_QT
         /** Constructor with output file configuration
          *
-         * #openFile is called after object construction
+         * #OpenFile is called after object construction
          *
          * \param[in] filename Output file name and path
          * \param[in] mode File mode as std::ios_base::openmode mask. std::ios_base::out by default
@@ -100,9 +100,9 @@ namespace ALogger {
         LoggerTxtFile(const QString& filename, std::ios_base::openmode mode = std::ios_base::out, bool local_time = true) noexcept :
                 LoggerTxtFile(local_time)
         {
-            openFile(filename, mode);
+            OpenFile(filename, mode);
         }
-#endif // QT_VERSION
+#endif // ALOGGER_SUPPORT_QT
 
         /** Open file
          *
@@ -113,7 +113,7 @@ namespace ALogger {
          */
         LoggerTxtFile& OpenFile(const std::filesystem::path& filename, std::ios_base::openmode mode = std::ios_base::out) noexcept    { _fstream.open(filename, mode); return *this; }
 
-#ifdef QT_VERSION
+#ifdef ALOGGER_SUPPORT_QT
         /** Open file
          *
          * \param[in] filename Output file name and path
@@ -122,7 +122,7 @@ namespace ALogger {
          * \return Current instance reference
          */
         LoggerTxtFile& OpenFile(const QString& filename, std::ios_base::openmode mode = std::ios_base::out)    { return openFile(filename.toStdWString(), mode); }
-#endif // QT_VERSION
+#endif // ALOGGER_SUPPORT_QT
 
         /** Close currently opened file
          *
