@@ -34,6 +34,13 @@ namespace ALogger
         const TThreads& Threads() const noexcept            { return _threads; }
         const TTasks& Tasks() const noexcept                { return _threads.at(std::this_thread::get_id()); }
 
+        bool LoggerEnabled() const noexcept                 { return _enableLogger;  }
+        bool IsThreadSafe() const noexcept                  { return _threadSafe; }
+
+        void EnableLogger() noexcept                        { _enableLogger = true; }
+        void DisableLogger() noexcept                       { _enableLogger = false; }
+        void SetThreadSafety(bool threadSafe) noexcept;
+
         void SetLevels(TLevelsInitList levels) noexcept     { _levels = levels; }
         void EnableLevels(TLevelsInitList levels) noexcept  { for (const auto level : levels) EnableLevel(level); }
         void DisableLevels(TLevelsInitList levels) noexcept { for (const auto level : levels) DisableLevel(level); }
@@ -59,6 +66,7 @@ namespace ALogger
         bool _threadSafe;
         bool _forceOutput = false;
         bool _enableTasks = true;
+        bool _enableLogger = true;
         TLevels _levels;
         TThreads _threads;
 
@@ -76,10 +84,9 @@ namespace ALogger
 
 template<typename _TLogData>
 ALogger::LoggerBase<_TLogData>::LoggerBase(bool threadSafe) noexcept :
-    _threadSafe(threadSafe)
+    _threadSafe(false)
 {
-    if (threadSafe)
-        _mutex = std::make_unique<std::recursive_mutex>();
+    SetThreadSafety(threadSafe);
 }
 
 template<typename _TLogData>
@@ -93,9 +100,26 @@ ALogger::LoggerBase<_TLogData>::~LoggerBase()
 }
 
 template<typename _TLogData>
+void ALogger::LoggerBase<_TLogData>::SetThreadSafety(bool threadSafe) noexcept
+{
+    if (_threadSafe == threadSafe)
+        return;
+
+    _threadSafe = threadSafe;
+
+    if (!_threadSafe)
+        _mutex.reset();
+    else
+        _mutex = std::make_unique<std::recursive_mutex>();
+}
+
+template<typename _TLogData>
 template<typename TData>
 bool ALogger::LoggerBase<_TLogData>::AddToLog(TLevel level, TData&& logData) noexcept
 {
+    if (!_enableLogger)
+        return false;
+
     if (_forceOutput)
         return Output(logData);
 
@@ -118,6 +142,9 @@ bool ALogger::LoggerBase<_TLogData>::AddToLog(TLevel level, TData&& logData) noe
 template<typename _TLogData>
 bool ALogger::LoggerBase<_TLogData>::CanBeAddedToLog(TLevel level) noexcept
 {
+    if (!_enableLogger)
+        return false;
+
     if (_forceOutput)
         return true;
 

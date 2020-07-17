@@ -71,12 +71,30 @@ size_t _testLogger_base()
     } );
 
     base.cntr = 0;
+    base.DisableLogger();
+    base.SetLogLevel(0);    base << "test"s;
+    base.SetLogLevel(1);    base << "test"s;
+    errors += ALogger::UnitTesting("base", "Invalid DisableLogger/LoggerEnabled calls", [&base]()
+    {
+        return base.cntr == 0 && !base.LoggerEnabled();
+    });
+
+    base.cntr = 0;
+    base.EnableLogger();
+    base.SetLogLevel(0);    base << "test"s;
+    base.SetLogLevel(1);    base << "test"s;
+    errors += ALogger::UnitTesting("base", "Invalid EnableLogger/LoggerEnabled calls", [&base]()
+    {
+        return base.cntr == 1 && base.LoggerEnabled();
+    });
+
+    base.cntr = 0;
     base.SetLogLevel(0);    base << "test"s;
     base.SetLogLevel(1);    base << "test"s;
     errors += ALogger::UnitTesting("base", "Invalid output log levels usage", [&base]()
     {
         return base.cntr == 1;
-    } );
+    });
 
     base.cntr = 0;
     base.ForceOutput();
