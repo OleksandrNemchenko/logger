@@ -76,7 +76,7 @@ size_t _testLogger_base()
     base.SetLogLevel(1);    base << "test"s;
     errors += ALogger::UnitTesting("base", "Invalid DisableLogger/LoggerEnabled calls", [&base]()
     {
-        return base.cntr == 0 && !base.LoggerEnabled();
+        return base.cntr == 0 && !base.IsLoggerEnabled();
     });
 
     base.cntr = 0;
@@ -85,7 +85,7 @@ size_t _testLogger_base()
     base.SetLogLevel(1);    base << "test"s;
     errors += ALogger::UnitTesting("base", "Invalid EnableLogger/LoggerEnabled calls", [&base]()
     {
-        return base.cntr == 1 && base.LoggerEnabled();
+        return base.cntr == 1 && base.IsLoggerEnabled();
     });
 
     base.cntr = 0;
