@@ -76,7 +76,7 @@ size_t _testLogger_base()
     base.SetLogLevel(1);    base << "test"s;
     errors += ALogger::UnitTesting("base", "Invalid DisableLogger/LoggerEnabled calls", [&base]()
     {
-        return base.cntr == 0 && !base.LoggerEnabled();
+        return base.cntr == 0 && !base.IsLoggerEnabled();
     });
 
     base.cntr = 0;
@@ -85,7 +85,7 @@ size_t _testLogger_base()
     base.SetLogLevel(1);    base << "test"s;
     errors += ALogger::UnitTesting("base", "Invalid EnableLogger/LoggerEnabled calls", [&base]()
     {
-        return base.cntr == 1 && base.LoggerEnabled();
+        return base.cntr == 1 && base.IsLoggerEnabled();
     });
 
     base.cntr = 0;
@@ -97,12 +97,12 @@ size_t _testLogger_base()
     });
 
     base.cntr = 0;
-    base.ForceOutput();
+    bool state = base.ForceOutput();
     base.SetLogLevel(1);    base << "test"s;
     base.SetLogLevel(10);   base << "test"s;
-    base.UnforceOutput();
+    base.ForceOutput(state);
     base.SetLogLevel(10);   base << "test"s;
-    errors += ALogger::UnitTesting("base", "Invalid ForceOutput/UnforceOutput calls processing", [&base]()
+    errors += ALogger::UnitTesting("base", "Invalid ForceOutput call processing", [&base]()
     {
         return base.cntr == 2;
     } );
@@ -153,14 +153,14 @@ size_t _testLogger_task_base()
         base.SetLogLevel(1);    base << "test"s;
         task->Success();
 
-        base.UnforceOutput(false);
+        base.ForceOutput(true);
         base.SetLogLevel(15);    base << "test"s;
         errors += ALogger::UnitTesting("task_base", "Invalid task outputs while task is not closed", [&base, &task]()
         {
             return base.cntr == 1;
         } );
 
-        base.UnforceOutput();
+        base.ForceOutput(false);
         base.cntr = 0;
     }
     errors += ALogger::UnitTesting("task_base", "Invalid task outputs after task closing", [&base]()
@@ -249,7 +249,7 @@ size_t _testLogger_group_base()
     } );
 
     grp.Logger<0>().cntr = 0;   grp.Logger<1>().cntr = 0;
-    grp.UnforceOutput();
+    grp.ForceOutput(false);
     grp.Logger<0>().SetLogLevel(1); grp.Logger<1>().SetLogLevel(1);    grp.Logger<0>() << "test"s;  grp.Logger<1>() << "test"s;
     grp.Logger<0>().SetLogLevel(2); grp.Logger<1>().SetLogLevel(2);    grp.Logger<0>() << "test"s;  grp.Logger<1>() << "test"s;
     grp.Logger<0>().SetLogLevel(3); grp.Logger<1>().SetLogLevel(3);    grp.Logger<0>() << "test"s;  grp.Logger<1>() << "test"s;
@@ -257,7 +257,7 @@ size_t _testLogger_group_base()
     grp.Logger<0>().SetLogLevel(5); grp.Logger<1>().SetLogLevel(5);    grp.Logger<0>() << "test"s;  grp.Logger<1>() << "test"s;
     grp.Logger<0>().SetLogLevel(6); grp.Logger<1>().SetLogLevel(6);    grp.Logger<0>() << "test"s;  grp.Logger<1>() << "test"s;
     grp.Logger<0>().SetLogLevel(7); grp.Logger<1>().SetLogLevel(7);    grp.Logger<0>() << "test"s;  grp.Logger<1>() << "test"s;
-    errors += ALogger::UnitTesting("group_base", "Invalid UnforceOutput call processing ", [&grp]()
+    errors += ALogger::UnitTesting("group_base", "Invalid ForceOutput(false) call processing ", [&grp]()
     {
         return grp.Logger<0>().cntr == 4 && grp.Logger<1>().cntr == 4;
     } );

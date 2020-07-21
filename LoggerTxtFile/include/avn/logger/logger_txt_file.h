@@ -67,6 +67,9 @@ namespace ALogger {
         /** File stream type */
         using TStream = std::basic_ofstream<_TChar>;
 
+        /** Base logger */
+        using TBase = LoggerTxtBase<_TChar>;
+
         /** Default constructor
          *
          * \param[in] thrSafe Boolean flag that has to be true if thread security must be on. By default it is true
@@ -111,7 +114,7 @@ namespace ALogger {
          *
          * \return Current instance reference
          */
-        LoggerTxtFile& OpenFile(const std::filesystem::path& filename, std::ios_base::openmode mode = std::ios_base::out) noexcept    { _fstream.open(filename, mode); return *this; }
+        LoggerTxtFile& OpenFile(const std::filesystem::path& filename, std::ios_base::openmode mode = std::ios_base::out) noexcept;
 
 #ifdef ALOGGER_SUPPORT_QT
         /** Open file
@@ -220,6 +223,17 @@ namespace ALogger {
             assert(false);
             return false;
         }
+    }
+
+    template<typename _TChar>
+    LoggerTxtFile<_TChar>& LoggerTxtFile<_TChar>::OpenFile(const std::filesystem::path& filename, std::ios_base::openmode mode) noexcept
+    {
+        _fstream.open(filename, mode);
+
+        if (!IsOpenedFile())
+            TBase::DisableLogger();
+
+        return *this;
     }
 
 } // namespace ALogger

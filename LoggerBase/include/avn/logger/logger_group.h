@@ -32,8 +32,7 @@ namespace ALogger
         void DisableLevels(TLevelsInitList levels) noexcept;
         void EnableLevel(TLevel level) noexcept;
         void DisableLevel(TLevel level) noexcept;
-        void ForceOutput(bool force = true) noexcept;
-        void UnforceOutput(bool unforce = true) noexcept;
+        bool ForceOutput(bool force = true) noexcept;
         
         auto StartTask(bool initialSuccessState = false) noexcept;
 
@@ -107,21 +106,15 @@ void ALogger::LoggerGroup<_TLogger...>::DisableLevel(TLevel level) noexcept
 }
 
 template<typename... _TLogger>
-void ALogger::LoggerGroup<_TLogger...>::ForceOutput(bool force) noexcept
+bool ALogger::LoggerGroup<_TLogger...>::ForceOutput(bool force) noexcept
 {
-    std::apply([force] (auto&... logger)
+    bool res = true;
+    std::apply([&res, force] (auto&... logger)
     {
-        (logger.ForceOutput(force), ...);
+        res &= (logger.ForceOutput(force), ...);
     }, _loggers);
-}
 
-template<typename... _TLogger>
-void ALogger::LoggerGroup<_TLogger...>::UnforceOutput(bool unforce) noexcept
-{
-    std::apply([unforce] (auto&... logger)
-    {
-        (logger.UnforceOutput(unforce), ...);
-    }, _loggers);
+    return res;
 }
 
 template<typename... _TLogger>

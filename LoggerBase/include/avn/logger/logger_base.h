@@ -34,11 +34,11 @@ namespace ALogger
         const TThreads& Threads() const noexcept            { return _threads; }
         const TTasks& Tasks() const noexcept                { return _threads.at(std::this_thread::get_id()); }
 
-        bool LoggerEnabled() const noexcept                 { return _enableLogger;  }
+        bool IsLoggerEnabled() const noexcept               { return _loggerEnabled;  }
         bool IsThreadSafe() const noexcept                  { return _threadSafe; }
 
-        void EnableLogger() noexcept                        { _enableLogger = true; }
-        void DisableLogger() noexcept                       { _enableLogger = false; }
+        void EnableLogger() noexcept                        { _loggerEnabled = true; }
+        void DisableLogger() noexcept                       { _loggerEnabled = false; }
         void SetThreadSafety(bool threadSafe) noexcept;
 
         void SetLevels(TLevelsInitList levels) noexcept     { _levels = levels; }
@@ -46,8 +46,7 @@ namespace ALogger
         void DisableLevels(TLevelsInitList levels) noexcept { for (const auto level : levels) DisableLevel(level); }
         void EnableLevel(TLevel level) noexcept             { _levels.emplace(level); }
         void DisableLevel(TLevel level) noexcept            { _levels.erase(level); }
-        void ForceOutput(bool force = true) noexcept        { _forceOutput = force; }
-        void UnforceOutput(bool unforce = true) noexcept    { _forceOutput = !unforce; }
+        bool ForceOutput(bool force = true) noexcept        { bool previousForceState = _forceOutput; _forceOutput = force; return previousForceState; }
 
         auto StartTask(bool initialSuccessState = false) noexcept;
         void EnableTasks(bool enable = true) noexcept       { _enableTasks = enable; }
@@ -66,7 +65,7 @@ namespace ALogger
         bool _threadSafe;
         bool _forceOutput = false;
         bool _enableTasks = true;
-        bool _enableLogger = true;
+        bool _loggerEnabled = true;
         TLevels _levels;
         TThreads _threads;
 
@@ -117,7 +116,7 @@ template<typename _TLogData>
 template<typename TData>
 bool ALogger::LoggerBase<_TLogData>::AddToLog(TLevel level, TData&& logData) noexcept
 {
-    if (!_enableLogger)
+    if (!_loggerEnabled)
         return false;
 
     if (_forceOutput)
@@ -142,7 +141,7 @@ bool ALogger::LoggerBase<_TLogData>::AddToLog(TLevel level, TData&& logData) noe
 template<typename _TLogData>
 bool ALogger::LoggerBase<_TLogData>::CanBeAddedToLog(TLevel level) noexcept
 {
-    if (!_enableLogger)
+    if (!_loggerEnabled)
         return false;
 
     if (_forceOutput)
