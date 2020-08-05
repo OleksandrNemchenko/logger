@@ -175,6 +175,12 @@ namespace ALogger {
          */
         bool IsOpenedFile() const noexcept                                  { return _fstream.is_open(); }
 
+        /** Return current file name path
+         *
+         * \return Log file path
+         */
+        std::filesystem::path FilePath() const noexcept                     { return _filename; }
+
         /** Get output file stream
          *
          * \return Output file stream
@@ -202,6 +208,7 @@ namespace ALogger {
     private:
         bool OutputImpl(const TString& data) noexcept override;
 
+        std::filesystem::path _filename;
         TStream _fstream;
         TLevels _flushLevels;
         bool _flushAlways;
@@ -228,6 +235,7 @@ namespace ALogger {
     template<typename _TChar>
     LoggerTxtFile<_TChar>& LoggerTxtFile<_TChar>::OpenFile(const std::filesystem::path& filename, std::ios_base::openmode mode) noexcept
     {
+        _filename = filename;
         _fstream.open(filename, mode);
 
         if (!IsOpenedFile())
