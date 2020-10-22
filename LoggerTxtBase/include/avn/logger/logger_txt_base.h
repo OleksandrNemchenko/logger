@@ -78,6 +78,19 @@ namespace ALogger {
         /** Levels mapping type */
         using TlevelsMap = std::map<size_t, TString>;
 
+        /** Function type to make string
+         *
+         * This function type is used to make string by using level title, timestamp and data. It is used as
+         * #ALogger::LoggerTxtBase::setStringMaker function parameter to set default string maker.
+         *
+         * \param[in] level Level descriptor
+         * \param[in] time Message timestamp
+         * \param[in] data Message string
+         *
+         * \return Prepared string
+         */
+        using TStringMaker = std::function<TString (const LoggerTxtBase& instance, const TString& level, std::chrono::system_clock::time_point time, TString&& data)>;
+
     private :
         using TBase = LoggerBase<TString>;
 
@@ -157,22 +170,7 @@ namespace ALogger {
          */
         TString OutputTime(std::chrono::system_clock::time_point time) const noexcept;
 
-    protected:
-
-        /** Function type to make string
-         *
-         * This function type is used to make string by using level title, timestamp and data. It is used as
-         * #ALogger::LoggerTxtBase::setStringMaker function parameter to set default string maker.
-         *
-         * \param[in] level Level descriptor
-         * \param[in] time Message timestamp
-         * \param[in] data Message string
-         *
-         * \return Prepared string
-         */
-        using TStringMaker = std::function<TString (const LoggerTxtBase& instance, const TString& level, std::chrono::system_clock::time_point time, TString&& data)>;
-
-        /** Set child implementation for string maker
+        /** Set implementation for string maker
          *
          * Default string maker is initialized during class initialization. You can replace it in your child class.
          *
@@ -180,16 +178,6 @@ namespace ALogger {
          * \return Current instance reference
          */
         LoggerTxtBase& SetStringMaker(TStringMaker stringMaker) noexcept { _stringMaker = stringMaker; return *this; }
-
-    private:
-        TlevelsMap _levelsMap;
-
-#ifdef _MSC_VER
-        std::function<errno_t (tm*, const std::time_t*)> _timeConverter;
-#else
-        std::function<std::tm* (const std::time_t*, tm*)> _timeConverter;
-#endif // _MSC_VER
-        TStringMaker _stringMaker;
 
         void ChronoTimeToTm(std::chrono::system_clock::time_point time, tm& timeBuffer) const noexcept
         {
@@ -201,6 +189,16 @@ namespace ALogger {
             _timeConverter(&timeMoment, &timeBuffer);
 #endif // _MSC_VER
         }
+
+    private:
+        TlevelsMap _levelsMap;
+
+#ifdef _MSC_VER
+        std::function<errno_t (tm*, const std::time_t*)> _timeConverter;
+#else
+        std::function<std::tm* (const std::time_t*, tm*)> _timeConverter;
+#endif // _MSC_VER
+        TStringMaker _stringMaker;
     };
 
     inline std::string DefaultStringMakerChar(const LoggerTxtBase<char>& instance, const std::string& level, std::chrono::system_clock::time_point time, const std::string& data) noexcept
