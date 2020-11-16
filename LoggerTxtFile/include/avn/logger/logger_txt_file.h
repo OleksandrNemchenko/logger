@@ -124,7 +124,7 @@ namespace ALogger {
          *
          * \return Current instance reference
          */
-        LoggerTxtFile& OpenFile(const QString& filename, std::ios_base::openmode mode = std::ios_base::out)    { return openFile(filename.toStdWString(), mode); }
+        LoggerTxtFile& OpenFile(const QString& filename, std::ios_base::openmode mode = std::ios_base::out)    { return OpenFile(filename.toStdWString(), mode); }
 #endif // ALOGGER_SUPPORT_QT
 
         /** Close currently opened file
