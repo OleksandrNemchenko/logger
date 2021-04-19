@@ -42,7 +42,7 @@ namespace ALogger {
     template<typename _TChar, typename T>
     inline void ToStrStream(std::basic_stringstream<_TChar>& stream, T&& arg) noexcept
     {
-        using TRaw = std::remove_cvref_t<T>;
+        using TRaw = std::remove_cv_t<std::remove_reference<T>>;
 
 #ifdef ALOGGER_SUPPORT_QT
         if constexpr (std::is_same_v<TRaw, QString> || std::is_base_of_v<QString, TRaw>)
@@ -182,21 +182,23 @@ namespace ALogger {
         void ChronoTimeToTm(std::chrono::system_clock::time_point time, tm& timeBuffer) const noexcept
         {
             time_t timeMoment{ std::chrono::system_clock::to_time_t(time) };
+            tm* timeBufPtr;
 
-#ifdef _MSC_VER
+#if defined(_MSC_VER)
             _timeConverter(&timeBuffer, &timeMoment);
 #else
-            _timeConverter(&timeMoment, &timeBuffer);
+            timeBufPtr = _timeConverter(&timeMoment);
+            timeBuffer = *timeBufPtr;
 #endif // _MSC_VER
         }
 
     private:
         TlevelsMap _levelsMap;
 
-#ifdef _MSC_VER
+#if defined(_MSC_VER)
         std::function<errno_t (tm*, const std::time_t*)> _timeConverter;
 #else
-        std::function<std::tm* (const std::time_t*, tm*)> _timeConverter;
+        std::function<std::tm* (const std::time_t*)> _timeConverter;
 #endif // _MSC_VER
         TStringMaker _stringMaker;
     };
@@ -224,7 +226,13 @@ namespace ALogger {
     template<typename _TChar>
     LoggerTxtBase<_TChar>::LoggerTxtBase(bool thrSafe, bool localTime) noexcept:
         TBase(thrSafe),
-        _timeConverter(localTime ? localtime_s : gmtime_s)
+        _timeConverter(localTime ?
+#if defined(_MSC_VER)
+        localtime_s : gmtime_s
+#else
+        localtime : gmtime
+#endif  // _MSC_VER
+        )
     {
         (void)localTime;
         using namespace std;

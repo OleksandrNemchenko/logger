@@ -56,13 +56,13 @@ namespace ALogger {
     class LoggerTxtFile : public LoggerTxtBase<_TChar> {
     public:
         /** Character type for text logger messages */
-        using TChar = LoggerTxtBase<_TChar>::TChar;
+        using TChar = typename LoggerTxtBase<_TChar>::TChar;
 
         /** String type for text logger messages */
-        using TString = LoggerTxtBase<_TChar>::TString;
+        using TString = typename LoggerTxtBase<_TChar>::TString;
         
         /** String view type for text logger messages */
-        using TStringView = LoggerTxtBase<_TChar>::TStringView;
+        using TStringView = typename LoggerTxtBase<_TChar>::TStringView;
 
         /** File stream type */
         using TStream = std::basic_ofstream<_TChar>;

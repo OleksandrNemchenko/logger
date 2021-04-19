@@ -7,6 +7,7 @@
 #include <memory>
 #include <mutex>
 #include <set>
+#include <thread>
 
 #include <avn/logger/logger_task.h>
 
@@ -192,8 +193,8 @@ auto ALogger::LoggerBase<_TLogData>::StartTask(bool initialSuccessState) noexcep
 
     assert(newTask);
     
-    auto deleter = [](TTask* task){  task->_logger.RemoveTask(task); };
-    std::unique_ptr<TTask, decltype(deleter)> newTaskUPtr(newTask);
+    auto taskDeleter = [](TTask* task){  task->_logger.RemoveTask(task); };
+    std::unique_ptr<TTask, decltype(taskDeleter)> newTaskUPtr(newTask);
 
     return std::move(newTaskUPtr);
 }

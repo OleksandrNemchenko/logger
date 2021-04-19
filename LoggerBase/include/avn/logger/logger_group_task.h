@@ -11,11 +11,11 @@ namespace ALogger
     template<typename... _TLogger>
     class LoggerGroupTaskHolder
     {
-        template<typename... _TLogger>
+        template<typename... _TLoggerTask>
         class LoggerGroupTask
         {
         public:
-            using TLoggerGroupTaskHolder = LoggerGroupTaskHolder<_TLogger...>;
+            using TLoggerGroupTaskHolder = LoggerGroupTaskHolder<_TLoggerTask...>;
             LoggerGroupTask(TLoggerGroupTaskHolder* ptr) noexcept: _ptr(ptr) {}
 
             void SetLevels(TLevelsInitList levels) noexcept     { _ptr->SetLevels(levels); }
