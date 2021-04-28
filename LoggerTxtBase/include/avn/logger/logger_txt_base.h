@@ -45,7 +45,7 @@ namespace ALogger {
         using TRaw = std::remove_cv_t<std::remove_reference<T>>;
 
 #ifdef ALOGGER_SUPPORT_QT
-        if constexpr (std::is_same_v<TRaw, QString> || std::is_base_of_v<QString, TRaw>)
+        if constexpr (std::is_same_v<T, QString> || std::is_same_v<T, const QString> || std::is_same_v<T, const QString&> || std::is_same_v<T, QString&> )
         {
             if constexpr (std::is_same_v<_TChar, char>)
                 stream << arg.toStdString();
