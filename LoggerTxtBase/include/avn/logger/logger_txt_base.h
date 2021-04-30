@@ -182,12 +182,11 @@ namespace ALogger {
         void ChronoTimeToTm(std::chrono::system_clock::time_point time, tm& timeBuffer) const noexcept
         {
             time_t timeMoment{ std::chrono::system_clock::to_time_t(time) };
-            tm* timeBufPtr;
 
 #if defined(_MSC_VER)
             _timeConverter(&timeBuffer, &timeMoment);
 #else
-            timeBufPtr = _timeConverter(&timeMoment);
+            tm* timeBufPtr = _timeConverter(&timeMoment);
             timeBuffer = *timeBufPtr;
 #endif // _MSC_VER
         }
